@@ -1,8 +1,8 @@
 {
-  "name": "scout",
+"name": "scout",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://localhost:9000",
+  "proxy": "http://localhost:${PORT:=9000}",
   "dependencies": {
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.4.0",

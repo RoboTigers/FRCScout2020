@@ -8,7 +8,7 @@ class App extends React.Component {
     this.state = {apiResponse:""};
   }
   callAPI() {
-    fetch("http://localhost:9000/saveMatch")
+    fetch("/saveMatch")
     .then(res => res.text())
     .then(res => this.setState({apiResponse: res}));
   }

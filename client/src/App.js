@@ -1,11 +1,17 @@
 import React from 'react';
-import logo from './logo.svg';
+import './components/TabNav';
+import TabNav from './components/TabNav';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
+
 
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {apiResponse:""};
+    this.state = {
+      apiResponse:"",
+      selectedTab: ''
+    };
   }
   callAPI() {
     fetch("/saveMatch")
@@ -13,16 +19,22 @@ class App extends React.Component {
     .then(res => this.setState({apiResponse: res}));
   }
   componentWillMount() {
-    this.callAPI();
+    //this.callAPI();
+  }
+
+  handleTabSelect = (event) => {
+    console.log('event in APP', event)
+    this.setState({
+      selectedTab: event
+    })
   }
 
 render() {
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-      </header>
-      <p>{this.state.apiResponse}</p>
+      <TabNav tabHandler={this.handleTabSelect} onClick={this.handleTabSelect}/>
+      
+      <h1>{this.state.selectedTab}</h1>
     </div>
   );
 }

@@ -38,6 +38,19 @@ class ScoutContent extends Component {
     </Col>
   </Form.Group>
 
+  <Form.Group as={Row} controlId="formAuto">
+    <Form.Label column xs="2">
+      Autonomous
+    </Form.Label>
+    <Col xs="1">
+    <Form.Check 
+    custom
+    type="switch"
+    label=""
+  />
+    </Col>
+  </Form.Group>
+
   <Button variant="primary" type="submit">
     Submit
   </Button>

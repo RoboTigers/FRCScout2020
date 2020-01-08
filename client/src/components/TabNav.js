@@ -1,5 +1,6 @@
 import React, {Component} from 'react'
-import { Tabs, Tab } from 'react-bootstrap';
+import Tabs from 'react-bootstrap/Tabs';
+import Tab from 'react-bootstrap/Tab';
 
 class TabNav extends Component {
   constructor(props) {

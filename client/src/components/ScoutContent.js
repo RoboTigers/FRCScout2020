@@ -40,7 +40,7 @@ class ScoutContent extends Component {
 
   <Form.Group as={Row} controlId="formAuto">
     <Form.Label column xs="2">
-      Autonomous
+      Auto
     </Form.Label>
     <Col xs="1">
     <Form.Check 

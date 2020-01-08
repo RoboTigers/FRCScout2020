@@ -20,7 +20,6 @@ class TabNav extends Component {
     return (
         <Tabs activeKey={this.state.activeTab} onSelect={this.handleSelect}>
                 <Tab eventKey="pit" title="Pit">
-              
                 </Tab>
                 <Tab eventKey="scout" title="Scout"></Tab>
                 <Tab eventKey="analyst" title="Analyst"></Tab>

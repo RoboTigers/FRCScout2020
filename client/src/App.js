@@ -5,6 +5,7 @@ import PitContent from './components/PitContent';
 import ScoutContent from './components/ScoutContent';
 import AnalystContent from './components/AnalystContent';
 import 'bootstrap/dist/css/bootstrap.min.css';
+//import 'bootstrap/dist/css/bootstrap.css';
 import './App.css';
 
 function RenderTabContent({selectedTab}) {
@@ -46,7 +47,6 @@ render() {
     <div className="App">
       <TabNav tabHandler={this.handleTabSelect} onClick={this.handleTabSelect}/>
       <RenderTabContent selectedTab={this.state.selectedTab} />
-      <h1>{this.state.selectedTab}</h1>
     </div>
   );
 }

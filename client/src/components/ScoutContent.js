@@ -11,8 +11,8 @@ class ScoutContent extends Component {
 <Form>
 
 <Form.Group as={Row} controlId="formCompetition">
-  <Form.Label column sm="2"></Form.Label>
-  <Col sm="6">
+  <Form.Label column xs="2"></Form.Label>
+  <Col xs="6">
     <Form.Control as="select">
       <option>Hudson</option>
        <option>Long Island</option>
@@ -21,19 +21,19 @@ class ScoutContent extends Component {
   </Form.Group>
   
   <Form.Group as={Row} controlId="formTeamNum">
-    <Form.Label column sm="2">
+    <Form.Label column xs="2">
       Team Number
     </Form.Label>
-    <Col sm="9">
+    <Col xs="9">
       <Form.Control type="text" placeholder="Team Number" />
     </Col>
   </Form.Group>
 
   <Form.Group as={Row} controlId="formMatchNum">
-    <Form.Label column sm="2">
+    <Form.Label column xs="2">
       Match Number
     </Form.Label>
-    <Col sm="9">
+    <Col xs="9">
       <Form.Control type="text" placeholder="Match Number" />
     </Col>
   </Form.Group>

@@ -1,12 +1,9 @@
-import React, {Component} from 'react'
+import React, { Component } from "react";
 
 class AnalystContent extends Component {
+  render() {
+    return <div>Analyst Content goes right here</div>;
+  }
+}
 
-    render () {
-        return (
-            <div>Analyst Content goes right here</div>
-        );
-       }
-    }
-    
-    export default AnalystContent;
+export default AnalystContent;

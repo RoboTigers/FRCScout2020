@@ -38,9 +38,9 @@ class PitContent extends Component {
         onSubmit={this.handleSumbit}
         className="pit-form"
       >
-        <Form.Group controlId="formGroup" className="w-75">
+        <Form.Group as={Row} controlId="formGroup" className="w-75">
           <Form.Label className="float-left mb-3">Group:</Form.Label>
-          <Form.Control required as="select" placeholder="Choose...">
+          <Form.Control required as="select">
             <option>Group 1 Red Alliance</option>
             <option>Group 2 Red Alliance</option>
             <option>Group 3 Red Alliance</option>
@@ -52,7 +52,7 @@ class PitContent extends Component {
             Please choose a group.
           </Form.Control.Feedback>
         </Form.Group>
-        <Form.Group controlId="formTeamNum" className="w-75">
+        <Form.Group as={Row} controlId="formTeamNum" className="w-75">
           <Form.Label className="float-left mb-3">Team Number:</Form.Label>
           <Form.Control
             type="number"
@@ -66,9 +66,41 @@ class PitContent extends Component {
             Please input a team number.
           </Form.Control.Feedback>
         </Form.Group>
-        <Button type="submit" className="mt-3">
+      <Form.Group as={Row} controlId="formDrive" className="w-75 mt-4">
+      <Form.Label className="float-left">Drive Train:</Form.Label>
+        <Form.Check
+          inline
+          custom
+          label="Tank"
+          type="radio"
+          name="radios"
+          id="radio1"
+          className="float-left ml-4"
+        />
+        <Form.Check
+          inline
+          custom
+          label="Swerve"
+          type="radio"
+          name="radios"
+          id="radio2"
+          className="float-left"
+        />
+        <Form.Check
+          inline
+          custom
+          label="Mecanum"
+          type="radio"
+          name="radios"
+          id="radio3"
+          className="float-left"
+        />
+      </Form.Group>
+        <Form.Group controlId="submitButton" className="w-75">
+        <Button type="submit">
           Submit form
         </Button>
+        </Form.Group>
       </Form>
     );
   }

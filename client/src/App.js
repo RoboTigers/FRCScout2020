@@ -8,6 +8,10 @@ import "bootstrap/dist/css/bootstrap.min.css";
 //import 'bootstrap/dist/css/bootstrap.css';
 import "./App.css";
 
+window.onbeforeunload = function(e) {
+  return "";
+};
+
 function RenderTabContent({ selectedTab }) {
   if (selectedTab === "pit") {
     return <PitContent />;
@@ -42,6 +46,7 @@ class App extends React.Component {
       selectedTab: event
     });
     localStorage.setItem("selectedTab", event);
+    sessionStorage.clear();
   };
 
   render() {

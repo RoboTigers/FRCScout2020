@@ -23,7 +23,7 @@ class ScoutContent extends Component {
             Team Number
           </Form.Label>
           <Col xs="9">
-            <Form.Control type="text" placeholder="Team Number" />
+            <Form.Control type="number" placeholder="Team Number" />
           </Col>
         </Form.Group>
 
@@ -41,7 +41,7 @@ class ScoutContent extends Component {
             Auto
           </Form.Label>
           <Col xs="1">
-            <Form.Check custom type="switch" label="" />
+            <Form.Check custom="true" type="switch" label="" />
           </Col>
         </Form.Group>
 

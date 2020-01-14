@@ -20,24 +20,23 @@ class Counter extends Component {
     });
   };
 
-  //   getBadgeClasses() {
-  //     let classes = "mr-4";
-  //     classes += this.props.label === "Drive Train Motors:" ? "" : " mb-3";
-  //     return classes;
-  //   }
+  spanStyle = {
+    fontSize: "15px",
+    display: "inline-block",
+    minWidth: "200px"
+  };
 
-  // change code above this line
   render() {
     return (
-      <div className="">
+      <div>
         <Button className="btn btn-danger btn-xs" onClick={this.decrement}>
           -
         </Button>
-        <span style={{ fontSize: 15 }}>
-          {" "}
+        <div className="" style={this.spanStyle}>
+          {"  "}
           {this.props.label} {this.state.count}{" "}
-        </span>
-        <Button className="btn btn-success btn-xs" onClick={this.increment}>
+        </div>
+        <Button className="btn btn-success btn-xs " onClick={this.increment}>
           +
         </Button>
       </div>

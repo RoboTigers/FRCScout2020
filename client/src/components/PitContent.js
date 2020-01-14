@@ -108,19 +108,33 @@ class PitContent extends Component {
                 className="float-left"
               />
             </Form.Group>
-            <Form.Group as={Row} controlId="formDriveMotors">
+            <Form.Group
+              className="justify-content-center"
+              as={Row}
+              controlId="formDriveMotors"
+            >
               <Counter label="Drive Train Motors:"></Counter>
             </Form.Group>
-            <Form.Group as={Row} controlId="formDriveMotorsTypes">
-              <Col xs="0">
-                <Counter label="Falcon:"></Counter>
-              </Col>
-              <Col xs="2">
-                <Counter label="Neo:"></Counter>
-              </Col>
-              <Col xs="0">
-                <Counter label="Cim:"></Counter>
-              </Col>
+            <Form.Group
+              className="justify-content-center"
+              as={Row}
+              controlId="formDriveMotorsTypes1"
+            >
+              <Counter label="Falcon:"></Counter>
+            </Form.Group>
+            <Form.Group
+              className="justify-content-center"
+              as={Row}
+              controlId="formDriveMotorsTypes2"
+            >
+              <Counter label="Neo:"></Counter>
+            </Form.Group>
+            <Form.Group
+              className="justify-content-center"
+              as={Row}
+              controlId="formDriveMotorsTypes3"
+            >
+              <Counter label="Cim:"></Counter>
             </Form.Group>
             <Button type="submit" className="btn-lg">
               Submit form

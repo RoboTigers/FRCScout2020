@@ -34,8 +34,8 @@ class PitContent extends Component {
 
   render() {
     return (
-      <div className="div-main" controlId="wrapper">
-        <div className="div-form" controlId="formWrapper">
+      <div className="div-main">
+        <div className="div-form">
           <Form
             noValidate
             validated={this.state.validated}
@@ -43,7 +43,7 @@ class PitContent extends Component {
             className="pit-form"
           >
             <Form.Group as={Row} controlId="formGroup">
-              <Form.Label className="float-left mb-3">Group:</Form.Label>
+              <Form.Label className="mb-3">Group:</Form.Label>
               <Form.Control className="mb-3" required as="select">
                 <option>Group 1 Red Alliance</option>
                 <option>Group 2 Red Alliance</option>
@@ -57,7 +57,7 @@ class PitContent extends Component {
               </Form.Control.Feedback>
             </Form.Group>
             <Form.Group as={Row} controlId="formTeamNum">
-              <Form.Label className="float-left mb-3">Team Number:</Form.Label>
+              <Form.Label className="mb-3">Team Number:</Form.Label>
               <Form.Control
                 type="number"
                 max="9999"
@@ -71,12 +71,10 @@ class PitContent extends Component {
                 Please input a team number.
               </Form.Control.Feedback>
             </Form.Group>
-            <Form.Group
-              as={Row}
-              controlId="formDrive"
-              className="w-75 mt-3 mb-4"
-            >
-              <Form.Label className="float-left">Drive Train:</Form.Label>
+            <Form.Group as={Row} controlId="driveTrainLabel">
+              <Form.Label>Drive Train:</Form.Label>
+            </Form.Group>
+            <Form.Group as={Row} controlId="formDrive" className="mt-3 mb-4">
               <Form.Check
                 required
                 inline
@@ -85,7 +83,7 @@ class PitContent extends Component {
                 type="radio"
                 name="radios"
                 id="radio1"
-                className="float-left ml-4"
+                className=""
               />
               <Form.Check
                 required
@@ -95,7 +93,7 @@ class PitContent extends Component {
                 type="radio"
                 name="radios"
                 id="radio2"
-                className="float-left"
+                className=""
               />
               <Form.Check
                 required
@@ -105,7 +103,7 @@ class PitContent extends Component {
                 type="radio"
                 name="radios"
                 id="radio3"
-                className="float-left"
+                className=""
               />
             </Form.Group>
             <Form.Group
@@ -113,28 +111,28 @@ class PitContent extends Component {
               as={Row}
               controlId="formDriveMotors"
             >
-              <Counter label="Drive Train Motors:"></Counter>
+              <Counter min={0} max={10} label="Drive Train Motors:"></Counter>
             </Form.Group>
             <Form.Group
               className="justify-content-center"
               as={Row}
               controlId="formDriveMotorsTypes1"
             >
-              <Counter label="Falcon:"></Counter>
+              <Counter min={0} max={10} label="Falcon:"></Counter>
             </Form.Group>
             <Form.Group
               className="justify-content-center"
               as={Row}
               controlId="formDriveMotorsTypes2"
             >
-              <Counter label="Neo:"></Counter>
+              <Counter min={0} max={10} label="Neo:"></Counter>
             </Form.Group>
             <Form.Group
               className="justify-content-center"
               as={Row}
               controlId="formDriveMotorsTypes3"
             >
-              <Counter label="Cim:"></Counter>
+              <Counter min={0} max={10} label="Cim:"></Counter>
             </Form.Group>
             <Button type="submit" className="btn-lg">
               Submit form

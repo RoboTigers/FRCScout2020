@@ -9,21 +9,27 @@ class Counter extends Component {
   // change code below this line
 
   increment = event => {
-    this.setState({
-      count: this.state.count + 1
-    });
+    if (this.state.count === this.props.max) {
+    } else {
+      this.setState({
+        count: this.state.count + 1
+      });
+    }
   };
 
   decrement = event => {
-    this.setState({
-      count: this.state.count - 1
-    });
+    if (this.state.count === this.props.min) {
+    } else {
+      this.setState({
+        count: this.state.count - 1
+      });
+    }
   };
 
   spanStyle = {
-    fontSize: "15px",
+    fontSize: "105%",
     display: "inline-block",
-    minWidth: "200px"
+    minWidth: "170px"
   };
 
   render() {

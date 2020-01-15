@@ -80,121 +80,117 @@ class PitContent extends Component {
   render() {
     return (
       <div className="div-main">
-        <div className="div-second">
+        <div style={{ width: this.state.widthSize }} className="div-form">
           <Form
             noValidate
             validated={this.state.validated}
             onSubmit={this.handleSumbit}
             className="pit-form"
           >
-            <div style={{ width: this.state.widthSize }} className="div-form">
-              <Form.Group as={Row} controlId="formGroup">
-                <Form.Label className="mb-3">Group:</Form.Label>
-                <Form.Control className="mb-3" required as="select">
-                  <option>Group 1 Red Alliance</option>
-                  <option>Group 2 Red Alliance</option>
-                  <option>Group 3 Red Alliance</option>
-                  <option>Group 1 Blue Alliance</option>
-                  <option>Group 2 Blue Alliance</option>
-                  <option>Group 3 Blue Alliance</option>
-                </Form.Control>
-                <Form.Control.Feedback type="invalid">
-                  Please choose a group.
-                </Form.Control.Feedback>
-              </Form.Group>
-            </div>
-            <div style={{ width: this.state.widthSize }} className="div-form">
-              <Form.Group as={Row} controlId="formTeamNum">
-                <Form.Label className="mb-3">Team Number:</Form.Label>
-                <Form.Control
-                  type="number"
-                  max="9999"
-                  min="1"
-                  placeholder="Team Number"
-                  onChange={this.checkTeamNum}
+            <Form.Group as={Row} controlId="formGroup">
+              <Form.Label className="mb-3">Group:</Form.Label>
+              <Form.Control className="mb-3" required as="select">
+                <option>Group 1 Red Alliance</option>
+                <option>Group 2 Red Alliance</option>
+                <option>Group 3 Red Alliance</option>
+                <option>Group 1 Blue Alliance</option>
+                <option>Group 2 Blue Alliance</option>
+                <option>Group 3 Blue Alliance</option>
+              </Form.Control>
+              <Form.Control.Feedback type="invalid">
+                Please choose a group.
+              </Form.Control.Feedback>
+            </Form.Group>
+            <Form.Group as={Row} controlId="formTeamNum">
+              <Form.Label className="mb-3">Team Number:</Form.Label>
+              <Form.Control
+                type="number"
+                max="9999"
+                min="1"
+                placeholder="Team Number"
+                onChange={this.checkTeamNum}
+                required
+                className="mb-4"
+              />
+              <Form.Control.Feedback type="invalid">
+                Please input a team number.
+              </Form.Control.Feedback>
+            </Form.Group>
+            <Form.Group as={Row} controlId="driveTrainLabel">
+              <Form.Label>Drive Train:</Form.Label>
+            </Form.Group>
+            <Form.Group as={Row} controlId="formDrive" className="mt-3 mb-3">
+              {this.state.driveTrains.map(driveTrain => (
+                <Form.Check
                   required
-                  className="mb-4"
+                  inline
+                  custom
+                  label={driveTrain.label}
+                  type="radio"
+                  name="driveTrains"
+                  id={"driveTrain" + driveTrain.id}
+                  key={"driveTrain" + driveTrain.id}
                 />
-                <Form.Control.Feedback type="invalid">
-                  Please input a team number.
-                </Form.Control.Feedback>
-              </Form.Group>
-              <Form.Group as={Row} controlId="driveTrainLabel">
-                <Form.Label>Drive Train:</Form.Label>
-              </Form.Group>
-              <Form.Group as={Row} controlId="formDrive" className="mt-3 mb-3">
-                {this.state.driveTrains.map(driveTrain => (
-                  <Form.Check
-                    required
-                    inline
-                    custom
-                    label={driveTrain.label}
-                    type="radio"
-                    name="driveTrains"
-                    id={"driveTrain" + driveTrain.id}
-                    key={"driveTrain" + driveTrain.id}
-                  />
-                ))}
-              </Form.Group>
-              <Form.Group
-                className="justify-content-center"
-                controlId="formDriveMotors"
-              >
-                {this.state.driveTrainMotors.map(motor => (
-                  <Form.Row
-                    className="mb-2"
-                    key={"driveTrainMotorRow" + motor.id}
-                  >
-                    <Col key={"driveTrainMotorCol" + motor.id}>
-                      <Counter
-                        min={0}
-                        max={10}
-                        minWidth="170px"
-                        label={motor.label + ":"}
-                        disabled={false}
-                        size="xs"
-                        marginRight="0px"
-                        id={"driveTrainMotor" + motor.id}
-                        key={"driveTrainMotor" + motor.id}
-                      />
-                    </Col>
-                  </Form.Row>
-                ))}
-              </Form.Group>
-              <Form.Group as={Row} controlId="wheelTypes" className="mt-4">
-                {this.state.wheels.map(wheel => (
-                  <span key={"driveTrainWheelSpan" + wheel.id}>
-                    <Form.Check
-                      required={!this.state.driveTrainWheelsValid}
-                      // noValidate
-                      onChange={() => this.handleWheelClick(wheel)}
-                      className="mr-3"
-                      // isValid={this.state.driveTrainWheelsValid}
-                      // validated={this.state.driveTrainWheelsValid}
-                      inline
-                      custom
-                      label={wheel.label}
-                      type="checkbox"
-                      name="driveTrainWheels"
-                      id={"driveTrainWheel" + wheel.id}
-                      key={"driveTrainWheel" + wheel.id}
-                    />
+              ))}
+            </Form.Group>
+            <Form.Group
+              className="justify-content-center"
+              controlId="formDriveMotors"
+            >
+              {this.state.driveTrainMotors.map(motor => (
+                <Form.Row
+                  className="mb-2"
+                  key={"driveTrainMotorRow" + motor.id}
+                >
+                  <Col key={"driveTrainMotorCol" + motor.id}>
                     <Counter
                       min={0}
                       max={10}
-                      minWidth="20px"
-                      disabled={!wheel.value}
-                      size="sm"
-                      marginRight="10px"
-                      key={"driveTrainWheelCounter" + wheel.id}
+                      minWidth="170px"
+                      label={motor.label + ":"}
+                      disabled={false}
+                      size="xs"
+                      marginRight="0px"
+                      id={"driveTrainMotor" + motor.id}
+                      key={"driveTrainMotor" + motor.id}
                     />
-                  </span>
-                ))}
-              </Form.Group>
-              <Button type="submit" className="btn-lg">
-                Submit form
-              </Button>
-            </div>
+                  </Col>
+                </Form.Row>
+              ))}
+            </Form.Group>
+            <Form.Group as={Row} controlId="wheelTypes" className="mt-4">
+              {this.state.wheels.map(wheel => (
+                <span key={"driveTrainWheelSpan" + wheel.id}>
+                  <Form.Check
+                    required={!this.state.driveTrainWheelsValid}
+                    // noValidate
+                    onChange={() => this.handleWheelClick(wheel)}
+                    className="mr-3"
+                    // isValid={this.state.driveTrainWheelsValid}
+                    // validated={this.state.driveTrainWheelsValid}
+                    inline
+                    custom
+                    label={wheel.label}
+                    type="checkbox"
+                    name="driveTrainWheels"
+                    id={"driveTrainWheel" + wheel.id}
+                    key={"driveTrainWheel" + wheel.id}
+                  />
+                  <Counter
+                    min={0}
+                    max={10}
+                    minWidth="20px"
+                    disabled={!wheel.value}
+                    size="sm"
+                    marginRight="10px"
+                    key={"driveTrainWheelCounter" + wheel.id}
+                  />
+                </span>
+              ))}
+            </Form.Group>
+            <Button type="submit" className="btn-lg">
+              Submit form
+            </Button>
           </Form>
         </div>
       </div>

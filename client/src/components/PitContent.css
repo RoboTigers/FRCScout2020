@@ -4,7 +4,7 @@
 }
 
 .div-form {
-  /* display: inline-block; */
+  display: inline-block;
   padding: 2%;
   margin-top: 25px;
   margin-bottom: 25px;
@@ -14,11 +14,12 @@
 }
 
 .div-second {
-  display: "inline-block";
-  width: "100%";
+  /* display: "inline-block"; */
+  width: inherit;
 }
 
 .div-main {
+  padding-bottom: 25px;
   align-items: center;
   text-align: center;
   justify-content: center;

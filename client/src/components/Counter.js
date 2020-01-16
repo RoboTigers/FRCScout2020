@@ -27,9 +27,12 @@ class Counter extends Component {
   };
 
   spanStyle = {
-    fontSize: "105%",
-    display: "inline-block",
+    fontSize: "90%",
+    // display: "inline-block",
+    margin: this.props.margin,
     minWidth: this.props.minWidth
+    // textAlign: "center"
+    // justifyContent: "center"
   };
 
   render() {
@@ -43,12 +46,15 @@ class Counter extends Component {
         >
           -
         </Button>
-        <div style={this.spanStyle}>
+        <span style={this.spanStyle}>
           {"  "}
-          {this.props.label} {this.state.count}{" "}
-        </div>
+          {this.props.label}
+          {this.props.colon} {this.state.count}{" "}
+        </span>
         <Button
-          style={{ marginRight: this.props.marginRight }}
+          style={{
+            marginRight: this.props.marginRight
+          }}
           disabled={this.props.disabled}
           className="btn btn-success"
           onClick={this.increment}

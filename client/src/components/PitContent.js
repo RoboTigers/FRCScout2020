@@ -3,68 +3,125 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import Container from "react-bootstrap/Container";
 import "./PitContent.css";
 import "./Counter.js";
 import Counter from "./Counter.js";
+import Logo from "./1796NumberswithScratch.png";
 
 class PitContent extends Component {
   state = {
     validated: false,
     widthSize: "",
     heightSize: "",
+    group: "Group 1 Red Alliance",
+    teamNumber: "",
+    driveTrain: "",
     driveTrains: [
-      { id: 1, label: "Tank", value: false },
-      { id: 2, label: "Swerve", value: false },
-      { id: 3, label: "Mecanum", value: false },
-      { id: 4, label: "H-Drive", value: false }
+      { id: 1, label: "Tank" },
+      { id: 2, label: "Swerve" },
+      { id: 3, label: "Mecanum" },
+      { id: 4, label: "H-Drive" }
+    ],
+    driveTrainMotors: [
+      { id: 1, label: "Falcon 500", value: 0, min: 0, max: 10 },
+      { id: 2, label: "NEO", value: 0, min: 0, max: 10 },
+      { id: 3, label: "CIM", value: 0, min: 0, max: 10 },
+      { id: 4, label: "Mini-CIM", value: 0, min: 0, max: 10 },
+      { id: 5, label: "Other", motorName: "", value: 0, min: 0, max: 10 }
     ],
     driveTrainWheelsValid: false,
-    driveTrainMotors: [
-      { id: 1, label: "Falcon 500", value: 0 },
-      { id: 2, label: "NEO", value: 0 },
-      { id: 3, label: "CIM", value: 0 },
-      { id: 4, label: "Mini-CIM", value: 0 },
-      { id: 5, label: "Other", value: 0 }
-    ],
+    // prettier-ignore
     wheels: [
-      { id: 1, label: "Traction", value: false },
-      { id: 2, label: "Omni", value: false },
-      { id: 3, label: "Colson (Rubber)", value: false },
-      { id: 4, label: "Pneumatic", value: false },
-      { id: 5, label: "Mecanum", value: false },
-      { id: 6, label: "Other", value: false }
-    ]
+      { id: 1, label: "Traction", value: false, count: 0, size: 0, min: 0, max: 10 },
+      { id: 2, label: "Omni", value: false, count: 0, size: 0, min: 0, max: 10 },
+      { id: 3, label: "Colson (Rubber)", value: false, count: 0, size: 0, min: 0, max: 10 },
+      { id: 4, label: "Pneumatic", value: false, count: 0, size: 0, min: 0, max: 10 },
+      { id: 5, label: "Mecanum", value: false, count: 0, size: 0, min: 0, max: 10 },
+      { id: 6, label: "Other", wheelName: "", value: false, count: 0, size: 0, min: 0, max: 10 }
+    ],
+    driveComments: "",
+    programmingLanguage: "",
+    programmingLanguages: [
+      { id: 1, label: "Java", value: false },
+      { id: 2, label: "C++", value: false },
+      { id: 3, label: "LabView", value: false }
+    ],
+    autoComments: "",
+    mechanismsValid: false,
+    mechanisms: [
+      { id: 1, label: "Drive under the Trench", value: false },
+      { id: 2, label: "Receive balls from Human Feeder Station", value: false },
+      { id: 3, label: "Pickup from the floor", value: false },
+      { id: 4, label: "Score in the Bottom Port", value: false },
+      { id: 5, label: "Ferry balls", value: false },
+      { id: 6, label: "Complete Rotation Control", value: false },
+      { id: 7, label: "Complete Position Control", value: false },
+      { id: 8, label: "Hang Alone", value: false },
+      { id: 9, label: "Buddy Hang", value: false },
+      { id: 10, label: "Buddy Hang + one other robot", value: false },
+      { id: 11, label: "Triple Hang", value: false },
+      { id: 12, label: "Level", value: false },
+      { id: 13, label: "None", value: false }
+    ],
+    workingOnComments: "",
+    closingComments: ""
   };
 
   componentDidMount() {
-    console.log(window.innerWidth);
     this.setState({
       widthSize: window.innerWidth <= 760 ? "90%" : "50%"
     });
     this.setState({ heightSize: window.innerHeight + "px" });
-    console.log(document.body.scrollHeight + "px");
   }
 
-  checkTeamNum = event => {
-    console.log(this.state.widthSize);
-    let value = event.target.value;
-    console.log(value);
-    if (value > 9999) {
-      event.target.value = parseInt(value.toString().slice(0, 4), 10);
-    } else if (value < 1) {
-      event.target.value = "";
-    }
+  handleGroupChange = event => {
+    this.setState({ group: event.target.value });
   };
 
-  handleSumbit = event => {
-    let form = event.target;
-    if (form.checkValidity() === false) {
-      event.preventDefault();
-      event.stopPropagation();
+  checkTeamNum = event => {
+    let value = event.target.value;
+    let max = parseInt(event.target.max);
+    let min = parseInt(event.target.min);
+    if (value > max) {
+      event.target.value = parseInt(value.toString().slice(0, 4), 10);
+    } else if (value < min) {
+      event.target.value = "";
     }
+    this.setState({ teamNumber: event.target.value });
+  };
 
-    this.setState({ validated: true });
+  handleDriveChange = driveTrain => {
+    this.setState({ driveTrain: driveTrain.label });
+  };
+
+  handleMotorDecrement = motor => {
+    const motors = [...this.state.driveTrainMotors];
+    const index = motors.indexOf(motor);
+    motors[index] = { ...motor };
+    if (motors[index].value === motors[index].min) {
+    } else {
+      motors[index].value = motors[index].value - 1;
+    }
+    this.setState({ driveTrainMotors: motors });
+  };
+
+  handleMotorIncrement = motor => {
+    const motors = [...this.state.driveTrainMotors];
+    const index = motors.indexOf(motor);
+    motors[index] = { ...motor };
+    if (motors[index].value === motors[index].max) {
+    } else {
+      motors[index].value = motors[index].value + 1;
+    }
+    this.setState({ driveTrainMotors: motors });
+  };
+
+  handleOtherMotor = (event, motor) => {
+    const motors = [...this.state.driveTrainMotors];
+    const index = motors.indexOf(motor);
+    motors[index] = { ...motor };
+    motors[index].motorName = event.target.value;
+    this.setState({ driveTrainMotors: motors });
   };
 
   handleWheelClick = wheel => {
@@ -76,14 +133,109 @@ class PitContent extends Component {
     let newValidity = false;
     wheels.map(wheel => {
       newValidity = wheel.value || newValidity;
+      return null;
     });
     this.setState({ driveTrainWheelsValid: newValidity });
-    console.log(this.state.driveTrainWheelsValid);
+  };
+
+  checkWheelSize = (event, wheel) => {
+    let value = event.target.value;
+    let max = parseFloat(event.target.max);
+    let min = parseFloat(event.target.min);
+    if (value > max) {
+      event.target.value = max;
+    } else if (value < min) {
+      event.target.value = "";
+    }
+    const wheels = [...this.state.wheels];
+    const index = wheels.indexOf(wheel);
+    wheels[index] = { ...wheel };
+    wheels[index].size = parseFloat(event.target.value);
+    this.setState({ wheels });
+  };
+
+  handleWheelDecrement = wheel => {
+    const wheels = [...this.state.wheels];
+    const index = wheels.indexOf(wheel);
+    wheels[index] = { ...wheel };
+    if (wheels[index].count === wheels[index].min) {
+    } else {
+      wheels[index].count = wheels[index].count - 1;
+    }
+    this.setState({ wheels });
+  };
+
+  handleWheelIncrement = wheel => {
+    const wheels = [...this.state.wheels];
+    const index = wheels.indexOf(wheel);
+    wheels[index] = { ...wheel };
+    if (wheels[index].count === wheels[index].max) {
+    } else {
+      wheels[index].count = wheels[index].count + 1;
+    }
+    this.setState({ wheels });
+  };
+
+  handleOtherWheel = (event, wheel) => {
+    const wheels = [...this.state.wheels];
+    const index = wheels.indexOf(wheel);
+    wheels[index] = { ...wheel };
+    wheels[index].wheelName = event.target.value;
+    this.setState({ wheels });
+  };
+
+  handleDriveComment = event => {
+    this.setState({ driveComments: event.target.value });
+  };
+
+  handleProgrammingChange = language => {
+    this.setState({ programmingLanguage: language.label });
+  };
+
+  handleAutoComment = event => {
+    this.setState({ autoComments: event.target.value });
+  };
+
+  handleMechanismClick = mechanism => {
+    const mechanisms = [...this.state.mechanisms];
+    const index = mechanisms.indexOf(mechanism);
+    mechanisms[index] = { ...mechanism };
+    mechanisms[index].value = !mechanisms[index].value;
+    this.setState({ mechanisms });
+    let newValidity = false;
+    mechanisms.map(mechanism => {
+      newValidity = mechanism.value || newValidity;
+      return null;
+    });
+    this.setState({ mechanismsValid: newValidity });
+  };
+
+  handleWorkingOnComment = event => {
+    this.setState({ workingOnComments: event.target.value });
+  };
+
+  handleClosingComment = event => {
+    this.setState({ closingComments: event.target.value });
+  };
+
+  handleSumbit = event => {
+    let form = event.target;
+    if (form.checkValidity() === false) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    this.setState({ validated: true });
   };
 
   render() {
     return (
       <div className="div-main">
+        <div className="justify-content-center">
+          <img
+            src={Logo}
+            style={{ width: this.state.widthSize, marginTop: "20px" }}
+          />
+        </div>
         <div style={{ width: this.state.widthSize }} className="div-second">
           <Form
             noValidate
@@ -94,7 +246,12 @@ class PitContent extends Component {
             <div className="div-form">
               <Form.Group style={{ width: "80%", marginLeft: "2%" }} as={Row}>
                 <Form.Label className="mb-3">Group:</Form.Label>
-                <Form.Control className="mb-3" required as="select">
+                <Form.Control
+                  className="mb-2"
+                  required
+                  as="select"
+                  onChange={this.handleGroupChange}
+                >
                   <option>Group 1 Red Alliance</option>
                   <option>Group 2 Red Alliance</option>
                   <option>Group 3 Red Alliance</option>
@@ -112,12 +269,12 @@ class PitContent extends Component {
                 <Form.Label className="mb-3">Team Number:</Form.Label>
                 <Form.Control
                   type="number"
-                  max="9999"
-                  min="1"
+                  max={9999}
+                  min={1}
                   placeholder="Team Number"
                   onChange={this.checkTeamNum}
                   required
-                  className="mb-4"
+                  className="mb-2"
                 />
                 <Form.Control.Feedback type="invalid">
                   Please input a team number.
@@ -126,7 +283,7 @@ class PitContent extends Component {
             </div>
             <div className="div-form">
               <Form.Group style={{ width: "80%", marginLeft: "2%" }} as={Row}>
-                <Form.Label>Drive Train:</Form.Label>
+                <Form.Label className="mb-0">Drive Train:</Form.Label>
               </Form.Group>
               <Form.Group
                 style={{ width: "100%", marginLeft: "2%" }}
@@ -138,6 +295,7 @@ class PitContent extends Component {
                     required
                     inline
                     custom
+                    onClick={() => this.handleDriveChange(driveTrain)}
                     label={driveTrain.label}
                     type="radio"
                     name="driveTrains"
@@ -146,23 +304,28 @@ class PitContent extends Component {
                   />
                 ))}
               </Form.Group>
-              <Form.Group>
+              <Form.Group style={{ width: "100%" }}>
                 {this.state.driveTrainMotors.map(motor => (
                   <Form.Row
                     className="mb-2 justify-content-center"
                     key={"driveTrainMotorRow" + motor.id}
                   >
                     <Counter
-                      min={0}
-                      max={10}
                       minWidth="170px"
-                      colon=":"
-                      margin="0px 0px 0px 0px"
+                      count={motor.value}
+                      margin={
+                        motor.label !== "Other"
+                          ? "7px 0px 0px 0px"
+                          : "3px 0px 0px 0px"
+                      }
+                      colon=": "
+                      onIncrement={() => this.handleMotorIncrement(motor)}
+                      onDecrement={() => this.handleMotorDecrement(motor)}
                       label={
                         motor.label !== "Other" ? (
                           motor.label
                         ) : (
-                          <div
+                          <span
                             style={{
                               maxWidth: "170px",
                               width: "100px",
@@ -173,12 +336,19 @@ class PitContent extends Component {
                             <Form.Control
                               type="text"
                               placeholder={motor.label}
+                              onChange={event =>
+                                this.handleOtherMotor(event, motor)
+                              }
                               style={{
+                                textJustify: "center",
                                 textAlign: "center",
-                                fontSize: "90%"
+                                fontSize: "90%",
+                                backgroundImage: "none",
+                                backgroundSize: "0px",
+                                border: "none"
                               }}
                             />
-                          </div>
+                          </span>
                         )
                       }
                       disabled={false}
@@ -191,7 +361,7 @@ class PitContent extends Component {
                 ))}
               </Form.Group>
               <Form.Group
-                style={{ width: "80%", marginLeft: "2%" }}
+                style={{ width: "100%", marginLeft: "2%" }}
                 className="mt-4"
               >
                 {this.state.wheels.map(wheel => (
@@ -199,22 +369,25 @@ class PitContent extends Component {
                     key={"driveTrainWheelRow" + wheel.id}
                     className="mb-2"
                   >
-                    <Col xs="7" style={{ textAlign: "left" }}>
+                    <Col xs="4" style={{ textAlign: "left" }}>
                       <Form.Check
                         required={!this.state.driveTrainWheelsValid}
                         onChange={() => this.handleWheelClick(wheel)}
-                        // inline
                         custom
+                        style={{ fontSize: "90%" }}
                         label={
                           wheel.label !== "Other" ? (
                             wheel.label
                           ) : (
                             <Form.Control
-                              style={{ maxWidth: "90px" }}
+                              required
+                              style={{ maxWidth: "80px", fontSize: "90%" }}
                               type="text"
                               placeholder={wheel.label}
                               disabled={!wheel.value}
-                              id="driveTrainWheelOther"
+                              onChange={event =>
+                                this.handleOtherWheel(event, wheel)
+                              }
                             />
                           )
                         }
@@ -224,11 +397,32 @@ class PitContent extends Component {
                         key={"driveTrainWheel" + wheel.id}
                       />
                     </Col>
+                    <Col xs="3" style={{ textAlign: "center" }}>
+                      <Form.Control
+                        type="float"
+                        max={12}
+                        min={1}
+                        placeholder="Size (in)"
+                        style={{
+                          fontSize: "65%",
+                          textAlign: "center",
+                          marginLeft: "6px"
+                        }}
+                        required
+                        disabled={!wheel.value}
+                        onChange={event => this.checkWheelSize(event, wheel)}
+                      />
+                    </Col>
                     <Col>
                       <Counter
-                        min={0}
-                        max={10}
-                        margin="0px 5px 0px 5px"
+                        count={wheel.count}
+                        onDecrement={() => this.handleWheelDecrement(wheel)}
+                        onIncrement={() => this.handleWheelIncrement(wheel)}
+                        colon=""
+                        label=""
+                        minWidth="24px"
+                        maxWidth="24px"
+                        margin="0px 0px 0px 0px"
                         disabled={!wheel.value}
                         size="sm"
                         marginRight="0px"
@@ -238,10 +432,107 @@ class PitContent extends Component {
                   </Form.Row>
                 ))}
               </Form.Group>
-              <Button type="submit" className="btn-lg">
-                Submit form
-              </Button>
+              <Form.Group style={{ width: "80%", marginLeft: "2%" }} as={Row}>
+                <Form.Control
+                  as="textarea"
+                  type="text"
+                  placeholder="Any additional comments about drive train"
+                  onChange={this.handleDriveComment}
+                  className="mb-0"
+                  rows="3"
+                />
+              </Form.Group>
             </div>
+            <div className="div-form">
+              <Form.Group style={{ width: "80%", marginLeft: "2%" }} as={Row}>
+                <Form.Label className="mb-0">Autonomous:</Form.Label>
+              </Form.Group>
+              <Form.Group
+                style={{ width: "100%", marginLeft: "2%" }}
+                as={Row}
+                className="mt-3 mb-3"
+              >
+                {this.state.programmingLanguages.map(language => (
+                  <Form.Check
+                    required
+                    inline
+                    custom
+                    label={language.label}
+                    type="radio"
+                    name="programmingLanguages"
+                    onClick={() => this.handleProgrammingChange(language)}
+                    id={"language" + language.id}
+                    key={"language" + language.id}
+                  />
+                ))}
+              </Form.Group>
+              <Form.Group style={{ width: "80%", marginLeft: "2%" }} as={Row}>
+                <Form.Control
+                  as="textarea"
+                  type="text"
+                  onChange={this.handleAutoComment}
+                  placeholder="What is their usual strategy in auto?"
+                  className="mb-0"
+                  rows="3"
+                />
+              </Form.Group>
+            </div>
+            <div className="div-form">
+              <Form.Group style={{ width: "80%", marginLeft: "2%" }} as={Row}>
+                <Form.Label className="mb-0">Mechanisms:</Form.Label>
+              </Form.Group>
+              <Form.Group
+                style={{ width: "100%", marginLeft: "3%" }}
+                className="mt-3"
+              >
+                {this.state.mechanisms.map(mechanism => (
+                  <Form.Row
+                    key={"mechanismRow" + mechanism.id}
+                    className="mb-2"
+                  >
+                    <Form.Check
+                      required={!this.state.mechanismsValid}
+                      onChange={() => this.handleMechanismClick(mechanism)}
+                      custom
+                      style={{ fontSize: "90%" }}
+                      label={mechanism.label}
+                      type="checkbox"
+                      name="mechanisms"
+                      id={"mechanism" + mechanism.id}
+                      key={"mechanism" + mechanism.id}
+                    />
+                  </Form.Row>
+                ))}
+              </Form.Group>
+            </div>
+            <div className="div-form">
+              <Form.Group style={{ width: "80%", marginLeft: "2%" }} as={Row}>
+                <Form.Label className="mb-0">Closing:</Form.Label>
+              </Form.Group>
+              <Form.Group style={{ width: "80%", marginLeft: "2%" }} as={Row}>
+                <Form.Control
+                  as="textarea"
+                  type="text"
+                  placeholder="Is there anything that the team is still working on?"
+                  onChange={this.handleWorkingOnComment}
+                  className="mb-0"
+                  rows="3"
+                />
+              </Form.Group>
+              <Form.Group style={{ width: "80%", marginLeft: "2%" }} as={Row}>
+                <Form.Control
+                  as="textarea"
+                  type="text"
+                  placeholder="Additional comments"
+                  onChange={this.handleClosingComment}
+                  className="mb-0"
+                  rows="2"
+                />
+              </Form.Group>
+            </div>
+            <Button type="submit" className="btn-lg">
+              Submit form
+            </Button>
           </Form>
         </div>
       </div>

@@ -3,36 +3,23 @@ import Button from "react-bootstrap/Button";
 
 class Counter extends Component {
   state = {
-    count: 0
-  };
-
-  // change code below this line
-
-  increment = event => {
-    if (this.state.count === this.props.max) {
-    } else {
-      this.setState({
-        count: this.state.count + 1
-      });
-    }
-  };
-
-  decrement = event => {
-    if (this.state.count === this.props.min) {
-    } else {
-      this.setState({
-        count: this.state.count - 1
-      });
-    }
+    minWidth: ""
   };
 
   spanStyle = {
     fontSize: "90%",
-    // display: "inline-block",
+    display: "inline-block",
     margin: this.props.margin,
-    minWidth: this.props.minWidth
+    minWidth: this.props.minWidth,
+    maxWidth: this.props.maxWidth
     // textAlign: "center"
     // justifyContent: "center"
+  };
+
+  refCallback = element => {
+    if (element) {
+      this.setState({ minWidth: element.getBoundingClientRect().width });
+    }
   };
 
   render() {
@@ -40,24 +27,28 @@ class Counter extends Component {
       <React.Fragment>
         <Button
           disabled={this.props.disabled}
-          className="btn btn-danger"
-          onClick={this.decrement}
+          className="btn"
+          variant={this.props.disabled ? "outline-danger" : "danger"}
+          onClick={this.props.onDecrement}
           size={this.props.size}
+          style={{ minWidth: this.state.minWidth }}
         >
           -
         </Button>
         <span style={this.spanStyle}>
-          {"  "}
           {this.props.label}
-          {this.props.colon} {this.state.count}{" "}
+          {this.props.colon}
+          {this.props.count}
         </span>
         <Button
+          ref={this.refCallback}
           style={{
             marginRight: this.props.marginRight
           }}
           disabled={this.props.disabled}
-          className="btn btn-success"
-          onClick={this.increment}
+          className="btn"
+          variant={this.props.disabled ? "outline-success" : "success"}
+          onClick={this.props.onIncrement}
           size={this.props.size}
         >
           +

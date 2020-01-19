@@ -588,7 +588,10 @@ class PitContent extends Component {
                     placeholder="Any additional comments about drive train"
                     onChange={this.handleDriveComment}
                     rows="3"
-                    style={{ background: "none" }}
+                    style={{
+                      background: "none",
+                      fontFamily: "Helvetica, Arial"
+                    }}
                   />
                 </Form.Group>
               </div>

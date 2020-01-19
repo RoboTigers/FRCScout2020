@@ -8,8 +8,12 @@ import "bootstrap/dist/css/bootstrap.min.css";
 //import 'bootstrap/dist/css/bootstrap.css';
 import "./App.css";
 
-window.onbeforeunload = function(e) {
+window.onbeforeunload = event => {
   return "";
+};
+
+window.onunload = event => {
+  window.scrollTo(0, 0);
 };
 
 function RenderTabContent({ selectedTab }) {

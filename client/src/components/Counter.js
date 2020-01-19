@@ -11,7 +11,8 @@ class Counter extends Component {
     display: "inline-block",
     margin: this.props.margin,
     minWidth: this.props.minWidth,
-    maxWidth: this.props.maxWidth
+    maxWidth: this.props.maxWidth,
+    fontFamily: "Helvetica, Arial"
     // textAlign: "center"
     // justifyContent: "center"
   };

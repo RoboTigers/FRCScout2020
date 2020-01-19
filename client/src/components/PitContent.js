@@ -396,7 +396,7 @@ class PitContent extends Component {
                 <Form.Label
                   className="mb-1"
                   style={{
-                    fontFamily: "Helvetica",
+                    fontFamily: "Helvetica, Arial",
                     fontSize: "110%"
                   }}
                 >
@@ -404,12 +404,17 @@ class PitContent extends Component {
                 </Form.Label>
               </Form.Group>
               <Form.Group
-                style={{ width: "100%", marginLeft: "2%" }}
+                style={{
+                  width: "100%",
+                  marginLeft: "2%",
+                  fontFamily: "Helvetica, Arial"
+                }}
                 as={Row}
                 className="mb-3"
               >
                 {this.state.driveTrains.map(driveTrain => (
                   <Form.Check
+                    style={{ fontFamily: "Helvetica, Arial" }}
                     required
                     inline
                     custom
@@ -445,6 +450,7 @@ class PitContent extends Component {
                         ) : (
                           <span
                             style={{
+                              fontFamily: "Helvetica, Arial",
                               maxWidth: "170px",
                               width: "100px",
                               display: "inline-block",
@@ -461,6 +467,7 @@ class PitContent extends Component {
                                 this.handleOtherMotor(event, motor)
                               }
                               style={{
+                                fontFamily: "Helvetica, Arial",
                                 textJustify: "center",
                                 textAlign: "center",
                                 fontSize: "90%",
@@ -496,7 +503,10 @@ class PitContent extends Component {
                         required={!this.state.driveTrainWheelsValid}
                         onChange={() => this.handleWheelClick(wheel)}
                         custom
-                        style={{ fontSize: "90%" }}
+                        style={{
+                          fontSize: "90%",
+                          fontFamily: "Helvetica, Arial"
+                        }}
                         type="checkbox"
                         name="driveTrainWheels"
                         id={"driveTrainWheel" + wheel.id}
@@ -515,6 +525,7 @@ class PitContent extends Component {
                                 this.handleOtherWheel(event, wheel)
                               }
                               style={{
+                                fontFamily: "Helvetica, Arial",
                                 maxWidth: "80px",
                                 fontSize: "90%",
                                 backgroundColor: "transparent"
@@ -536,6 +547,7 @@ class PitContent extends Component {
                         disabled={!wheel.value}
                         onChange={event => this.checkWheelSize(event, wheel)}
                         style={{
+                          fontFamily: "Helvetica, Arial",
                           fontSize: "65%",
                           textAlign: "center",
                           marginLeft: "6px",
@@ -586,7 +598,7 @@ class PitContent extends Component {
                 <Form.Label
                   className="mb-1"
                   style={{
-                    fontFamily: "Helvetica",
+                    fontFamily: "Helvetica, Arial",
                     fontSize: "110%"
                   }}
                 >
@@ -600,6 +612,7 @@ class PitContent extends Component {
               >
                 {this.state.programmingLanguages.map(language => (
                   <Form.Check
+                    style={{ fontFamily: "Helvetica, Arial" }}
                     required
                     inline
                     custom
@@ -627,7 +640,10 @@ class PitContent extends Component {
                     placeholder="What is their usual strategy in auto?"
                     className="mb-0"
                     rows="3"
-                    style={{ background: "none" }}
+                    style={{
+                      background: "none",
+                      fontFamily: "Helvetica, Arial"
+                    }}
                   />
                 </Form.Group>
               </div>
@@ -636,7 +652,7 @@ class PitContent extends Component {
               <Form.Group style={{ width: "80%", marginLeft: "1%" }} as={Row}>
                 <Form.Label
                   style={{
-                    fontFamily: "Helvetica",
+                    fontFamily: "Helvetica, Arial",
                     fontSize: "110%"
                   }}
                 >
@@ -653,7 +669,10 @@ class PitContent extends Component {
                       required={!this.state.mechanismsValid}
                       onChange={() => this.handleMechanismClick(mechanism)}
                       custom
-                      style={{ fontSize: "90%" }}
+                      style={{
+                        fontSize: "90%",
+                        fontFamily: "Helvetica, Arial"
+                      }}
                       label={mechanism.label}
                       type="checkbox"
                       name="mechanisms"
@@ -668,7 +687,7 @@ class PitContent extends Component {
               <Form.Group style={{ width: "80%", marginLeft: "1%" }} as={Row}>
                 <Form.Label
                   style={{
-                    fontFamily: "Helvetica",
+                    fontFamily: "Helvetica, Arial",
                     fontSize: "110%"
                   }}
                 >
@@ -690,7 +709,10 @@ class PitContent extends Component {
                     onChange={this.handleWorkingOnComment}
                     className="mb-0"
                     rows="3"
-                    style={{ background: "none" }}
+                    style={{
+                      background: "none",
+                      fontFamily: "Helvetica, Arial"
+                    }}
                   />
                 </Form.Group>
               </div>
@@ -709,7 +731,10 @@ class PitContent extends Component {
                     onChange={this.handleClosingComment}
                     className="mb-0"
                     rows="2"
-                    style={{ background: "none" }}
+                    style={{
+                      background: "none",
+                      fontFamily: "Helvetica, Arial"
+                    }}
                   />
                 </Form.Group>
               </div>

@@ -32,14 +32,15 @@ class PitContent extends Component {
       { id: 5, label: "Other", motorName: "", value: 0, min: 0, max: 10 }
     ],
     driveTrainWheelsValid: false,
+    driveTrainWheelSizesValid: false,
     // prettier-ignore
     wheels: [
-      { id: 1, label: "Traction", value: false, count: 0, size: 0, min: 1, max: 10 },
-      { id: 2, label: "Omni", value: false, count: 0, size: 0, min: 1, max: 10 },
-      { id: 3, label: "Colson (Rubber)", value: false, count: 0, size: 0, min: 1, max: 10 },
-      { id: 4, label: "Pneumatic", value: false, count: 0, size: 0, min: 1, max: 10 },
-      { id: 5, label: "Mecanum", value: false, count: 0, size: 0, min: 1, max: 10 },
-      { id: 6, label: "Other", wheelName: "", value: false, count: 0, size: 0, min: 1, max: 10 }
+      { id: 1, label: "Traction", value: false, count: 0, size: "", min: 1, max: 10 },
+      { id: 2, label: "Omni", value: false, count: 0, size: "", min: 1, max: 10 },
+      { id: 3, label: "Colson (Rubber)", value: false, count: 0, size: "", min: 1, max: 10 },
+      { id: 4, label: "Pneumatic", value: false, count: 0, size: "", min: 1, max: 10 },
+      { id: 5, label: "Mecanum", value: false, count: 0, size: "", min: 1, max: 10 },
+      { id: 6, label: "Other", wheelName: "", value: false, count: 0, size: "", min: 1, max: 10 }
     ],
     driveComments: "",
     programmingLanguage: "",
@@ -85,11 +86,17 @@ class PitContent extends Component {
     let max = parseInt(event.target.max);
     let min = parseInt(event.target.min);
     if (value > max) {
-      event.target.value = parseInt(value.toString().slice(0, 4), 10);
+      event.target.value = value.toString().slice(0, 4);
     } else if (value < min) {
       event.target.value = "";
     }
     this.setState({ teamNumber: event.target.value });
+  };
+
+  checkTeamInput = event => {
+    if (event.keyCode === 190 || event.keyCode === 69) {
+      event.preventDefault();
+    }
   };
 
   checkWeight = event => {
@@ -97,7 +104,7 @@ class PitContent extends Component {
     let max = parseFloat(event.target.max);
     let min = parseFloat(event.target.min);
     if (value > max) {
-      event.target.value = max;
+      event.target.value = value.toString().slice(0, 3);
     } else if (value < min) {
       event.target.value = "";
     }
@@ -109,7 +116,7 @@ class PitContent extends Component {
     let max = parseFloat(event.target.max);
     let min = parseFloat(event.target.min);
     if (value > max) {
-      event.target.value = max;
+      event.target.value = value.toString().slice(0, 2);
     } else if (value < min) {
       event.target.value = "";
     }
@@ -176,8 +183,18 @@ class PitContent extends Component {
     const wheels = [...this.state.wheels];
     const index = wheels.indexOf(wheel);
     wheels[index] = { ...wheel };
-    wheels[index].size = parseFloat(event.target.value);
+    wheels[index].size = event.target.value;
     this.setState({ wheels });
+    let newValidity = true;
+    wheels
+      .filter(wheel => wheel.value)
+      .map(wheel => {
+        if (wheel.size === "") {
+          newValidity = false;
+        }
+        return null;
+      });
+    this.setState({ driveTrainWheelSizesValid: newValidity });
   };
 
   handleWheelDecrement = wheel => {
@@ -244,11 +261,21 @@ class PitContent extends Component {
     this.setState({ closingComments: event.target.value });
   };
 
+  isFormValid() {
+    return (
+      this.state.teamNumber !== "" &&
+      this.state.weight !== "" &&
+      this.state.height !== "" &&
+      this.state.driveTrain !== "" &&
+      this.state.driveTrainWheelsValid &&
+      this.state.driveTrainWheelSizesValid &&
+      this.state.programmingLanguage !== "" &&
+      this.state.mechanismsValid
+    );
+  }
+
   handleSumbit = event => {
-    let form = event.target;
-    if (form.checkValidity() === false) {
-      event.preventDefault();
-      event.stopPropagation();
+    if (this.isFormValid()) {
     }
     this.setState({ validated: true });
   };
@@ -258,6 +285,7 @@ class PitContent extends Component {
       <div className="div-main">
         <div className="justify-content-center">
           <img
+            alt="Logo"
             src={Logo}
             style={{
               width: this.state.widthSize === "90%" ? "70%" : "30%",
@@ -267,12 +295,7 @@ class PitContent extends Component {
           />
         </div>
         <div style={{ width: this.state.widthSize }} className="div-second">
-          <Form
-            noValidate
-            validated={this.state.validated}
-            onSubmit={this.handleSumbit}
-            className="pit-form"
-          >
+          <div className="pit-form">
             <div className="div-form">
               <Form.Group style={{ width: "80%", marginLeft: "1%" }} as={Row}>
                 <Form.Label
@@ -287,11 +310,13 @@ class PitContent extends Component {
               </Form.Group>
               <Form.Group style={{ width: "80%", marginLeft: "2%" }} as={Row}>
                 <Form.Control
+                  style={{
+                    background: "none",
+                    fontFamily: "Helvetica, Arial"
+                  }}
                   className="mb-1"
-                  required
                   as="select"
                   onChange={this.handleGroupChange}
-                  style={{ background: "none" }}
                 >
                   <option>Group 1 Red Alliance</option>
                   <option>Group 2 Red Alliance</option>
@@ -307,7 +332,7 @@ class PitContent extends Component {
                 <Form.Label
                   className="mb-1"
                   style={{
-                    fontFamily: "Helvetica",
+                    fontFamily: "Helvetica, Arial",
                     fontSize: "110%"
                   }}
                 >
@@ -321,10 +346,14 @@ class PitContent extends Component {
                   max={9999}
                   min={1}
                   placeholder="Team Number"
+                  onKeyDown={this.checkTeamInput}
                   onChange={this.checkTeamNum}
-                  required
+                  isValid={this.state.validated && this.state.teamNumber !== ""}
+                  isInvalid={
+                    this.state.validated && this.state.teamNumber === ""
+                  }
                   className="mb-1"
-                  style={{ background: "none" }}
+                  style={{ background: "none", fontFamily: "Helvetica, Arial" }}
                 />
                 <Form.Control.Feedback type="invalid">
                   Please input a team number.
@@ -349,12 +378,12 @@ class PitContent extends Component {
                   type="number"
                   max={500}
                   min={0}
-                  step="0.0001"
                   placeholder="Weight (lbs)"
                   onChange={this.checkWeight}
-                  required
+                  isValid={this.state.validated && this.state.weight !== ""}
+                  isInvalid={this.state.validated && this.state.weight === ""}
                   className="mb-1"
-                  style={{ background: "none" }}
+                  style={{ background: "none", fontFamily: "Helvetica, Arial" }}
                 />
                 <Form.Control.Feedback type="invalid">
                   Please input a weight.
@@ -379,12 +408,12 @@ class PitContent extends Component {
                   type="number"
                   max={100}
                   min={0}
-                  step="0.0001"
+                  isValid={this.state.validated && this.state.height !== ""}
+                  isInvalid={this.state.validated && this.state.height === ""}
                   placeholder="Height (inches)"
                   onChange={this.checkHeight}
-                  required
                   className="mb-1"
-                  style={{ background: "none" }}
+                  style={{ background: "none", fontFamily: "Helvetica, Arial" }}
                 />
                 <Form.Control.Feedback type="invalid">
                   Please input a height.
@@ -414,14 +443,20 @@ class PitContent extends Component {
               >
                 {this.state.driveTrains.map(driveTrain => (
                   <Form.Check
+                    isValid={
+                      this.state.validated && !this.state.driveTrain !== ""
+                    }
+                    isInvalid={
+                      this.state.validated && this.state.driveTrain === ""
+                    }
                     style={{ fontFamily: "Helvetica, Arial" }}
-                    required
                     inline
                     custom
-                    onClick={() => this.handleDriveChange(driveTrain)}
+                    onChange={() => this.handleDriveChange(driveTrain)}
                     label={driveTrain.label}
                     type="radio"
-                    name="driveTrains"
+                    autoComplete="off"
+                    checked={this.state.driveTrain === driveTrain.label}
                     id={"driveTrain" + driveTrain.id}
                     key={"driveTrain" + driveTrain.id}
                   />
@@ -458,8 +493,6 @@ class PitContent extends Component {
                             }}
                           >
                             <Form.Control
-                              // isValid={true}
-                              required={false}
                               autoComplete="off"
                               type="text"
                               placeholder={motor.label}
@@ -474,7 +507,6 @@ class PitContent extends Component {
                                 backgroundImage: "none",
                                 background: "none",
                                 backgroundSize: "0px"
-                                // border: "none"
                               }}
                             />
                           </span>
@@ -500,7 +532,14 @@ class PitContent extends Component {
                   >
                     <Col xs="4" style={{ textAlign: "left" }}>
                       <Form.Check
-                        required={!this.state.driveTrainWheelsValid}
+                        isInvalid={
+                          this.state.validated &&
+                          !this.state.driveTrainWheelsValid
+                        }
+                        isValid={
+                          this.state.validated &&
+                          this.state.driveTrainWheelsValid
+                        }
                         onChange={() => this.handleWheelClick(wheel)}
                         custom
                         style={{
@@ -508,7 +547,7 @@ class PitContent extends Component {
                           fontFamily: "Helvetica, Arial"
                         }}
                         type="checkbox"
-                        name="driveTrainWheels"
+                        checked={wheel.value}
                         id={"driveTrainWheel" + wheel.id}
                         key={"driveTrainWheel" + wheel.id}
                         label={
@@ -517,7 +556,16 @@ class PitContent extends Component {
                           ) : (
                             <Form.Control
                               autoComplete="off"
-                              required
+                              isInvalid={
+                                this.state.validated &&
+                                wheel.value &&
+                                wheel.wheelName === ""
+                              }
+                              isValid={
+                                this.state.validated &&
+                                wheel.value &&
+                                wheel.wheelName !== ""
+                              }
                               type="text"
                               placeholder={wheel.label}
                               disabled={!wheel.value}
@@ -539,11 +587,19 @@ class PitContent extends Component {
                       <Form.Control
                         autoComplete="off"
                         type="number"
-                        step="0.001"
                         max={12}
                         min={1}
                         placeholder="Size (in)"
-                        required
+                        isInvalid={
+                          this.state.validated &&
+                          wheel.value &&
+                          wheel.size === ""
+                        }
+                        isValid={
+                          this.state.validated &&
+                          wheel.value &&
+                          wheel.size !== ""
+                        }
                         disabled={!wheel.value}
                         onChange={event => this.checkWheelSize(event, wheel)}
                         style={{
@@ -616,13 +672,20 @@ class PitContent extends Component {
                 {this.state.programmingLanguages.map(language => (
                   <Form.Check
                     style={{ fontFamily: "Helvetica, Arial" }}
-                    required
+                    isInvalid={
+                      this.state.validated &&
+                      this.state.programmingLanguage === ""
+                    }
+                    isValid={
+                      this.state.validated &&
+                      this.state.programmingLanguage !== ""
+                    }
                     inline
                     custom
                     label={language.label}
                     type="radio"
-                    name="programmingLanguages"
-                    onClick={() => this.handleProgrammingChange(language)}
+                    onChange={() => this.handleProgrammingChange(language)}
+                    checked={this.state.programmingLanguage === language.label}
                     id={"language" + language.id}
                     key={"language" + language.id}
                   />
@@ -669,7 +732,12 @@ class PitContent extends Component {
                     className="mb-2"
                   >
                     <Form.Check
-                      required={!this.state.mechanismsValid}
+                      isInvalid={
+                        this.state.validated && !this.state.mechanismsValid
+                      }
+                      isValid={
+                        this.state.validated && this.state.mechanismsValid
+                      }
                       onChange={() => this.handleMechanismClick(mechanism)}
                       custom
                       style={{
@@ -678,7 +746,7 @@ class PitContent extends Component {
                       }}
                       label={mechanism.label}
                       type="checkbox"
-                      name="mechanisms"
+                      checked={mechanism.value}
                       id={"mechanism" + mechanism.id}
                       key={"mechanism" + mechanism.id}
                     />
@@ -742,10 +810,10 @@ class PitContent extends Component {
                 </Form.Group>
               </div>
             </div>
-            <Button type="submit" className="btn-lg">
+            <Button type="btn" onClick={this.handleSumbit} className="btn-lg">
               Submit form
             </Button>
-          </Form>
+          </div>
         </div>
       </div>
     );

@@ -12,10 +12,6 @@ window.onbeforeunload = event => {
   return "";
 };
 
-window.onunload = event => {
-  // window.scrollTo(0, 0);
-};
-
 function RenderTabContent({ selectedTab }) {
   if (selectedTab === "pit") {
     return <PitContent />;
@@ -25,6 +21,10 @@ function RenderTabContent({ selectedTab }) {
     return <AnalystContent />;
   }
 }
+
+window.onunload = event => {
+  window.scrollTo(0, 0);
+};
 
 class App extends React.Component {
   state = {

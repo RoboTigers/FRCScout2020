@@ -5,9 +5,39 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 
 class ScoutContent extends Component {
+
+  handleSubmit = event => {
+    event.preventDefault()
+    let form = event.target;
+    const data = { 
+      competition: document.getElementById ('formCompetition').value,
+      teamNum: document.getElementById ('formTeamNum').value,
+      matchNum: document.getElementById ('formMatchNum').value
+    };
+
+    fetch('/matches', { 
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
+    .then((response) => response.json())
+    .then((data) => {
+      alert(data.message)
+      console.log('Success:', data);
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+  };
+
   render() {
     return (
-      <Form>
+      <Form
+        onSubmit={this.handleSubmit}
+        className="match-form"
+      >
         <Form.Group className="mt-3" as={Row} controlId="formCompetition">
           <Form.Label column xs="2"></Form.Label>
           <Col xs="6">
@@ -44,11 +74,11 @@ class ScoutContent extends Component {
             <Form.Check custom="true" type="switch" label="" />
           </Col>
         </Form.Group>
+        
+        <Button type="submit" className="btn-lg">Submit form</Button>
 
-        <Button variant="primary" type="submit">
-          Submit
-        </Button>
       </Form>
+
     );
   }
 }

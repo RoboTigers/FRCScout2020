@@ -4,9 +4,11 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require('cors');
+
+// ROUTES
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-var saveMatchRouter = require("./routes/saveMatch");
+var matchesRouter = require("./routes/matchesRouter");
 
 var app = express();
 
@@ -23,8 +25,8 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'client/build')))
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/saveMatch', saveMatchRouter);
+app.use('/', usersRouter);
+app.use('/', matchesRouter);
 
 // Anything that doesn't match the above, send back index.html
 app.get('*', (req, res) => {

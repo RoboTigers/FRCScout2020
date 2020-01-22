@@ -3,49 +3,58 @@ import Button from "react-bootstrap/Button";
 
 class Counter extends Component {
   state = {
-    count: 0
-  };
-
-  // change code below this line
-
-  increment = event => {
-    if (this.state.count === this.props.max) {
-    } else {
-      this.setState({
-        count: this.state.count + 1
-      });
-    }
-  };
-
-  decrement = event => {
-    if (this.state.count === this.props.min) {
-    } else {
-      this.setState({
-        count: this.state.count - 1
-      });
-    }
+    minWidth: ""
   };
 
   spanStyle = {
-    fontSize: "105%",
+    fontSize: "90%",
     display: "inline-block",
-    minWidth: "170px"
+    margin: this.props.margin,
+    minWidth: this.props.minWidth,
+    maxWidth: this.props.maxWidth,
+    fontFamily: "Helvetica, Arial"
+    // textAlign: "center"
+    // justifyContent: "center"
+  };
+
+  refCallback = element => {
+    if (element) {
+      this.setState({ minWidth: element.getBoundingClientRect().width });
+    }
   };
 
   render() {
     return (
-      <div>
-        <Button className="btn btn-danger btn-xs" onClick={this.decrement}>
+      <React.Fragment>
+        <Button
+          disabled={this.props.disabled}
+          className="btn"
+          variant={this.props.disabled ? "outline-danger" : "danger"}
+          onClick={this.props.onDecrement}
+          size={this.props.size}
+          style={{ minWidth: this.state.minWidth }}
+        >
           -
         </Button>
-        <div className="" style={this.spanStyle}>
-          {"  "}
-          {this.props.label} {this.state.count}{" "}
-        </div>
-        <Button className="btn btn-success btn-xs " onClick={this.increment}>
+        <span style={this.spanStyle}>
+          {this.props.label}
+          {this.props.colon}
+          {this.props.count}
+        </span>
+        <Button
+          ref={this.refCallback}
+          style={{
+            marginRight: this.props.marginRight
+          }}
+          disabled={this.props.disabled}
+          className="btn"
+          variant={this.props.disabled ? "outline-success" : "success"}
+          onClick={this.props.onIncrement}
+          size={this.props.size}
+        >
           +
         </Button>
-      </div>
+      </React.Fragment>
     );
   }
 }

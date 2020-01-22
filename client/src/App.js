@@ -8,7 +8,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 //import 'bootstrap/dist/css/bootstrap.css';
 import "./App.css";
 
-window.onbeforeunload = function(e) {
+window.onbeforeunload = event => {
   return "";
 };
 
@@ -21,6 +21,10 @@ function RenderTabContent({ selectedTab }) {
     return <AnalystContent />;
   }
 }
+
+window.onunload = event => {
+  window.scrollTo(0, 0);
+};
 
 class App extends React.Component {
   state = {

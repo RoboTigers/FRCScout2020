@@ -8,7 +8,6 @@ class ScoutContent extends Component {
 
   handleSubmit = event => {
     event.preventDefault()
-    let form = event.target;
     const data = { 
       competition: document.getElementById ('formCompetition').value,
       teamNum: document.getElementById ('formTeamNum').value,

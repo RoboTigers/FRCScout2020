@@ -2,7 +2,7 @@ import React from "react";
 import "./components/TabNav";
 import TabNav from "./components/TabNav";
 import PitContent from "./components/PitContent";
-import ScoutContent from "./components/ScoutContent";
+import MatchContent from "./components/MatchContent";
 import AnalystContent from "./components/AnalystContent";
 import "bootstrap/dist/css/bootstrap.min.css";
 //import 'bootstrap/dist/css/bootstrap.css';
@@ -15,8 +15,8 @@ window.onbeforeunload = event => {
 function RenderTabContent({ selectedTab }) {
   if (selectedTab === "pit") {
     return <PitContent />;
-  } else if (selectedTab === "scout") {
-    return <ScoutContent />;
+  } else if (selectedTab === "match") {
+    return <MatchContent />;
   } else {
     return <AnalystContent />;
   }
@@ -40,7 +40,7 @@ class App extends React.Component {
 
   componentDidMount() {
     this.setState({
-      selectedTab: localStorage.getItem("selectedTab") || "scout"
+      selectedTab: localStorage.getItem("selectedTab") || "match"
     });
   }
 

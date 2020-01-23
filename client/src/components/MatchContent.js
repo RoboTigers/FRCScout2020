@@ -4,7 +4,7 @@ import Button from "react-bootstrap/Button";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 
-class ScoutContent extends Component {
+class MatchContent extends Component {
 
   handleSubmit = event => {
     event.preventDefault()
@@ -82,4 +82,4 @@ class ScoutContent extends Component {
   }
 }
 
-export default ScoutContent;
+export default MatchContent;

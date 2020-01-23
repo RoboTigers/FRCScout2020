@@ -13,6 +13,9 @@ router.post('/matches', (req, res) => {
   const addMatchQuery = 'INSERT INTO match (competition_id, team_id, match_num, last_modified)  VALUES ($1, $2, $3, NOW()) RETURNING *'
   const addMatchValues = [1, 1, params.matchNum ]
 
+  const selectMatchesQuery = 'SELECT competition_id, is_current FROM competition where name = $1'
+  const selectMatchesValues = [ 'Hudson' ]
+
   db
     .query(addMatchQuery, addMatchValues)
     .then(res => {

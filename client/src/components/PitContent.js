@@ -810,7 +810,12 @@ class PitContent extends Component {
                 </Form.Group>
               </div>
             </div>
-            <Button type="btn" onClick={this.handleSumbit} className="btn-lg">
+            <Button
+              type="btn"
+              style={{ fontFamily: "Helvetica, Arial" }}
+              onClick={this.handleSumbit}
+              className="btn-lg"
+            >
               Submit form
             </Button>
           </div>

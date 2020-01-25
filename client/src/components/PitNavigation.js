@@ -3,7 +3,8 @@ import './PitContent.css';
 import Logo from './1796NumberswithScratch.png';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
-import Table from 'react-bootstrap/Table';
+import BootstrapTable from 'react-bootstrap-table-next';
+import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css';
 import Button from 'react-bootstrap/Button';
 
 class PitNavigation extends Component {
@@ -12,26 +13,102 @@ class PitNavigation extends Component {
     widthSize: '',
     heightSize: '',
     competition: '',
-    tableData: {}
+    competitionQuery: '',
+    column: [
+      {
+        dataField: 'num',
+        text: 'Team Number',
+        sort: true
+      },
+      { dataField: 'name', text: 'Team Name', sort: true },
+      {
+        dataField: 'status',
+        text: 'Pit Status',
+        sort: true
+      },
+      {
+        dataField: 'buttonValue',
+        text: 'Scout'
+      }
+    ],
+    tableData: []
   };
 
-  componentDidMount() {
-    fetch('/pitNav')
+  initialSetup = () => {
+    fetch('/currentCompetition')
       .then(response => response.json())
       .then(data => {
-        console.log(data);
-        this.setState({ Tabledata: data });
+        if (data.competition === 'HVR') {
+          this.setState({
+            competition: 'Hudson Valley Regional',
+            competitionQuery: 'HVR'
+          });
+        } else if (data.competition === 'SPLBI') {
+          this.setState({
+            competition: 'SBPLI #2 Regional',
+            competitionQuery: 'SBPLI'
+          });
+        } else if (data.competition === 'NYC') {
+          this.setState({
+            competition: 'New York City Regional',
+            competitionQuery: 'NYC'
+          });
+        } else if (data.competition === 'Champs') {
+          this.setState({ competition: 'Champs', competitionQuery: 'Champs' });
+        }
+        this.getPitData(data.competition);
       })
       .catch(error => {
         console.error('Error:', error);
       });
+  };
+
+  getPitData = competition => {
+    let base = '/pitTable?competition=';
+    fetch(base.concat(competition))
+      .then(response => response.json())
+      .then(data => {
+        data.pitData.map(team => (team.buttonValue = <Button>Start</Button>));
+        this.setState({ tableData: data.pitData });
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+  };
+
+  componentDidMount() {
+    this.initialSetup();
     this.setState({
       widthSize: window.innerWidth <= 760 ? '90%' : '50%'
     });
     this.setState({ heightSize: window.innerHeight + 'px' });
   }
 
-  handleRefresh = () => {};
+  handleGroupChange = event => {
+    let value = event.target.value;
+    if (value === 'Hudson Valley Regional') {
+      this.setState({
+        competition: 'Hudson Valley Regional',
+        competitionQuery: 'HVR'
+      });
+      this.getPitData('HVR');
+    } else if (value === 'SBPLI #2 Regional') {
+      this.setState({
+        competition: 'SBPLI #2 Regional',
+        competitionQuery: 'SBPLI'
+      });
+      this.getPitData('SBPLI');
+    } else if (value === 'New York City Regional') {
+      this.setState({
+        competition: 'New York City Regional',
+        competitionQuery: 'NYC'
+      });
+      this.getPitData('NYC');
+    } else if (value === 'Champs') {
+      this.setState({ competition: 'Champs', competitionQuery: 'Champs' });
+      this.getPitData('Champs');
+    }
+  };
 
   render() {
     return (
@@ -50,12 +127,20 @@ class PitNavigation extends Component {
         <div style={{ width: this.state.widthSize }} className='div-second'>
           <div className='pit-form'>
             <div className='div-form'>
-              <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
+              <Form.Group
+                style={{
+                  width: '100%',
+                  margin: '0 auto',
+                  marginBottom: '10px'
+                }}
+                as={Row}
+              >
                 <Form.Label
                   className='mb-1'
                   style={{
                     fontFamily: 'Helvetica, Arial',
-                    fontSize: '110%'
+                    fontSize: '110%',
+                    margin: '0 auto'
                   }}
                 >
                   Competition:
@@ -63,7 +148,11 @@ class PitNavigation extends Component {
               </Form.Group>
               <Form.Group
                 controlId='formCompetition'
-                style={{ width: '80%', marginLeft: '2%' }}
+                style={{
+                  width: '80%',
+                  margin: '0 auto',
+                  marginBottom: '10px'
+                }}
                 as={Row}
               >
                 <Form.Control
@@ -71,14 +160,19 @@ class PitNavigation extends Component {
                     background: 'none',
                     fontFamily: 'Helvetica, Arial'
                   }}
-                  className='mb-1'
                   as='select'
                   onChange={this.handleGroupChange}
-                ></Form.Control>
+                  value={this.state.competition}
+                >
+                  <option>Hudson Valley Regional</option>
+                  <option>SBPLI #2 Regional</option>
+                  <option>New York City Regional</option>
+                  <option>Champs</option>
+                </Form.Control>
               </Form.Group>
               <Button
                 type='btn'
-                onClick={this.handleRefresh}
+                onClick={() => this.getPitData(this.state.competitionQuery)}
                 className='btn-lg'
                 style={{ fontFamily: 'Helvetica, Arial' }}
               >
@@ -87,15 +181,33 @@ class PitNavigation extends Component {
             </div>
           </div>
         </div>
-        {/* <Table striped bordered hover>
-          <thead>
-            <th>Team Number</th>
-            <th>Team Name</th>
-            <th>Status</th>
-            <th>Scout</th>
-          </thead>
-          <tbody></tbody>
-        </Table> */}
+        <BootstrapTable
+          // stripped
+          // hover
+          className='no-outline-on-focus'
+          keyField='num'
+          style={{
+            focus: {
+              outline: '0',
+              backgroundColor: 'none',
+              border: 'none'
+            }
+          }}
+          rowStyle={{
+            border: '0px',
+            outline: '0px',
+            focus: {
+              outline: 'none',
+              backgroundColor: 'none',
+              border: '0px'
+            }
+          }}
+          rowStyle={this.state.style}
+          // bordered
+          bootstrap4
+          data={this.state.tableData}
+          columns={this.state.column}
+        />
       </div>
     );
   }

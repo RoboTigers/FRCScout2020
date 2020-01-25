@@ -17,6 +17,7 @@
     "morgan": "^1.9.1",
     "nodemon": "^2.0.2",
     "pg": "^7.17.1",
-    "pug": "^2.0.4"
+    "pug": "^2.0.4",
+    "react-bootstrap-table-next": "^3.3.3"
   }
 }

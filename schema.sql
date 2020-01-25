@@ -20,7 +20,9 @@ create table team (
     name varchar(100)
 );
 
-insert into team (num, name) values ('1796', 'RoboTigers');
+insert into team (num, name) values ('254', 'The Cheesy Poofs');
+insert into team (num, name) values ('118', 'Robonauts');
+insert into team (num, name) values ('148', 'Robowranglers');
 
 drop table if exists match;
 

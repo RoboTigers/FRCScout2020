@@ -16,11 +16,11 @@ class PitNavigation extends Component {
     competitionQuery: '',
     column: [
       {
-        dataField: 'num',
+        dataField: 'team_num',
         text: 'Team Number',
         sort: true
       },
-      { dataField: 'name', text: 'Team Name', sort: true },
+      { dataField: 'team_name', text: 'Team Name', sort: true },
       {
         dataField: 'status',
         text: 'Pit Status',

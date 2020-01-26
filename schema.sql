@@ -51,4 +51,9 @@ create table pit (
 INSERT INTO pit (team_id, competition_id)
 SELECT t.team_id, c.competition_id
 FROM (SELECT team_id from team) t, 
-(SELECT competition_id from competition where name='HVR') c;
+(SELECT competition_id from competition where short_name='HVR') c;
+
+INSERT INTO pit (team_id, competition_id)
+SELECT t.team_id, c.competition_id
+FROM (SELECT team_id from team where team_num=1796) t, 
+(SELECT competition_id from competition where short_name='Champs') c;

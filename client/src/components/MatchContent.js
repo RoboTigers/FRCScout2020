@@ -37,8 +37,10 @@ class MatchContent extends Component {
           <Form.Label column xs="2"></Form.Label>
           <Col xs="6">
             <Form.Control as="select">
-              <option>Hudson</option>
-              <option>Long Island</option>
+              <option>HVR</option>
+              <option>SBPLI</option>
+              <option>NYC</option>
+              <option>Champs</option>
             </Form.Control>
           </Col>
         </Form.Group>

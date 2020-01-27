@@ -1,35 +1,35 @@
-import React, { Component } from "react";
-import Form from "react-bootstrap/Form";
-import Button from "react-bootstrap/Button";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
-import "./PitContent.css";
-import "./Counter.js";
-import Counter from "./Counter.js";
-import Logo from "./1796NumberswithScratch.png";
+import React, { Component } from 'react';
+import Form from 'react-bootstrap/Form';
+import Button from 'react-bootstrap/Button';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+import './PitContent.css';
+import './Counter.js';
+import Counter from './Counter.js';
+import Logo from './1796NumberswithScratch.png';
 
 class PitContent extends Component {
   state = {
     validated: false,
-    widthSize: "",
-    heightSize: "",
-    group: "Group 1 Red Alliance",
-    teamNumber: "",
-    weight: "",
-    height: "",
-    driveTrain: "",
+    widthSize: '',
+    heightSize: '',
+    group: 'Group 1 Red Alliance',
+    teamNumber: '',
+    weight: '',
+    height: '',
+    driveTrain: '',
     driveTrains: [
-      { id: 1, label: "Tank" },
-      { id: 2, label: "Swerve" },
-      { id: 3, label: "Mecanum" },
-      { id: 4, label: "H-Drive" }
+      { id: 1, label: 'Tank' },
+      { id: 2, label: 'Swerve' },
+      { id: 3, label: 'Mecanum' },
+      { id: 4, label: 'H-Drive' }
     ],
     driveTrainMotors: [
-      { id: 1, label: "Falcon 500", value: 0, min: 0, max: 10 },
-      { id: 2, label: "NEO", value: 0, min: 0, max: 10 },
-      { id: 3, label: "CIM", value: 0, min: 0, max: 10 },
-      { id: 4, label: "Mini-CIM", value: 0, min: 0, max: 10 },
-      { id: 5, label: "Other", motorName: "", value: 0, min: 0, max: 10 }
+      { id: 1, label: 'Falcon 500', value: 0, min: 0, max: 10 },
+      { id: 2, label: 'NEO', value: 0, min: 0, max: 10 },
+      { id: 3, label: 'CIM', value: 0, min: 0, max: 10 },
+      { id: 4, label: 'Mini-CIM', value: 0, min: 0, max: 10 },
+      { id: 5, label: 'Other', motorName: '', value: 0, min: 0, max: 10 }
     ],
     driveTrainWheelsValid: false,
     driveTrainWheelSizesValid: false,
@@ -42,39 +42,39 @@ class PitContent extends Component {
       { id: 5, label: "Mecanum", value: false, count: 0, size: "", min: 1, max: 10 },
       { id: 6, label: "Other", wheelName: "", value: false, count: 0, size: "", min: 1, max: 10 }
     ],
-    driveComments: "",
-    programmingLanguage: "",
+    driveComments: '',
+    programmingLanguage: '',
     programmingLanguages: [
-      { id: 1, label: "Java", value: false },
-      { id: 2, label: "C++", value: false },
-      { id: 3, label: "LabView", value: false }
+      { id: 1, label: 'Java', value: false },
+      { id: 2, label: 'C++', value: false },
+      { id: 3, label: 'LabView', value: false }
     ],
-    autoComments: "",
+    autoComments: '',
     mechanismsValid: false,
     mechanisms: [
-      { id: 1, label: "Drive under the Trench", value: false },
-      { id: 2, label: "Receive balls from Human Feeder Station", value: false },
-      { id: 3, label: "Pickup from the floor", value: false },
-      { id: 4, label: "Score in the Bottom Port", value: false },
-      { id: 5, label: "Ferry balls", value: false },
-      { id: 6, label: "Complete Rotation Control", value: false },
-      { id: 7, label: "Complete Position Control", value: false },
-      { id: 8, label: "Hang Alone", value: false },
-      { id: 9, label: "Buddy Hang", value: false },
-      { id: 10, label: "Buddy Hang + one other robot", value: false },
-      { id: 11, label: "Triple Hang", value: false },
-      { id: 12, label: "Level", value: false },
-      { id: 13, label: "None", value: false }
+      { id: 1, label: 'Drive under the Trench', value: false },
+      { id: 2, label: 'Receive balls from Human Feeder Station', value: false },
+      { id: 3, label: 'Pickup from the floor', value: false },
+      { id: 4, label: 'Score in the Bottom Port', value: false },
+      { id: 5, label: 'Ferry balls', value: false },
+      { id: 6, label: 'Complete Rotation Control', value: false },
+      { id: 7, label: 'Complete Position Control', value: false },
+      { id: 8, label: 'Hang Alone', value: false },
+      { id: 9, label: 'Buddy Hang', value: false },
+      { id: 10, label: 'Buddy Hang + one other robot', value: false },
+      { id: 11, label: 'Triple Hang', value: false },
+      { id: 12, label: 'Level', value: false },
+      { id: 13, label: 'None', value: false }
     ],
-    workingOnComments: "",
-    closingComments: ""
+    workingOnComments: '',
+    closingComments: ''
   };
 
   componentDidMount() {
     this.setState({
-      widthSize: window.innerWidth <= 760 ? "90%" : "50%"
+      widthSize: window.innerWidth <= 760 ? '90%' : '50%'
     });
-    this.setState({ heightSize: window.innerHeight + "px" });
+    this.setState({ heightSize: window.innerHeight + 'px' });
   }
 
   handleGroupChange = event => {
@@ -88,7 +88,7 @@ class PitContent extends Component {
     if (value > max) {
       event.target.value = value.toString().slice(0, 4);
     } else if (value < min) {
-      event.target.value = "";
+      event.target.value = '';
     }
     this.setState({ teamNumber: event.target.value });
   };
@@ -106,7 +106,7 @@ class PitContent extends Component {
     if (value > max) {
       event.target.value = value.toString().slice(0, 3);
     } else if (value < min) {
-      event.target.value = "";
+      event.target.value = '';
     }
     this.setState({ weight: event.target.value });
   };
@@ -118,7 +118,7 @@ class PitContent extends Component {
     if (value > max) {
       event.target.value = value.toString().slice(0, 2);
     } else if (value < min) {
-      event.target.value = "";
+      event.target.value = '';
     }
     this.setState({ height: event.target.value });
   };
@@ -178,7 +178,7 @@ class PitContent extends Component {
     if (value > max) {
       event.target.value = max;
     } else if (value < min) {
-      event.target.value = "";
+      event.target.value = '';
     }
     const wheels = [...this.state.wheels];
     const index = wheels.indexOf(wheel);
@@ -189,7 +189,7 @@ class PitContent extends Component {
     wheels
       .filter(wheel => wheel.value)
       .map(wheel => {
-        if (wheel.size === "") {
+        if (wheel.size === '') {
           newValidity = false;
         }
         return null;
@@ -263,18 +263,19 @@ class PitContent extends Component {
 
   isFormValid() {
     return (
-      this.state.teamNumber !== "" &&
-      this.state.weight !== "" &&
-      this.state.height !== "" &&
-      this.state.driveTrain !== "" &&
+      this.state.teamNumber !== '' &&
+      this.state.weight !== '' &&
+      this.state.height !== '' &&
+      this.state.driveTrain !== '' &&
       this.state.driveTrainWheelsValid &&
       this.state.driveTrainWheelSizesValid &&
-      this.state.programmingLanguage !== "" &&
+      this.state.programmingLanguage !== '' &&
       this.state.mechanismsValid
     );
   }
 
   handleSumbit = event => {
+    event.preventDefault();
     if (this.isFormValid()) {
     }
     this.setState({ validated: true });
@@ -282,40 +283,40 @@ class PitContent extends Component {
 
   render() {
     return (
-      <div className="div-main">
-        <div className="justify-content-center">
+      <div className='div-main'>
+        <div className='justify-content-center'>
           <img
-            alt="Logo"
+            alt='Logo'
             src={Logo}
             style={{
-              width: this.state.widthSize === "90%" ? "70%" : "30%",
-              marginTop: "20px",
-              marginLeft: "10px"
+              width: this.state.widthSize === '90%' ? '70%' : '30%',
+              marginTop: '20px',
+              marginLeft: '10px'
             }}
           />
         </div>
-        <div style={{ width: this.state.widthSize }} className="div-second">
-          <div className="pit-form">
-            <div className="div-form">
-              <Form.Group style={{ width: "80%", marginLeft: "1%" }} as={Row}>
+        <div style={{ width: this.state.widthSize }} className='div-second'>
+          <div className='pit-form'>
+            <div className='div-form'>
+              <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
                 <Form.Label
-                  className="mb-1"
+                  className='mb-1'
                   style={{
-                    fontFamily: "Helvetica, Arial",
-                    fontSize: "110%"
+                    fontFamily: 'Helvetica, Arial',
+                    fontSize: '110%'
                   }}
                 >
                   Group:
                 </Form.Label>
               </Form.Group>
-              <Form.Group style={{ width: "80%", marginLeft: "2%" }} as={Row}>
+              <Form.Group style={{ width: '80%', marginLeft: '2%' }} as={Row}>
                 <Form.Control
                   style={{
-                    background: "none",
-                    fontFamily: "Helvetica, Arial"
+                    background: 'none',
+                    fontFamily: 'Helvetica, Arial'
                   }}
-                  className="mb-1"
-                  as="select"
+                  className='mb-1'
+                  as='select'
                   onChange={this.handleGroupChange}
                 >
                   <option>Group 1 Red Alliance</option>
@@ -327,106 +328,106 @@ class PitContent extends Component {
                 </Form.Control>
               </Form.Group>
             </div>
-            <div className="div-form">
-              <Form.Group style={{ width: "80%", marginLeft: "1%" }} as={Row}>
+            <div className='div-form'>
+              <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
                 <Form.Label
-                  className="mb-1"
+                  className='mb-1'
                   style={{
-                    fontFamily: "Helvetica, Arial",
-                    fontSize: "110%"
+                    fontFamily: 'Helvetica, Arial',
+                    fontSize: '110%'
                   }}
                 >
                   Team Number:
                 </Form.Label>
               </Form.Group>
-              <Form.Group style={{ width: "80%", marginLeft: "2%" }} as={Row}>
+              <Form.Group style={{ width: '80%', marginLeft: '2%' }} as={Row}>
                 <Form.Control
-                  autoComplete="off"
-                  type="number"
+                  autoComplete='off'
+                  type='number'
                   max={9999}
                   min={1}
-                  placeholder="Team Number"
+                  placeholder='Team Number'
                   onKeyDown={this.checkTeamInput}
                   onChange={this.checkTeamNum}
-                  isValid={this.state.validated && this.state.teamNumber !== ""}
+                  isValid={this.state.validated && this.state.teamNumber !== ''}
                   isInvalid={
-                    this.state.validated && this.state.teamNumber === ""
+                    this.state.validated && this.state.teamNumber === ''
                   }
-                  className="mb-1"
-                  style={{ background: "none", fontFamily: "Helvetica, Arial" }}
+                  className='mb-1'
+                  style={{ background: 'none', fontFamily: 'Helvetica, Arial' }}
                 />
-                <Form.Control.Feedback type="invalid">
+                <Form.Control.Feedback type='invalid'>
                   Please input a team number.
                 </Form.Control.Feedback>
               </Form.Group>
             </div>
-            <div className="div-form">
-              <Form.Group style={{ width: "80%", marginLeft: "1%" }} as={Row}>
+            <div className='div-form'>
+              <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
                 <Form.Label
-                  className="mb-1"
+                  className='mb-1'
                   style={{
-                    fontFamily: "Helvetica, Arial",
-                    fontSize: "110%"
+                    fontFamily: 'Helvetica, Arial',
+                    fontSize: '110%'
                   }}
                 >
                   Weight:
                 </Form.Label>
               </Form.Group>
-              <Form.Group style={{ width: "80%", marginLeft: "2%" }} as={Row}>
+              <Form.Group style={{ width: '80%', marginLeft: '2%' }} as={Row}>
                 <Form.Control
-                  autoComplete="off"
-                  type="number"
+                  autoComplete='off'
+                  type='number'
                   max={500}
                   min={0}
-                  placeholder="Weight (lbs)"
+                  placeholder='Weight (lbs)'
                   onChange={this.checkWeight}
-                  isValid={this.state.validated && this.state.weight !== ""}
-                  isInvalid={this.state.validated && this.state.weight === ""}
-                  className="mb-1"
-                  style={{ background: "none", fontFamily: "Helvetica, Arial" }}
+                  isValid={this.state.validated && this.state.weight !== ''}
+                  isInvalid={this.state.validated && this.state.weight === ''}
+                  className='mb-1'
+                  style={{ background: 'none', fontFamily: 'Helvetica, Arial' }}
                 />
-                <Form.Control.Feedback type="invalid">
+                <Form.Control.Feedback type='invalid'>
                   Please input a weight.
                 </Form.Control.Feedback>
               </Form.Group>
             </div>
-            <div className="div-form">
-              <Form.Group style={{ width: "80%", marginLeft: "1%" }} as={Row}>
+            <div className='div-form'>
+              <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
                 <Form.Label
-                  className="mb-1"
+                  className='mb-1'
                   style={{
-                    fontFamily: "Helvetica, Arial",
-                    fontSize: "110%"
+                    fontFamily: 'Helvetica, Arial',
+                    fontSize: '110%'
                   }}
                 >
                   Height:
                 </Form.Label>
               </Form.Group>
-              <Form.Group style={{ width: "80%", marginLeft: "2%" }} as={Row}>
+              <Form.Group style={{ width: '80%', marginLeft: '2%' }} as={Row}>
                 <Form.Control
-                  autoComplete="off"
-                  type="number"
+                  autoComplete='off'
+                  type='number'
                   max={100}
                   min={0}
-                  isValid={this.state.validated && this.state.height !== ""}
-                  isInvalid={this.state.validated && this.state.height === ""}
-                  placeholder="Height (inches)"
+                  isValid={this.state.validated && this.state.height !== ''}
+                  isInvalid={this.state.validated && this.state.height === ''}
+                  placeholder='Height (inches)'
                   onChange={this.checkHeight}
-                  className="mb-1"
-                  style={{ background: "none", fontFamily: "Helvetica, Arial" }}
+                  className='mb-1'
+                  style={{ background: 'none', fontFamily: 'Helvetica, Arial' }}
                 />
-                <Form.Control.Feedback type="invalid">
+                <Form.Control.Feedback type='invalid'>
                   Please input a height.
                 </Form.Control.Feedback>
               </Form.Group>
             </div>
-            <div className="div-form">
-              <Form.Group style={{ width: "80%", marginLeft: "1%" }} as={Row}>
+            <div className='div-form'>
+              <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
                 <Form.Label
-                  className="mb-1"
+                  className='mb-1'
                   style={{
-                    fontFamily: "Helvetica, Arial",
-                    fontSize: "110%"
+                    fontFamily: 'Helvetica, Arial',
+                    fontSize: '110%'
                   }}
                 >
                   Drive Train:
@@ -434,103 +435,103 @@ class PitContent extends Component {
               </Form.Group>
               <Form.Group
                 style={{
-                  width: "100%",
-                  marginLeft: "2%",
-                  fontFamily: "Helvetica, Arial"
+                  width: '100%',
+                  marginLeft: '2%',
+                  fontFamily: 'Helvetica, Arial'
                 }}
                 as={Row}
-                className="mb-3"
+                className='mb-3'
               >
                 {this.state.driveTrains.map(driveTrain => (
                   <Form.Check
                     isValid={
-                      this.state.validated && !this.state.driveTrain !== ""
+                      this.state.validated && !this.state.driveTrain !== ''
                     }
                     isInvalid={
-                      this.state.validated && this.state.driveTrain === ""
+                      this.state.validated && this.state.driveTrain === ''
                     }
-                    style={{ fontFamily: "Helvetica, Arial" }}
+                    style={{ fontFamily: 'Helvetica, Arial' }}
                     inline
                     custom
                     onChange={() => this.handleDriveChange(driveTrain)}
                     label={driveTrain.label}
-                    type="radio"
-                    autoComplete="off"
+                    type='radio'
+                    autoComplete='off'
                     checked={this.state.driveTrain === driveTrain.label}
-                    id={"driveTrain" + driveTrain.id}
-                    key={"driveTrain" + driveTrain.id}
+                    id={'driveTrain' + driveTrain.id}
+                    key={'driveTrain' + driveTrain.id}
                   />
                 ))}
               </Form.Group>
-              <Form.Group style={{ width: "100%" }}>
+              <Form.Group style={{ width: '100%' }}>
                 {this.state.driveTrainMotors.map(motor => (
                   <Form.Row
-                    className="mb-2 justify-content-center"
-                    key={"driveTrainMotorRow" + motor.id}
+                    className='mb-2 justify-content-center'
+                    key={'driveTrainMotorRow' + motor.id}
                   >
                     <Counter
-                      minWidth="170px"
+                      minWidth='170px'
                       count={motor.value}
                       margin={
-                        motor.label !== "Other"
-                          ? "7px 0px 0px 0px"
-                          : "3px 0px 0px 0px"
+                        motor.label !== 'Other'
+                          ? '7px 0px 0px 0px'
+                          : '3px 0px 0px 0px'
                       }
-                      colon=": "
+                      colon=': '
                       onIncrement={() => this.handleMotorIncrement(motor)}
                       onDecrement={() => this.handleMotorDecrement(motor)}
                       label={
-                        motor.label !== "Other" ? (
+                        motor.label !== 'Other' ? (
                           motor.label
                         ) : (
                           <span
                             style={{
-                              fontFamily: "Helvetica, Arial",
-                              maxWidth: "170px",
-                              width: "100px",
-                              display: "inline-block",
-                              marginLeft: "10px"
+                              fontFamily: 'Helvetica, Arial',
+                              maxWidth: '170px',
+                              width: '100px',
+                              display: 'inline-block',
+                              marginLeft: '10px'
                             }}
                           >
                             <Form.Control
-                              autoComplete="off"
-                              type="text"
+                              autoComplete='off'
+                              type='text'
                               placeholder={motor.label}
                               onChange={event =>
                                 this.handleOtherMotor(event, motor)
                               }
                               style={{
-                                fontFamily: "Helvetica, Arial",
-                                textJustify: "center",
-                                textAlign: "center",
-                                fontSize: "90%",
-                                backgroundImage: "none",
-                                background: "none",
-                                backgroundSize: "0px"
+                                fontFamily: 'Helvetica, Arial',
+                                textJustify: 'center',
+                                textAlign: 'center',
+                                fontSize: '90%',
+                                backgroundImage: 'none',
+                                background: 'none',
+                                backgroundSize: '0px'
                               }}
                             />
                           </span>
                         )
                       }
                       disabled={false}
-                      size="xs"
-                      marginRight="0px"
-                      id={"driveTrainMotor" + motor.id}
-                      key={"driveTrainMotor" + motor.id}
+                      size='xs'
+                      marginRight='0px'
+                      id={'driveTrainMotor' + motor.id}
+                      key={'driveTrainMotor' + motor.id}
                     />
                   </Form.Row>
                 ))}
               </Form.Group>
               <Form.Group
-                style={{ width: "100%", marginLeft: "2%" }}
-                className="mt-4"
+                style={{ width: '100%', marginLeft: '2%' }}
+                className='mt-4'
               >
                 {this.state.wheels.map(wheel => (
                   <Form.Row
-                    key={"driveTrainWheelRow" + wheel.id}
-                    className="mb-2"
+                    key={'driveTrainWheelRow' + wheel.id}
+                    className='mb-2'
                   >
-                    <Col xs="4" style={{ textAlign: "left" }}>
+                    <Col xs='4' style={{ textAlign: 'left' }}>
                       <Form.Check
                         isInvalid={
                           this.state.validated &&
@@ -543,71 +544,71 @@ class PitContent extends Component {
                         onChange={() => this.handleWheelClick(wheel)}
                         custom
                         style={{
-                          fontSize: "90%",
-                          fontFamily: "Helvetica, Arial"
+                          fontSize: '90%',
+                          fontFamily: 'Helvetica, Arial'
                         }}
-                        type="checkbox"
+                        type='checkbox'
                         checked={wheel.value}
-                        id={"driveTrainWheel" + wheel.id}
-                        key={"driveTrainWheel" + wheel.id}
+                        id={'driveTrainWheel' + wheel.id}
+                        key={'driveTrainWheel' + wheel.id}
                         label={
-                          wheel.label !== "Other" ? (
+                          wheel.label !== 'Other' ? (
                             wheel.label
                           ) : (
                             <Form.Control
-                              autoComplete="off"
+                              autoComplete='off'
                               isInvalid={
                                 this.state.validated &&
                                 wheel.value &&
-                                wheel.wheelName === ""
+                                wheel.wheelName === ''
                               }
                               isValid={
                                 this.state.validated &&
                                 wheel.value &&
-                                wheel.wheelName !== ""
+                                wheel.wheelName !== ''
                               }
-                              type="text"
+                              type='text'
                               placeholder={wheel.label}
                               disabled={!wheel.value}
                               onChange={event =>
                                 this.handleOtherWheel(event, wheel)
                               }
                               style={{
-                                fontFamily: "Helvetica, Arial",
-                                maxWidth: "80px",
-                                fontSize: "90%",
-                                backgroundColor: "transparent"
+                                fontFamily: 'Helvetica, Arial',
+                                maxWidth: '80px',
+                                fontSize: '90%',
+                                backgroundColor: 'transparent'
                               }}
                             />
                           )
                         }
                       />
                     </Col>
-                    <Col xs="3" style={{ textAlign: "center" }}>
+                    <Col xs='3' style={{ textAlign: 'center' }}>
                       <Form.Control
-                        autoComplete="off"
-                        type="number"
+                        autoComplete='off'
+                        type='number'
                         max={12}
                         min={1}
-                        placeholder="Size (in)"
+                        placeholder='Size (in)'
                         isInvalid={
                           this.state.validated &&
                           wheel.value &&
-                          wheel.size === ""
+                          wheel.size === ''
                         }
                         isValid={
                           this.state.validated &&
                           wheel.value &&
-                          wheel.size !== ""
+                          wheel.size !== ''
                         }
                         disabled={!wheel.value}
                         onChange={event => this.checkWheelSize(event, wheel)}
                         style={{
-                          fontFamily: "Helvetica, Arial",
-                          fontSize: "65%",
-                          textAlign: "center",
-                          marginLeft: "6px",
-                          backgroundColor: "transparent"
+                          fontFamily: 'Helvetica, Arial',
+                          fontSize: '65%',
+                          textAlign: 'center',
+                          marginLeft: '6px',
+                          backgroundColor: 'transparent'
                         }}
                       />
                     </Col>
@@ -616,15 +617,15 @@ class PitContent extends Component {
                         count={wheel.count}
                         onDecrement={() => this.handleWheelDecrement(wheel)}
                         onIncrement={() => this.handleWheelIncrement(wheel)}
-                        colon=""
-                        label=""
-                        minWidth="24px"
-                        maxWidth="24px"
-                        margin="0px 0px 0px 0px"
+                        colon=''
+                        label=''
+                        minWidth='24px'
+                        maxWidth='24px'
+                        margin='0px 0px 0px 0px'
                         disabled={!wheel.value}
-                        size="sm"
-                        marginRight="0px"
-                        key={"driveTrainWheelCounter" + wheel.id}
+                        size='sm'
+                        marginRight='0px'
+                        key={'driveTrainWheelCounter' + wheel.id}
                       />
                     </Col>
                   </Form.Row>
@@ -632,104 +633,104 @@ class PitContent extends Component {
               </Form.Group>
               <div
                 style={{
-                  display: "inline-block",
-                  width: "80%",
-                  marginTop: "5px"
+                  display: 'inline-block',
+                  width: '80%',
+                  marginTop: '5px'
                 }}
               >
                 <Form.Group>
                   <Form.Control
-                    as="textarea"
-                    type="text"
-                    placeholder="Any additional comments about drive train"
+                    as='textarea'
+                    type='text'
+                    placeholder='Any additional comments about drive train'
                     onChange={this.handleDriveComment}
-                    rows="3"
+                    rows='3'
                     style={{
-                      background: "none",
-                      fontFamily: "Helvetica, Arial"
+                      background: 'none',
+                      fontFamily: 'Helvetica, Arial'
                     }}
                   />
                 </Form.Group>
               </div>
             </div>
-            <div className="div-form">
-              <Form.Group style={{ width: "80%", marginLeft: "1%" }} as={Row}>
+            <div className='div-form'>
+              <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
                 <Form.Label
-                  className="mb-1"
+                  className='mb-1'
                   style={{
-                    fontFamily: "Helvetica, Arial",
-                    fontSize: "110%"
+                    fontFamily: 'Helvetica, Arial',
+                    fontSize: '110%'
                   }}
                 >
                   Autonomous:
                 </Form.Label>
               </Form.Group>
               <Form.Group
-                style={{ width: "100%", marginLeft: "2%" }}
+                style={{ width: '100%', marginLeft: '2%' }}
                 as={Row}
-                className="mb-3"
+                className='mb-3'
               >
                 {this.state.programmingLanguages.map(language => (
                   <Form.Check
-                    style={{ fontFamily: "Helvetica, Arial" }}
+                    style={{ fontFamily: 'Helvetica, Arial' }}
                     isInvalid={
                       this.state.validated &&
-                      this.state.programmingLanguage === ""
+                      this.state.programmingLanguage === ''
                     }
                     isValid={
                       this.state.validated &&
-                      this.state.programmingLanguage !== ""
+                      this.state.programmingLanguage !== ''
                     }
                     inline
                     custom
                     label={language.label}
-                    type="radio"
+                    type='radio'
                     onChange={() => this.handleProgrammingChange(language)}
                     checked={this.state.programmingLanguage === language.label}
-                    id={"language" + language.id}
-                    key={"language" + language.id}
+                    id={'language' + language.id}
+                    key={'language' + language.id}
                   />
                 ))}
               </Form.Group>
               <div
                 style={{
-                  display: "inline-block",
-                  width: "80%",
-                  marginTop: "5px"
+                  display: 'inline-block',
+                  width: '80%',
+                  marginTop: '5px'
                 }}
               >
                 <Form.Group>
                   <Form.Control
-                    as="textarea"
-                    type="text"
+                    as='textarea'
+                    type='text'
                     onChange={this.handleAutoComment}
-                    placeholder="What is their usual strategy in auto?"
-                    className="mb-0"
-                    rows="3"
+                    placeholder='What is their usual strategy in auto?'
+                    className='mb-0'
+                    rows='3'
                     style={{
-                      background: "none",
-                      fontFamily: "Helvetica, Arial"
+                      background: 'none',
+                      fontFamily: 'Helvetica, Arial'
                     }}
                   />
                 </Form.Group>
               </div>
             </div>
-            <div className="div-form">
-              <Form.Group style={{ width: "80%", marginLeft: "1%" }} as={Row}>
+            <div className='div-form'>
+              <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
                 <Form.Label
                   style={{
-                    fontFamily: "Helvetica, Arial",
-                    fontSize: "110%"
+                    fontFamily: 'Helvetica, Arial',
+                    fontSize: '110%'
                   }}
                 >
                   Abilities:
                 </Form.Label>
               </Form.Group>
-              <Form.Group style={{ width: "100%", marginLeft: "2%" }}>
+              <Form.Group style={{ width: '100%', marginLeft: '2%' }}>
                 {this.state.mechanisms.map(mechanism => (
                   <Form.Row
-                    key={"mechanismRow" + mechanism.id}
-                    className="mb-2"
+                    key={'mechanismRow' + mechanism.id}
+                    className='mb-2'
                   >
                     <Form.Check
                       isInvalid={
@@ -741,25 +742,25 @@ class PitContent extends Component {
                       onChange={() => this.handleMechanismClick(mechanism)}
                       custom
                       style={{
-                        fontSize: "90%",
-                        fontFamily: "Helvetica, Arial"
+                        fontSize: '90%',
+                        fontFamily: 'Helvetica, Arial'
                       }}
                       label={mechanism.label}
-                      type="checkbox"
+                      type='checkbox'
                       checked={mechanism.value}
-                      id={"mechanism" + mechanism.id}
-                      key={"mechanism" + mechanism.id}
+                      id={'mechanism' + mechanism.id}
+                      key={'mechanism' + mechanism.id}
                     />
                   </Form.Row>
                 ))}
               </Form.Group>
             </div>
-            <div className="div-form">
-              <Form.Group style={{ width: "80%", marginLeft: "1%" }} as={Row}>
+            <div className='div-form'>
+              <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
                 <Form.Label
                   style={{
-                    fontFamily: "Helvetica, Arial",
-                    fontSize: "110%"
+                    fontFamily: 'Helvetica, Arial',
+                    fontSize: '110%'
                   }}
                 >
                   Closing:
@@ -767,54 +768,54 @@ class PitContent extends Component {
               </Form.Group>
               <div
                 style={{
-                  display: "inline-block",
-                  width: "80%",
-                  marginTop: "5px"
+                  display: 'inline-block',
+                  width: '80%',
+                  marginTop: '5px'
                 }}
               >
                 <Form.Group>
                   <Form.Control
-                    as="textarea"
-                    type="text"
-                    placeholder="Is there anything that the team is still working on?"
+                    as='textarea'
+                    type='text'
+                    placeholder='Is there anything that the team is still working on?'
                     onChange={this.handleWorkingOnComment}
-                    className="mb-0"
-                    rows="3"
+                    className='mb-0'
+                    rows='3'
                     style={{
-                      background: "none",
-                      fontFamily: "Helvetica, Arial"
+                      background: 'none',
+                      fontFamily: 'Helvetica, Arial'
                     }}
                   />
                 </Form.Group>
               </div>
               <div
                 style={{
-                  display: "inline-block",
-                  width: "80%",
-                  marginTop: "5px"
+                  display: 'inline-block',
+                  width: '80%',
+                  marginTop: '5px'
                 }}
               >
                 <Form.Group>
                   <Form.Control
-                    as="textarea"
-                    type="text"
-                    placeholder="Additional comments"
+                    as='textarea'
+                    type='text'
+                    placeholder='Additional comments'
                     onChange={this.handleClosingComment}
-                    className="mb-0"
-                    rows="2"
+                    className='mb-0'
+                    rows='2'
                     style={{
-                      background: "none",
-                      fontFamily: "Helvetica, Arial"
+                      background: 'none',
+                      fontFamily: 'Helvetica, Arial'
                     }}
                   />
                 </Form.Group>
               </div>
             </div>
             <Button
-              type="btn"
-              style={{ fontFamily: "Helvetica, Arial" }}
+              type='btn'
+              style={{ fontFamily: 'Helvetica, Arial' }}
               onClick={this.handleSumbit}
-              className="btn-lg"
+              className='btn-lg'
             >
               Submit form
             </Button>

@@ -43,7 +43,7 @@ class PitNavigation extends Component {
             competition: 'Hudson Valley Regional',
             competitionQuery: 'HVR'
           });
-        } else if (data.competition === 'SPLBI') {
+        } else if (data.competition === 'SBPLI') {
           this.setState({
             competition: 'SBPLI #2 Regional',
             competitionQuery: 'SBPLI'
@@ -182,28 +182,11 @@ class PitNavigation extends Component {
           </div>
         </div>
         <BootstrapTable
-          // stripped
-          // hover
-          className='no-outline-on-focus'
-          keyField='num'
-          style={{
-            focus: {
-              outline: '0',
-              backgroundColor: 'none',
-              border: 'none'
-            }
-          }}
-          rowStyle={{
-            border: '0px',
-            outline: '0px',
-            focus: {
-              outline: 'none',
-              backgroundColor: 'none',
-              border: '0px'
-            }
-          }}
+          stripped
+          hover
+          keyField='team_num'
           rowStyle={this.state.style}
-          // bordered
+          bordered
           bootstrap4
           data={this.state.tableData}
           columns={this.state.column}

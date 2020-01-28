@@ -1,9 +1,11 @@
-import React from "react";
+import React, { Component } from "react";
 import "./components/TabNav";
 import TabNav from "./components/TabNav";
 import PitContent from "./components/PitContent";
 import MatchContent from "./components/MatchContent";
 import AnalystContent from "./components/AnalystContent";
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+
 import "bootstrap/dist/css/bootstrap.min.css";
 //import 'bootstrap/dist/css/bootstrap.css';
 import "./App.css";
@@ -27,17 +29,11 @@ window.onunload = event => {
   window.scrollTo(0, 0);
 };
 
-class App extends React.Component {
+class App extends Component {
   state = {
     apiResponse: "",
     selectedTab: ""
   };
-
-  callAPI() {
-    fetch("/saveMatch")
-      .then(res => res.text())
-      .then(res => this.setState({ apiResponse: res }));
-  }
 
   componentDidMount() {
     this.setState({
@@ -58,13 +54,34 @@ class App extends React.Component {
     return (
       <div className="App">
         <TabNav
-          tabHandler={this.handleTabSelect}
           onClick={this.handleTabSelect}
         />
-        <RenderTabContent selectedTab={this.state.selectedTab} />
+        <Router>
+          <Switch>
+            <Route path="/pits" component={PitNavigation} />
+            <Route path="/matches" component={MatchContent} />
+            <Route path="/analystHome" component={AnalystContent} />
+          </Switch>
+        </Router>
       </div>
     );
   }
+
+//   render() {
+//     const App = () => (
+//       <div>
+//         <Switch>
+//           <Route exact path='/' component={TabNav}/>
+//         </Switch>
+//       </div>
+//     )
+//     return (
+//       <Switch>
+//         <App/>
+//       </Switch>
+//     )
+//   }
+
 }
 
 export default App;

@@ -3,8 +3,11 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
+import { Link } from 'react-router-dom';
+
 
 class MatchContent extends Component {
+
   handleSubmit = event => {
     event.preventDefault();
     const data = {
@@ -13,7 +16,7 @@ class MatchContent extends Component {
       matchNum: document.getElementById("formMatchNum").value
     };
 
-    fetch("/matches", {
+    fetch("/match", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -31,8 +34,24 @@ class MatchContent extends Component {
   };
 
   render() {
-    return (
+    const matches = [
+      {name: 'jonMatch', id: 123},
+      {name: 'SharonMatch', id: 124},
+      {name: 'FonMatch', id: 125},
+      {name: 'GonMatch', id: 126},
+      {name: 'HonMatch', id: 127}
+    ];
+
+    const listItems = matches.map((match) =>
+        <li key={match.id}>
+              <Link to={`/matches/${match.id}`}>{match.name}</Link>
+        </li>
+    );
+
+    return (      
       <Form onSubmit={this.handleSubmit} className="match-form">
+        <ul>{listItems}</ul>
+
         <Form.Group className="mt-3" as={Row} controlId="formCompetition">
           <Form.Label column xs="2"></Form.Label>
           <Col xs="6">

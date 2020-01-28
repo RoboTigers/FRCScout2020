@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import Tabs from "react-bootstrap/Tabs";
-import Tab from "react-bootstrap/Tab";
+import Nav from "react-bootstrap/Nav";
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 
 class TabNav extends Component {
   state = {
@@ -23,11 +24,20 @@ class TabNav extends Component {
 
   render() {
     return (
-      <Tabs activeKey={this.state.activeTab} onSelect={this.handleSelect}>
-        <Tab eventKey="pit" title="Pit"></Tab>
-        <Tab eventKey="match" title="Match"></Tab>
-        <Tab eventKey="analyst" title="Analyst"></Tab>
-      </Tabs>
+      <Router>
+        <Nav variant="tabs" defaultActiveKey="/">
+          <Nav.Item>
+            <Nav.Link href="/pits">Pit</Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Link href="/matches">Match</Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Link href="/analystHome">Analyst</Nav.Link>
+          </Nav.Item>
+        </Nav>
+      </Router>
+
     );
   }
 }

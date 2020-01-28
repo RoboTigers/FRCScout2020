@@ -7,6 +7,7 @@ import AnalystContent from "./components/AnalystContent";
 import "bootstrap/dist/css/bootstrap.min.css";
 //import 'bootstrap/dist/css/bootstrap.css';
 import "./App.css";
+import PitNavigation from "./components/PitNavigation";
 
 window.onbeforeunload = event => {
   return "";
@@ -14,7 +15,7 @@ window.onbeforeunload = event => {
 
 function RenderTabContent({ selectedTab }) {
   if (selectedTab === "pit") {
-    return <PitContent />;
+    return <PitNavigation />;
   } else if (selectedTab === "match") {
     return <MatchContent />;
   } else {

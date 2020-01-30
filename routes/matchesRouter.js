@@ -5,7 +5,7 @@ const db = require('../db');
 
 router.get('/competitions/:shortName/matches', (req, res) => {
   const getMatchesForCompetitionQuery =
-  'SELECT t.team_num, m.match_num FROM match m INNER JOIN team t ON t.team_id=m.team_id INNER JOIN competition c ON c.competition_id=m.competition_id WHERE c.short_name = $1';
+  'SELECT m.match_id as matchid, t.team_num as teamnum, m.match_num as matchnum FROM match m INNER JOIN team t ON t.team_id=m.team_id INNER JOIN competition c ON c.competition_id=m.competition_id WHERE c.short_name = $1';
   const getMatchesForCompetitionValues = [ req.params.shortName ];
   
   db.query(getMatchesForCompetitionQuery, getMatchesForCompetitionValues)
@@ -21,11 +21,11 @@ router.post('/competitions/:id/matches', (req, res) => {
   console.log('POSTED')
   let params = req.body;
   console.log("params",params);
-  const getMatchesForCompetitionQuery =
-    'SELECT t.team_num, m.match_num FROM match m INNER JOIN team t ON t.team_id=m.team_id INNER JOIN competition c ON c.competition_id=m.competition_id WHERE c.short_name = $1';
-  const getMatchesForCompetitionValues = [ params.shortname ];
+  const getMatchesForCompetitionIdQuery =
+    'SELECT t.team_num as teamnum, m.match_num as matchnum FROM match m INNER JOIN team t ON t.team_id=m.team_id INNER JOIN competition c ON c.competition_id=m.competition_id WHERE c.short_name = $1';
+  const getMatchesForCompetitionIdValues = [ params.shortname ];
 
-  db.query(getMatchesForCompetitionQuery, getMatchesForCompetitionValues)
+  db.query(getMatchesForCompetitionIdQuery, getMatchesForCompetitionIdValues)
     .then(data => {
       res.json({
         matchList: data.rows

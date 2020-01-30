@@ -11,6 +11,7 @@ var usersRouter = require('./routes/users');
 var matchesRouter = require('./routes/matchesRouter');
 var pitNavRouter = require('./routes/pitNavRouter');
 var pitFormRouter = require('./routes/pitFormRouter');
+var competitionRouter = require('./routes/competitionRouter');
 
 var app = express();
 
@@ -28,9 +29,10 @@ app.use(express.static(path.join(__dirname, 'client/build')));
 
 app.use('/', indexRouter);
 app.use('/', usersRouter);
-app.use('/', matchesRouter);
+app.use('/api', matchesRouter);
 app.use('/', pitNavRouter);
 app.use('/', pitFormRouter);
+app.use('/', competitionRouter);
 
 // Anything that doesn't match the above, send back index.html
 app.get('*', (req, res) => {

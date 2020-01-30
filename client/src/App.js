@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import './components/TabNav';
 import TabNav from './components/TabNav';
 import PitContent from './components/PitContent';
-import MatchContent from './components/MatchContent';
+import MatchReportList from './components/MatchReportList';
 import AnalystContent from './components/AnalystContent';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 
@@ -19,7 +19,7 @@ function RenderTabContent({ selectedTab }) {
   if (selectedTab === 'pit') {
     return <PitNavigation />;
   } else if (selectedTab === 'match') {
-    return <MatchContent />;
+    return <MatchReportList />;
   } else {
     return <AnalystContent />;
   }
@@ -56,8 +56,9 @@ class App extends Component {
         <Router>
           <TabNav onClick={this.handleTabSelect} />
           <Switch>
-            <Route path='/pits' exact strict component={PitNavigation} />
+            <Route path='/pits' component={PitNavigation} />
             <Route path='/matches' component={MatchContent} />
+            <Route path='/matches' component={MatchReportList} />
             <Route path='/analystHome' component={AnalystContent} />
             <Route
               path='/pits/:competition/:team'

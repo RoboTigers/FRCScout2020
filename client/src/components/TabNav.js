@@ -1,16 +1,17 @@
-import React, { Component } from "react";
-import Tabs from "react-bootstrap/Tabs";
-import Nav from "react-bootstrap/Nav";
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import React, { Component } from 'react';
+import Tabs from 'react-bootstrap/Tabs';
+import Nav from 'react-bootstrap/Nav';
+import { BrowserRouter as Router, Route, Switch, Link } from 'react-router-dom';
+import NavLink from 'react-bootstrap/NavLink';
 
 class TabNav extends Component {
   state = {
-    activeTab: ""
+    activeTab: ''
   };
 
   componentDidMount() {
     this.setState({
-      activeTab: localStorage.getItem("activeTab") || "match"
+      activeTab: localStorage.getItem('activeTab') || 'match'
     });
   }
 
@@ -18,26 +19,29 @@ class TabNav extends Component {
     this.setState({
       activeTab: selectedTab
     });
-    localStorage.setItem("activeTab", selectedTab);
+    localStorage.setItem('activeTab', selectedTab);
     this.props.tabHandler(selectedTab);
   };
 
   render() {
     return (
-      <Router>
-        <Nav variant="tabs" defaultActiveKey="/">
-          <Nav.Item>
-            <Nav.Link href="/pits">Pit</Nav.Link>
-          </Nav.Item>
-          <Nav.Item>
-            <Nav.Link href="/matches">Match</Nav.Link>
-          </Nav.Item>
-          <Nav.Item>
-            <Nav.Link href="/analystHome">Analyst</Nav.Link>
-          </Nav.Item>
-        </Nav>
-      </Router>
-
+      <Nav variant='tabs'>
+        <Nav.Item>
+          <Link className='nav-link' to='/pits'>
+            Pits
+          </Link>
+        </Nav.Item>
+        <Nav.Item>
+          <Link className='nav-link' to='/matches'>
+            Match
+          </Link>
+        </Nav.Item>
+        <Nav.Item>
+          <Link className='nav-link' to='/analystHome'>
+            Analyst
+          </Link>
+        </Nav.Item>
+      </Nav>
     );
   }
 }

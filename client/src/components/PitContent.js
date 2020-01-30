@@ -70,6 +70,8 @@ class PitContent extends Component {
     closingComments: ''
   };
 
+  loadPreviousData = () => {};
+
   componentDidMount() {
     this.setState({
       widthSize: window.innerWidth <= 760 ? '90%' : '50%'
@@ -104,11 +106,11 @@ class PitContent extends Component {
     let max = parseFloat(event.target.max);
     let min = parseFloat(event.target.min);
     if (value > max) {
-      event.target.value = value.toString().slice(0, 3);
+      value = value.toString().slice(0, 3);
     } else if (value < min) {
-      event.target.value = '';
+      value = '';
     }
-    this.setState({ weight: event.target.value });
+    this.setState({ weight: value });
   };
 
   checkHeight = event => {
@@ -116,11 +118,11 @@ class PitContent extends Component {
     let max = parseFloat(event.target.max);
     let min = parseFloat(event.target.min);
     if (value > max) {
-      event.target.value = value.toString().slice(0, 2);
+      value = value.toString().slice(0, 2);
     } else if (value < min) {
-      event.target.value = '';
+      value = '';
     }
-    this.setState({ height: event.target.value });
+    this.setState({ height: value });
   };
 
   handleDriveChange = driveTrain => {
@@ -277,6 +279,38 @@ class PitContent extends Component {
   handleSumbit = event => {
     event.preventDefault();
     if (this.isFormValid()) {
+      console.log(this.state.driveTrainMotors);
+      const data = {
+        competition: 'HVR',
+        teamNum: this.state.teamNumber,
+        status: 'Complete',
+        group_name: this.state.group,
+        weight: this.state.weight,
+        height: this.state.height,
+        drive_train: this.state.driveTrain,
+        motors: JSON.stringify(this.state.driveTrainMotors),
+        wheels: JSON.stringify(this.state.wheels),
+        drive_comments: this.state.driveComments,
+        code_language: this.state.programmingLanguage,
+        auto_comments: this.state.autoComments,
+        abilities: JSON.stringify(this.state.mechanisms),
+        working_comments: this.state.workingOnComments,
+        closing_comments: this.state.closingComments
+      };
+      fetch('/submitPitForm', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+        .then(response => response.json())
+        .then(data => {
+          console.log(data.savedMotors);
+        })
+        .catch(error => {
+          console.error('Error', error);
+        });
     }
     this.setState({ validated: true });
   };
@@ -318,6 +352,7 @@ class PitContent extends Component {
                   className='mb-1'
                   as='select'
                   onChange={this.handleGroupChange}
+                  value={this.state.group}
                 >
                   <option>Group 1 Red Alliance</option>
                   <option>Group 2 Red Alliance</option>
@@ -375,6 +410,7 @@ class PitContent extends Component {
               </Form.Group>
               <Form.Group style={{ width: '80%', marginLeft: '2%' }} as={Row}>
                 <Form.Control
+                  value={this.state.weight}
                   autoComplete='off'
                   type='number'
                   max={500}
@@ -405,6 +441,7 @@ class PitContent extends Component {
               </Form.Group>
               <Form.Group style={{ width: '80%', marginLeft: '2%' }} as={Row}>
                 <Form.Control
+                  value={this.state.height}
                   autoComplete='off'
                   type='number'
                   max={100}
@@ -640,6 +677,7 @@ class PitContent extends Component {
               >
                 <Form.Group>
                   <Form.Control
+                    value={this.state.driveComments}
                     as='textarea'
                     type='text'
                     placeholder='Any additional comments about drive train'
@@ -701,6 +739,7 @@ class PitContent extends Component {
               >
                 <Form.Group>
                   <Form.Control
+                    value={this.state.autoComments}
                     as='textarea'
                     type='text'
                     onChange={this.handleAutoComment}
@@ -775,6 +814,7 @@ class PitContent extends Component {
               >
                 <Form.Group>
                   <Form.Control
+                    value={this.state.workingOnComments}
                     as='textarea'
                     type='text'
                     placeholder='Is there anything that the team is still working on?'
@@ -797,6 +837,7 @@ class PitContent extends Component {
               >
                 <Form.Group>
                   <Form.Control
+                    value={this.state.closingComments}
                     as='textarea'
                     type='text'
                     placeholder='Additional comments'

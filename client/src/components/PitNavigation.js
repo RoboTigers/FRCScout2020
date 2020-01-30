@@ -6,6 +6,7 @@ import Row from 'react-bootstrap/Row';
 import BootstrapTable from 'react-bootstrap-table-next';
 import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css';
 import Button from 'react-bootstrap/Button';
+import { BrowserRouter as Link } from 'react-router-dom';
 
 class PitNavigation extends Component {
   state = {
@@ -64,11 +65,17 @@ class PitNavigation extends Component {
   };
 
   getPitData = competition => {
-    let base = '/pitTable?competition=';
-    fetch(base.concat(competition))
+    fetch('/pitTable?competition=' + competition)
       .then(response => response.json())
       .then(data => {
-        data.pitData.map(team => (team.buttonValue = <Button>Start</Button>));
+        data.pitData.map(
+          row =>
+            (row.buttonValue = (
+              <a href={`/pits/HVR/1796`}>
+                <Button>Start</Button>
+              </a>
+            ))
+        );
         this.setState({ tableData: data.pitData });
       })
       .catch(error => {

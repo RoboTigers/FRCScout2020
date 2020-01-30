@@ -2,7 +2,11 @@ var express = require('express');
 var router = express.Router();
 const db = require('../db');
 
-router.post('pitForm', (req, res) => {
+router.get('/getPitForm', (req, res) => {
+  const { competition, teamNum } = req.query;
+});
+
+router.post('/submitPitForm', (req, res) => {
   let params = req.body;
   const addPitQuery =
     'INSERT INTO pit (competition_id, team_id, status, group_name, weight,' +
@@ -33,15 +37,12 @@ router.post('pitForm', (req, res) => {
   ];
 
   db.query(addPitQuery, addPitValues)
-    .then(res => {
-      console.log(res.rows[0]);
+    .then(data => {
+      res.json({
+        savedMotors: data.rows[0].motors
+      });
     })
     .catch(e => console.error(e.stack));
-
-  res.json({
-    message: `We saved team ${params.teamNum} pit for ${params.competition}`,
-    params
-  });
 });
 
 module.exports = router;

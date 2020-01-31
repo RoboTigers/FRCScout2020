@@ -1,12 +1,14 @@
 import React, { Component } from 'react';
 import { Form, Dropdown } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+import BootstrapTable from 'react-bootstrap-table-next';
 
 class MatchReportList extends Component {
   state = {
     competition: '',
     competitions: [],
-    rows: []
+    matches: [],
+    columns: [{}]
   };
 
   getMatchReportListForCompetition = competition => {
@@ -17,34 +19,14 @@ class MatchReportList extends Component {
       .then(response => response.json())
       .then(data => {
         console.log('DATA', data);
+        this.setState({
+          matches: data.matchList
+        });
+        this.setState({
+          columns: this.getMatchFields()
+        });
       });
-
-    // fetch(`/api/competitions/${competition}/matches`, {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json"
-    //     },
-    //     body: JSON.stringify(competition)
-    //   })
-    //   .then(ress => {
-    //     console.log('ress', ress)
-    //     return ress
-    //   })
-    //     .then(response => response.json())
-    //     .then(data => {
-    //       this.setState({ rows: data.matchList });
-    //       console.log("Success:", data);
-    //     })
-    //     .catch(error => {
-    //       console.error("Error:", error);
-    //     });
   };
-
-  // handleCompetitionSelection = event => {
-  //     this.setState({
-  //         competition: event
-  //     });
-  // }
 
   componentDidMount() {
     fetch('/competitions')
@@ -56,26 +38,35 @@ class MatchReportList extends Component {
       .catch(error => {
         console.error('Error:', error);
       });
+
+    // Default the table to some competition TODO: Use database current competition flag
+    // fetch(`/api/competitions/HVR/matches`)
+    //   .then(response => response.json())
+    //   .then(data => {
+    //     // this.state.matches = data.matchList;
+    //     this.setState({matches: data.matchList})
+    //     this.getMatchFields()
+    //     console.log("DATA", this.state.matches);
+
+    // })
+  }
+
+  getMatchFields() {
+    if (this.state.matches.length === 0) return [];
+    let columns = Object.keys(this.state.matches[0]).map(key => {
+      return {
+        dataField: key,
+        text: key.toUpperCase()
+      };
+    });
+    console.log('COLUMNS ARE', columns);
+    return columns;
   }
 
   render() {
-    const matches = [
-      { name: 'FooMatch', id: 123 },
-      { name: 'SharonMatch', id: 124 },
-      { name: 'FonMatch', id: 125 },
-      { name: 'GonMatch', id: 126 },
-      { name: 'HonMatch', id: 127 }
-    ];
-    const competitions = [
-      { name: 'FooMatch' },
-      { name: 'ShoMatch' },
-      { name: 'FooMatch' },
-      { name: 'FooMatch' }
-    ];
-
-    const listItems = matches.map(match => (
+    const matchItems = this.state.matches.map(match => (
       <li key={match.id}>
-        <Link to={`/matches/${match.id}`}>{match.name}</Link>
+        <Link to={`/matches/${match.matchid}`}>{match.teamnum}</Link>
       </li>
     ));
 
@@ -90,7 +81,30 @@ class MatchReportList extends Component {
 
     return (
       <Form onSubmit={this.handleSubmit} className='matches-form'>
-        <ul>{listItems}</ul>
+        <ul>{matchItems}</ul>
+
+        <Dropdown
+          focusFirstItemOnShow={true}
+          onSelect={this.getMatchReportListForCompetition}
+        >
+          <Dropdown.Toggle variant='success' id='dropdown-basic'>
+            {this.state.competition || 'Select One'}
+          </Dropdown.Toggle>
+          <Dropdown.Menu>{competitionItems}</Dropdown.Menu>
+        </Dropdown>
+
+        <div>
+          <BootstrapTable
+            stripped
+            hover
+            keyField='matchid'
+            //rowStyle={this.state.style}
+            bordered
+            bootstrap4
+            data={this.state.matches}
+            columns={this.state.columns}
+          />
+        </div>
 
         <Dropdown
           focusFirstItemOnShow={true}

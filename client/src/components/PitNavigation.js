@@ -36,27 +36,17 @@ class PitNavigation extends Component {
   };
 
   initialSetup = () => {
-    fetch('/currentCompetition')
+    fetch('/competitions')
       .then(response => response.json())
       .then(data => {
-        if (data.competition === 'HVR') {
-          this.setState({
-            competition: 'Hudson Valley Regional',
-            competitionQuery: 'HVR'
-          });
-        } else if (data.competition === 'SBPLI') {
-          this.setState({
-            competition: 'SBPLI #2 Regional',
-            competitionQuery: 'SBPLI'
-          });
-        } else if (data.competition === 'NYC') {
-          this.setState({
-            competition: 'New York City Regional',
-            competitionQuery: 'NYC'
-          });
-        } else if (data.competition === 'Champs') {
-          this.setState({ competition: 'Champs', competitionQuery: 'Champs' });
-        }
+        this.setState({ competitions: data.competitions });
+        data.competitions.map(c => {
+          if (c.iscurrent) {
+            this.setState({ competition: c.shortname });
+          }
+        });
+      })
+      .then(() => {
         this.getPitData(data.competition);
       })
       .catch(error => {
@@ -65,7 +55,7 @@ class PitNavigation extends Component {
   };
 
   getPitData = competition => {
-    fetch('/pitTable?competition=' + competition)
+    fetch(`/api/competitions/${competition}/pits`)
       .then(response => response.json())
       .then(data => {
         data.pitData.map(

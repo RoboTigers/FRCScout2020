@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 const db = require('../db');
 
-router.get('/pitTable', (req, res) => {
+router.get('/competitions/:shortname/pits', (req, res) => {
   const { competition } = req.query;
   console.log(competition);
   const getPitTableQuery =

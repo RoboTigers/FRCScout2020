@@ -5,7 +5,7 @@ const db = require('../db');
 
 router.get('/competitions/:shortName/matches', (req, res) => {
   const getMatchesForCompetitionQuery =
-  'SELECT m.match_id as matchid, t.team_num as teamnum, m.match_num as matchnum FROM match m INNER JOIN team t ON t.team_id=m.team_id INNER JOIN competition c ON c.competition_id=m.competition_id WHERE c.short_name = $1';
+  'SELECT m.match_id as matchid, t.team_num as teamnum, m.match_num as matchnum FROM match m INNER JOIN comp_team_mapping mapping on mapping.mapping_id=m.mapping_id INNER JOIN team t ON t.team_id=mapping.team_id INNER JOIN competition c ON c.competition_id=mapping.competition_id WHERE c.short_name = $1';
   const getMatchesForCompetitionValues = [ req.params.shortName ];
   
   db.query(getMatchesForCompetitionQuery, getMatchesForCompetitionValues)
@@ -22,7 +22,7 @@ router.post('/competitions/:id/matches', (req, res) => {
   let params = req.body;
   console.log("params",params);
   const getMatchesForCompetitionIdQuery =
-    'SELECT t.team_num as teamnum, m.match_num as matchnum FROM match m INNER JOIN team t ON t.team_id=m.team_id INNER JOIN competition c ON c.competition_id=m.competition_id WHERE c.short_name = $1';
+    'SELECT t.team_num as teamnum, m.match_num as matchnum FROM match m INNER JOIN comp_team_mapping mapping on mapping.mapping_id=m.mapping_id INNER JOIN team t ON t.team_id=mapping.team_id INNER JOIN competition c ON c.competition_id=mapping.competition_id WHERE c.short_name = $1';
   const getMatchesForCompetitionIdValues = [ params.shortname ];
 
   db.query(getMatchesForCompetitionIdQuery, getMatchesForCompetitionIdValues)
@@ -34,18 +34,18 @@ router.post('/competitions/:id/matches', (req, res) => {
     .catch(e => console.error(e.stack));
 });
 
+//TODO: Fix this route to be restful
 router.post('/match', (req, res) => {
   let params = req.body;
 
   const addMatchQuery =
-    'INSERT INTO match (competition_id, team_id, match_num, last_modified)' +
+    'INSERT INTO match (mapping_id, last_modified)' +
     'VALUES (' +
-    '(select competition_id from competition where short_name=$1),' +
-    '(select team_id from team where team_num=$2),' +
-    '$3,' +
+    '$1,' +
+    '$2,' +
     'NOW()' +
     ') RETURNING *';
-  const addMatchValues = [params.competition, params.teamNum, params.matchNum];
+  const addMatchValues = [params.compTeamMappingId, params.matchNum];
 
   db.query(addMatchQuery, addMatchValues)
     .then(res => {
@@ -54,7 +54,7 @@ router.post('/match', (req, res) => {
     .catch(e => console.error(e.stack));
 
   res.json({
-    message: `We saved team ${params.teamNum} match ${params.matchNum} for ${params.competition}`,
+    message: `Saved`,
     params
   });
 });

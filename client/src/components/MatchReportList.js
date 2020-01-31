@@ -29,38 +29,40 @@ class MatchReportList extends Component {
     };
 
     componentDidMount() {
+      // Chain the fetches to ensure sync so that we have is_current competiton 
+      // before querying for matches in that competition.
         fetch("/competitions")
             .then(response => response.json())
             .then(data => {
               this.setState({ competitions: data.competitions });
+              data.competitions.map( c => {
+                if (c.iscurrent) {
+                  this.setState({ competition: c.shortname });
+                }
+              });
               console.log("Success:", data);
+            }
+            ).then(() => {
+              fetch(`/api/competitions/${this.state.competition}/matches`)
+              .then(response => response.json())
+              .then(data => {
+                this.setState({matches: data.matchList})
+                this.setState({ columns: this.getMatchFields() })
+             })
             })
+
             .catch(error => {
               console.error("Error:", error);
             });
-
-        // Default the table to some competition TODO: Use database current competition flag
-        // fetch(`/api/competitions/HVR/matches`)
-        //   .then(response => response.json())
-        //   .then(data => {
-        //     // this.state.matches = data.matchList;
-        //     this.setState({matches: data.matchList})
-        //     this.getMatchFields()
-        //     console.log("DATA", this.state.matches);
-
-        // })
     }
 
     getMatchFields () {
-      if (this.state.matches.length === 0) return []
-      let columns = Object.keys(this.state.matches[0]).map(key => {
-        return {
-          dataField: key,
-          text: key.toUpperCase()
-        }
-      })
-      console.log('COLUMNS ARE', columns)
-      return columns;
+      return [
+        { dataField: "teamnum", text: "Team" },
+        { dataField: "matchnum", text: "Match" },
+        { dataField: "scoutname", text: "Scout" },
+        { dataField: "reportstatus", text: "Status" }
+      ]
     }
 
     render() {
@@ -77,6 +79,8 @@ class MatchReportList extends Component {
         return (   
             <Form onSubmit={this.handleSubmit} className="matches-form">
                 <ul>{matchItems}</ul>
+
+                <div>{this.state.competition}</div>
           
                 <Dropdown focusFirstItemOnShow={true} onSelect={this.getMatchReportListForCompetition}>
                   <Dropdown.Toggle variant="success" id="dropdown-basic">
@@ -95,7 +99,9 @@ class MatchReportList extends Component {
                   //rowStyle={this.state.style}
                   bordered
                   bootstrap4
-                  data={this.state.matches}
+                  data={this.state.matches.map((m) => {
+                    return { teamnum: m.teamnum, matchnum: m.matchnum }
+                  })}
                   columns={this.state.columns}
                 />
                 </div>

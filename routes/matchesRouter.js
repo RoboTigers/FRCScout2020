@@ -22,7 +22,7 @@ router.post('/competitions/:id/matches', (req, res) => {
   let params = req.body;
   console.log("params",params);
   const getMatchesForCompetitionIdQuery =
-    'SELECT t.team_num as teamnum, m.match_num as matchnum FROM match m INNER JOIN comp_team_mapping mapping on mapping.mapping_id=m.mapping_id INNER JOIN team t ON t.team_id=mapping.team_id INNER JOIN competition c ON c.competition_id=mapping.competition_id WHERE c.short_name = $1';
+    'SELECT t.team_num as teamnum, m.match_num as matchnum, m.scout_name as scoutname, m.report_status as reportstatus FROM match m INNER JOIN comp_team_mapping mapping on mapping.mapping_id=m.mapping_id INNER JOIN team t ON t.team_id=mapping.team_id INNER JOIN competition c ON c.competition_id=mapping.competition_id WHERE c.short_name = $1';
   const getMatchesForCompetitionIdValues = [ params.shortname ];
 
   db.query(getMatchesForCompetitionIdQuery, getMatchesForCompetitionIdValues)

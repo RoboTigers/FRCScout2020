@@ -1,20 +1,19 @@
 import React, { Component } from 'react';
 import './PitContent.css';
 import Logo from './1796NumberswithScratch.png';
-import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
+import { Form, Dropdown } from 'react-bootstrap';
 import BootstrapTable from 'react-bootstrap-table-next';
 import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css';
 import Button from 'react-bootstrap/Button';
-import { BrowserRouter as Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 class PitNavigation extends Component {
   state = {
-    validated: false,
     widthSize: '',
     heightSize: '',
+    competitions: [],
     competition: '',
-    competitionQuery: '',
     column: [
       {
         dataField: 'team_num',
@@ -23,7 +22,7 @@ class PitNavigation extends Component {
       },
       { dataField: 'team_name', text: 'Team Name', sort: true },
       {
-        dataField: 'status',
+        dataField: 'coalesce',
         text: 'Pit Status',
         sort: true
       },
@@ -35,7 +34,28 @@ class PitNavigation extends Component {
     tableData: []
   };
 
-  initialSetup = () => {
+  getPitData = competition => {
+    this.setState({ competition: competition });
+    fetch(`/api/competitions/${competition}/pits`)
+      .then(response => response.json())
+      .then(data => {
+        let pitData = data.pitData;
+        pitData.map(
+          row =>
+            (row.buttonValue = (
+              <Link to={`/pits/${this.state.competition}/${row.team_num}`}>
+                <Button>{row.coalesce}</Button>
+              </Link>
+            ))
+        );
+        this.setState({ tableData: pitData });
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+  };
+
+  componentDidMount() {
     fetch('/competitions')
       .then(response => response.json())
       .then(data => {
@@ -47,67 +67,43 @@ class PitNavigation extends Component {
         });
       })
       .then(() => {
-        this.getPitData(data.competition);
+        fetch(`/api/competitions/${this.state.competition}/pits`)
+          .then(response => response.json())
+          .then(data => {
+            let pitData = data.pitData;
+            pitData.map(
+              row =>
+                (row.buttonValue = (
+                  <Link to={`/pits/${this.state.competition}/${row.team_num}`}>
+                    <Button>{row.coalesce}</Button>
+                  </Link>
+                ))
+            );
+            this.setState({ tableData: pitData });
+          });
       })
       .catch(error => {
         console.error('Error:', error);
       });
-  };
-
-  getPitData = competition => {
-    fetch(`/api/competitions/${competition}/pits`)
-      .then(response => response.json())
-      .then(data => {
-        data.pitData.map(
-          row =>
-            (row.buttonValue = (
-              <a href={`/pits/HVR/1796`}>
-                <Button>Start</Button>
-              </a>
-            ))
-        );
-        this.setState({ tableData: data.pitData });
-      })
-      .catch(error => {
-        console.error('Error:', error);
-      });
-  };
-
-  componentDidMount() {
-    this.initialSetup();
     this.setState({
       widthSize: window.innerWidth <= 760 ? '90%' : '50%'
     });
     this.setState({ heightSize: window.innerHeight + 'px' });
   }
 
-  handleGroupChange = event => {
-    let value = event.target.value;
-    if (value === 'Hudson Valley Regional') {
-      this.setState({
-        competition: 'Hudson Valley Regional',
-        competitionQuery: 'HVR'
-      });
-      this.getPitData('HVR');
-    } else if (value === 'SBPLI #2 Regional') {
-      this.setState({
-        competition: 'SBPLI #2 Regional',
-        competitionQuery: 'SBPLI'
-      });
-      this.getPitData('SBPLI');
-    } else if (value === 'New York City Regional') {
-      this.setState({
-        competition: 'New York City Regional',
-        competitionQuery: 'NYC'
-      });
-      this.getPitData('NYC');
-    } else if (value === 'Champs') {
-      this.setState({ competition: 'Champs', competitionQuery: 'Champs' });
-      this.getPitData('Champs');
-    }
-  };
-
   render() {
+    const competitionItems = this.state.competitions.map(competition => (
+      <Dropdown.Item
+        eventKey={competition.shortname}
+        key={competition.competitionid}
+        style={{ fontFamily: 'Helvetica, Arial' }}
+      >
+        {competition.shortname}
+      </Dropdown.Item>
+    ));
+    if (this.state.competition === '') {
+      return null;
+    }
     return (
       <div className='div-main'>
         <div className='justify-content-center'>
@@ -122,60 +118,53 @@ class PitNavigation extends Component {
           />
         </div>
         <div style={{ width: this.state.widthSize }} className='div-second'>
-          <div className='pit-form'>
-            <div className='div-form'>
-              <Form.Group
+          <div className='div-form'>
+            <Form.Group
+              style={{
+                width: '100%',
+                margin: '0 auto',
+                marginBottom: '10px'
+              }}
+              as={Row}
+            >
+              <Form.Label
+                className='mb-1'
                 style={{
-                  width: '100%',
-                  margin: '0 auto',
-                  marginBottom: '10px'
+                  fontFamily: 'Helvetica, Arial',
+                  fontSize: '110%',
+                  margin: '0 auto'
                 }}
-                as={Row}
               >
-                <Form.Label
-                  className='mb-1'
-                  style={{
-                    fontFamily: 'Helvetica, Arial',
-                    fontSize: '110%',
-                    margin: '0 auto'
-                  }}
-                >
-                  Competition:
-                </Form.Label>
-              </Form.Group>
-              <Form.Group
-                controlId='formCompetition'
-                style={{
-                  width: '80%',
-                  margin: '0 auto',
-                  marginBottom: '10px'
-                }}
-                as={Row}
+                Competition:
+              </Form.Label>
+            </Form.Group>
+            <Dropdown
+              style={{
+                marginBottom: '10px'
+              }}
+              focusFirstItemOnShow={false}
+              onSelect={this.getPitData}
+            >
+              <Dropdown.Toggle
+                style={{ fontFamily: 'Helvetica, Arial', textAlign: 'center' }}
+                size='lg'
+                variant='success'
+                id='dropdown-basic'
               >
-                <Form.Control
-                  style={{
-                    background: 'none',
-                    fontFamily: 'Helvetica, Arial'
-                  }}
-                  as='select'
-                  onChange={this.handleGroupChange}
-                  value={this.state.competition}
-                >
-                  <option>Hudson Valley Regional</option>
-                  <option>SBPLI #2 Regional</option>
-                  <option>New York City Regional</option>
-                  <option>Champs</option>
-                </Form.Control>
-              </Form.Group>
-              <Button
-                type='btn'
-                onClick={() => this.getPitData(this.state.competitionQuery)}
-                className='btn-lg'
-                style={{ fontFamily: 'Helvetica, Arial' }}
-              >
-                Refresh
-              </Button>
-            </div>
+                {this.state.competition}
+              </Dropdown.Toggle>
+              <Dropdown.Menu style={{ minWidth: '3%' }}>
+                {competitionItems}
+              </Dropdown.Menu>
+            </Dropdown>
+            <Button
+              type='btn'
+              onClick={() => this.getPitData(this.state.competition)}
+              className='btn-xs'
+              style={{ fontFamily: 'Helvetica, Arial' }}
+            >
+              Refresh
+            </Button>
           </div>
         </div>
         <BootstrapTable

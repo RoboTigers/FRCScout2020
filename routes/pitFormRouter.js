@@ -26,7 +26,14 @@ router.post('/submitPitForm', (req, res) => {
     'closing_comments, last_modified)' +
     'VALUES (' +
     '(SELECT mapping_id FROM comp_team_mapping mapping INNER JOIN competition c ON c.competition_id=mapping.competition_id INNER JOIN team t ON t.team_id=mapping.team_id WHERE c.short_name = $1 AND t.team_num = $2),' +
-    '$3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW())';
+    '$3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW())' +
+    'ON CONFLICT (mapping_id) DO UPDATE SET status = EXCLUDED.status,' +
+    'group_name = EXCLUDED.group_name, weight = EXCLUDED.weight,' +
+    'height = EXCLUDED.height, drive_train = EXCLUDED.drive_train,' +
+    'motors = EXCLUDED.motors, wheels = EXCLUDED.wheels, drive_comments = EXCLUDED.drive_comments,' +
+    'code_language = EXCLUDED.code_language, auto_comments = EXCLUDED.auto_comments,' +
+    'abilities = EXCLUDED.abilities, working_comments = EXCLUDED.working_comments,' +
+    'closing_comments = EXCLUDED.closing_comments, last_modified = NOW()';
   const addPitValues = [
     params.competition,
     params.teamNum,

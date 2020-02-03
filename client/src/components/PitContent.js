@@ -80,14 +80,14 @@ class PitContent extends Component {
     )
       .then(response => response.json())
       .then(data => {
-        if (data.pitFormData === []) {
+        if (data.pitFormData.length === 0) {
           this.setState({ retrieved: 'invalid' });
         } else {
           this.setState({ retrieved: 'valid' });
           const existingData = data.pitFormData[0];
           console.log(existingData);
           this.setState({
-            group_name:
+            group:
               existingData.group_name === null
                 ? this.state.group
                 : existingData.group_name
@@ -158,6 +158,25 @@ class PitContent extends Component {
               existingData.status === null || existingData.status === 'Complete'
                 ? false
                 : true
+          });
+          const filteredWheels = this.state.wheels.filter(wheel => wheel.value);
+          this.setState({
+            driveTrainWheelsValid: filteredWheels.length === 0 ? false : true
+          });
+          let newValidity = true;
+          this.state.wheels
+            .filter(wheel => wheel.value)
+            .map(wheel => {
+              if (wheel.size === '') {
+                newValidity = false;
+              }
+            });
+          this.setState({ driveTrainWheelSizesValid: newValidity });
+          const filteredMechanisms = this.state.mechanisms.filter(
+            mechanism => mechanism.value
+          );
+          this.setState({
+            mechanismsValid: filteredMechanisms.length === 0 ? false : true
           });
         }
       })
@@ -256,12 +275,10 @@ class PitContent extends Component {
     wheels[index] = { ...wheel };
     wheels[index].value = !wheels[index].value;
     this.setState({ wheels });
-    let newValidity = false;
-    wheels.map(wheel => {
-      newValidity = wheel.value || newValidity;
-      return null;
+    const filtered = wheels.filter(wheel => wheel.value);
+    this.setState({
+      driveTrainWheelsValid: filtered.length === 0 ? false : true
     });
-    this.setState({ driveTrainWheelsValid: newValidity });
   };
 
   checkWheelSize = (event, wheel) => {
@@ -285,7 +302,6 @@ class PitContent extends Component {
         if (wheel.size === '') {
           newValidity = false;
         }
-        return null;
       });
     this.setState({ driveTrainWheelSizesValid: newValidity });
   };
@@ -338,12 +354,8 @@ class PitContent extends Component {
     mechanisms[index] = { ...mechanism };
     mechanisms[index].value = !mechanisms[index].value;
     this.setState({ mechanisms });
-    let newValidity = false;
-    mechanisms.map(mechanism => {
-      newValidity = mechanism.value || newValidity;
-      return null;
-    });
-    this.setState({ mechanismsValid: newValidity });
+    const filtered = mechanisms.filter(mechanism => mechanism.value);
+    this.setState({ mechanismsValid: filtered.length === 0 ? false : true });
   };
 
   handleWorkingOnComment = event => {
@@ -432,28 +444,32 @@ class PitContent extends Component {
           <div className='div-form'>
             <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
               <Form.Label
-                className='mb-1'
+                className='mb-2'
                 style={{
                   fontFamily: 'Helvetica, Arial',
-                  fontSize: '110%'
+                  fontSize: '100%'
                 }}
               >
                 Competition: {this.state.competition}
               </Form.Label>
+            </Form.Group>
+            <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
               <Form.Label
-                className='mb-1'
+                className='mb-2'
                 style={{
                   fontFamily: 'Helvetica, Arial',
-                  fontSize: '110%'
+                  fontSize: '100%'
                 }}
               >
                 Team Number: {this.state.teamNumber}
               </Form.Label>
+            </Form.Group>
+            <Form.Group style={{ width: '100%', marginLeft: '1%' }} as={Row}>
               <Form.Label
                 className='mb-1'
                 style={{
                   fontFamily: 'Helvetica, Arial',
-                  fontSize: '110%'
+                  fontSize: '100%'
                 }}
               >
                 Team Name: {this.state.teamName}

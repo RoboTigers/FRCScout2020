@@ -27,6 +27,7 @@ class PitNavigation extends Component {
         sort: true
       },
       {
+        headerStyle: { width: '30%' },
         dataField: 'buttonValue',
         text: 'Scout'
       }
@@ -40,14 +41,21 @@ class PitNavigation extends Component {
       .then(response => response.json())
       .then(data => {
         let pitData = data.pitData;
-        pitData.map(
-          row =>
-            (row.buttonValue = (
-              <Link to={`/pits/${this.state.competition}/${row.team_num}`}>
-                <Button>{row.coalesce}</Button>
-              </Link>
-            ))
-        );
+        pitData.map(row => {
+          let buttonLabel;
+          if (row.coalesce === 'Not Started') {
+            buttonLabel = 'Start';
+          } else if (row.coalesce === 'Follow Up') {
+            buttonLabel = 'Continue';
+          } else {
+            buttonLabel = 'Edit';
+          }
+          row.buttonValue = (
+            <Link to={`/pits/${this.state.competition}/${row.team_num}`}>
+              <Button style={{ width: 'auto' }}>{buttonLabel}</Button>
+            </Link>
+          );
+        });
         this.setState({ tableData: pitData });
       })
       .catch(error => {
@@ -71,14 +79,21 @@ class PitNavigation extends Component {
           .then(response => response.json())
           .then(data => {
             let pitData = data.pitData;
-            pitData.map(
-              row =>
-                (row.buttonValue = (
-                  <Link to={`/pits/${this.state.competition}/${row.team_num}`}>
-                    <Button>{row.coalesce}</Button>
-                  </Link>
-                ))
-            );
+            pitData.map(row => {
+              let buttonLabel;
+              if (row.coalesce === 'Not Started') {
+                buttonLabel = 'Start';
+              } else if (row.coalesce === 'Follow Up') {
+                buttonLabel = 'Continue';
+              } else {
+                buttonLabel = 'Edit';
+              }
+              row.buttonValue = (
+                <Link to={`/pits/${this.state.competition}/${row.team_num}`}>
+                  <Button style={{ width: 'auto' }}>{buttonLabel}</Button>
+                </Link>
+              );
+            });
             this.setState({ tableData: pitData });
           });
       })

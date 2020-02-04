@@ -18,10 +18,12 @@
 }
 
 .div-main {
+  padding-bottom: 1px;
   align-items: center;
   text-align: center;
   justify-content: center;
   width: 100%;
+  min-height: 100vmax;
   height: max-content;
   background-color: rgb(230, 243, 227);
 }

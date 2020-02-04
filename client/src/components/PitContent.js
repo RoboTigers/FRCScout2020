@@ -85,7 +85,6 @@ class PitContent extends Component {
         } else {
           this.setState({ retrieved: 'valid' });
           const existingData = data.pitFormData[0];
-          console.log(existingData);
           this.setState({
             group:
               existingData.group_name === null
@@ -155,7 +154,7 @@ class PitContent extends Component {
           });
           this.setState({
             markForFollowUp:
-              existingData.status === null || existingData.status === 'Complete'
+              existingData.status === null || existingData.status === 'Done'
                 ? false
                 : true
           });
@@ -385,10 +384,11 @@ class PitContent extends Component {
   handleSumbit = event => {
     event.preventDefault();
     if (this.isFormValid() || this.state.markForFollowUp) {
+      console.log('submitted');
       const data = {
         competition: this.state.competition,
         teamNum: this.state.teamNumber,
-        status: this.state.markForFollowUp ? 'Follow Up' : 'Complete',
+        status: this.state.markForFollowUp ? 'Follow Up' : 'Done',
         group_name: this.state.group,
         weight: this.state.weight,
         height: this.state.height,
@@ -402,7 +402,6 @@ class PitContent extends Component {
         working_comments: this.state.workingOnComments,
         closing_comments: this.state.closingComments
       };
-      console.log(JSON.stringify(data));
       fetch('/api/submitPitForm', {
         method: 'POST',
         headers: {
@@ -425,7 +424,11 @@ class PitContent extends Component {
     if (this.state.retrieved === '') {
       return null;
     } else if (this.state.retrieved === 'invalid') {
-      return <h1>Invalid pit form request</h1>;
+      return (
+        <div className='div-main'>
+          <h1 className='pt-4'>Invalid pit form request</h1>
+        </div>
+      );
     }
     return (
       <div className='div-main'>
@@ -1009,8 +1012,13 @@ class PitContent extends Component {
             </div>
           </div>
           <Button
+            variant='success'
             type='btn'
-            style={{ fontFamily: 'Helvetica, Arial' }}
+            style={{
+              fontFamily: 'Helvetica, Arial',
+              boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
+              border: '1px solid black'
+            }}
             onClick={this.handleSumbit}
             className='btn-lg'
           >

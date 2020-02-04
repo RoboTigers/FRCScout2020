@@ -11,10 +11,6 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import PitNavigation from './components/PitNavigation';
 
-// window.onbeforeunload = event => {
-//   return '';
-// };
-
 function RenderTabContent({ selectedTab }) {
   if (selectedTab === 'pit') {
     return <PitNavigation />;

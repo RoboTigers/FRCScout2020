@@ -5,8 +5,16 @@ import Row from 'react-bootstrap/Row';
 import { Form, Dropdown } from 'react-bootstrap';
 import BootstrapTable from 'react-bootstrap-table-next';
 import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css';
+import 'react-bootstrap-table2-filter/dist/react-bootstrap-table2-filter.min.css';
 import Button from 'react-bootstrap/Button';
 import { Link } from 'react-router-dom';
+import filterFactory, { selectFilter } from 'react-bootstrap-table2-filter';
+
+const selectOptions = {
+  'Not Started': 'Not Started',
+  'Follow Up': 'Follow Up',
+  Done: 'Done'
+};
 
 class PitNavigation extends Component {
   state = {
@@ -16,18 +24,50 @@ class PitNavigation extends Component {
     competition: '',
     column: [
       {
+        headerStyle: {
+          width: '25%',
+          fontSize: '100%',
+          outline: 'none'
+        },
+        sortCaret: (order, column) => {
+          return '';
+        },
         dataField: 'team_num',
         text: 'Team Number',
         sort: true
       },
-      { dataField: 'team_name', text: 'Team Name', sort: true },
       {
-        dataField: 'coalesce',
-        text: 'Pit Status',
+        headerStyle: {
+          width: '25%',
+          fontSize: '100%',
+          outline: 'none'
+        },
+        sortCaret: (order, column) => {
+          return '';
+        },
+        dataField: 'team_name',
+        text: 'Team Name',
         sort: true
       },
       {
-        headerStyle: { width: '30%' },
+        headerStyle: {
+          width: '20%',
+          fontSize: '100%',
+          outline: 'none'
+        },
+        dataField: 'coalesce',
+        text: 'Status',
+        formatter: cell => selectOptions[cell],
+        filter: selectFilter({
+          options: selectOptions
+        })
+      },
+      {
+        headerStyle: {
+          width: '30%',
+          fontSize: '100%',
+          outline: 'none'
+        },
         dataField: 'buttonValue',
         text: 'Scout'
       }
@@ -52,7 +92,16 @@ class PitNavigation extends Component {
           }
           row.buttonValue = (
             <Link to={`/pits/${this.state.competition}/${row.team_num}`}>
-              <Button style={{ width: 'auto' }}>{buttonLabel}</Button>
+              <Button
+                variant='success'
+                style={{
+                  fontSize: '100%',
+                  boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
+                  border: '1px solid black'
+                }}
+              >
+                {buttonLabel}
+              </Button>
             </Link>
           );
         });
@@ -90,7 +139,18 @@ class PitNavigation extends Component {
               }
               row.buttonValue = (
                 <Link to={`/pits/${this.state.competition}/${row.team_num}`}>
-                  <Button style={{ width: 'auto' }}>{buttonLabel}</Button>
+                  <Button
+                    type='btn'
+                    variant='success'
+                    style={{
+                      fontSize: '100%',
+                      boxShadow:
+                        '-3px 3px black, -2px 2px black, -1px 1px black',
+                      border: '1px solid black'
+                    }}
+                  >
+                    {buttonLabel}
+                  </Button>
                 </Link>
               );
             });
@@ -120,7 +180,7 @@ class PitNavigation extends Component {
       return null;
     }
     return (
-      <div className='div-main'>
+      <div className='div-main' style={{ minHeight: this.state.heightSize }}>
         <div className='justify-content-center'>
           <img
             alt='Logo'
@@ -173,6 +233,7 @@ class PitNavigation extends Component {
               </Dropdown.Menu>
             </Dropdown>
             <Button
+              variant='dark'
               type='btn'
               onClick={() => this.getPitData(this.state.competition)}
               className='btn-xs'
@@ -183,14 +244,14 @@ class PitNavigation extends Component {
           </div>
         </div>
         <BootstrapTable
-          stripped
+          // stripped
           hover
           keyField='team_num'
-          rowStyle={this.state.style}
-          bordered
+          // bordered
           bootstrap4
           data={this.state.tableData}
           columns={this.state.column}
+          filter={filterFactory()}
         />
       </div>
     );

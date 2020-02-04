@@ -384,14 +384,13 @@ class PitContent extends Component {
   handleSumbit = event => {
     event.preventDefault();
     if (this.isFormValid() || this.state.markForFollowUp) {
-      console.log('submitted');
       const data = {
         competition: this.state.competition,
         teamNum: this.state.teamNumber,
         status: this.state.markForFollowUp ? 'Follow Up' : 'Done',
         group_name: this.state.group,
-        weight: this.state.weight,
-        height: this.state.height,
+        weight: this.state.weight === '' ? 0 : this.state.weight,
+        height: this.state.height === '' ? 0 : this.state.height,
         drive_train: this.state.driveTrain,
         motors: JSON.stringify(this.state.driveTrainMotors),
         wheels: JSON.stringify(this.state.wheels),
@@ -416,6 +415,7 @@ class PitContent extends Component {
         .catch(error => {
           console.error('Error', error);
         });
+      alert('submitted');
     }
     this.setState({ validated: true });
   };
@@ -779,7 +779,7 @@ class PitContent extends Component {
                         this.state.validated &&
                         wheel.value &&
                         wheel.size !== '' &&
-                        !this.markForFollowUp
+                        !this.state.markForFollowUp
                       }
                       disabled={!wheel.value}
                       onChange={event => this.checkWheelSize(event, wheel)}

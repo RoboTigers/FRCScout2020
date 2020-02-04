@@ -10,11 +10,15 @@ import Logo from './1796NumberswithScratch.png';
 
 class PitContent extends Component {
   state = {
+    retrieved: '',
+    markForFollowUp: false,
     validated: false,
     widthSize: '',
     heightSize: '',
     group: 'Group 1 Red Alliance',
     teamNumber: '',
+    teamName: '',
+    competition: '',
     weight: '',
     height: '',
     driveTrain: '',
@@ -71,6 +75,113 @@ class PitContent extends Component {
   };
 
   componentDidMount() {
+    fetch(
+      `/api/competitions/${this.props.match.params.competition}/team/${this.props.match.params.team}/pit`
+    )
+      .then(response => response.json())
+      .then(data => {
+        if (data.pitFormData.length === 0) {
+          this.setState({ retrieved: 'invalid' });
+        } else {
+          this.setState({ retrieved: 'valid' });
+          const existingData = data.pitFormData[0];
+          this.setState({
+            group:
+              existingData.group_name === null
+                ? this.state.group
+                : existingData.group_name
+          });
+          this.setState({ teamNumber: existingData.team_num });
+          this.setState({ teamName: existingData.team_name });
+          this.setState({ competition: existingData.short_name });
+          this.setState({
+            weight: existingData.weight === null ? '' : existingData.weight
+          });
+          this.setState({
+            height: existingData.height === null ? '' : existingData.height
+          });
+          this.setState({
+            driveTrain:
+              existingData.drive_train === null ? '' : existingData.drive_train
+          });
+          this.setState({
+            driveTrainMotors:
+              existingData.motors === null
+                ? this.state.driveTrainMotors
+                : existingData.motors
+          });
+          this.setState({
+            wheels:
+              existingData.wheels === null
+                ? this.state.wheels
+                : existingData.wheels
+          });
+          this.setState({
+            driveComments:
+              existingData.drive_comments === null
+                ? ''
+                : existingData.drive_comments
+          });
+          this.setState({
+            programmingLanguage:
+              existingData.code_language === null
+                ? ''
+                : existingData.code_language
+          });
+          this.setState({
+            autoComments:
+              existingData.auto_comments === null
+                ? ''
+                : existingData.auto_comments
+          });
+          this.setState({
+            mechanisms:
+              existingData.abilities === null
+                ? this.state.mechanisms
+                : existingData.abilities
+          });
+          this.setState({
+            workingOnComments:
+              existingData.working_comments === null
+                ? ''
+                : existingData.working_comments
+          });
+          this.setState({
+            closingComments:
+              existingData.closing_comments === null
+                ? ''
+                : existingData.closing_comments
+          });
+          this.setState({
+            markForFollowUp:
+              existingData.status === null || existingData.status === 'Done'
+                ? false
+                : true
+          });
+          const filteredWheels = this.state.wheels.filter(wheel => wheel.value);
+          this.setState({
+            driveTrainWheelsValid: filteredWheels.length === 0 ? false : true
+          });
+          let newValidity = true;
+          this.state.wheels
+            .filter(wheel => wheel.value)
+            .map(wheel => {
+              if (wheel.size === '') {
+                newValidity = false;
+              }
+            });
+          this.setState({ driveTrainWheelSizesValid: newValidity });
+          const filteredMechanisms = this.state.mechanisms.filter(
+            mechanism => mechanism.value
+          );
+          this.setState({
+            mechanismsValid: filteredMechanisms.length === 0 ? false : true
+          });
+        }
+      })
+      .catch(error => {
+        console.log('Error:', error);
+      });
     this.setState({
       widthSize: window.innerWidth <= 760 ? '90%' : '50%'
     });
@@ -104,11 +215,11 @@ class PitContent extends Component {
     let max = parseFloat(event.target.max);
     let min = parseFloat(event.target.min);
     if (value > max) {
-      event.target.value = value.toString().slice(0, 3);
+      value = value.toString().slice(0, 3);
     } else if (value < min) {
-      event.target.value = '';
+      value = '';
     }
-    this.setState({ weight: event.target.value });
+    this.setState({ weight: value });
   };
 
   checkHeight = event => {
@@ -116,11 +227,11 @@ class PitContent extends Component {
     let max = parseFloat(event.target.max);
     let min = parseFloat(event.target.min);
     if (value > max) {
-      event.target.value = value.toString().slice(0, 2);
+      value = value.toString().slice(0, 2);
     } else if (value < min) {
-      event.target.value = '';
+      value = '';
     }
-    this.setState({ height: event.target.value });
+    this.setState({ height: value });
   };
 
   handleDriveChange = driveTrain => {
@@ -163,12 +274,10 @@ class PitContent extends Component {
     wheels[index] = { ...wheel };
     wheels[index].value = !wheels[index].value;
     this.setState({ wheels });
-    let newValidity = false;
-    wheels.map(wheel => {
-      newValidity = wheel.value || newValidity;
-      return null;
+    const filtered = wheels.filter(wheel => wheel.value);
+    this.setState({
+      driveTrainWheelsValid: filtered.length === 0 ? false : true
     });
-    this.setState({ driveTrainWheelsValid: newValidity });
   };
 
   checkWheelSize = (event, wheel) => {
@@ -192,7 +301,6 @@ class PitContent extends Component {
         if (wheel.size === '') {
           newValidity = false;
         }
-        return null;
       });
     this.setState({ driveTrainWheelSizesValid: newValidity });
   };
@@ -245,12 +353,8 @@ class PitContent extends Component {
     mechanisms[index] = { ...mechanism };
     mechanisms[index].value = !mechanisms[index].value;
     this.setState({ mechanisms });
-    let newValidity = false;
-    mechanisms.map(mechanism => {
-      newValidity = mechanism.value || newValidity;
-      return null;
-    });
-    this.setState({ mechanismsValid: newValidity });
+    const filtered = mechanisms.filter(mechanism => mechanism.value);
+    this.setState({ mechanismsValid: filtered.length === 0 ? false : true });
   };
 
   handleWorkingOnComment = event => {
@@ -261,9 +365,12 @@ class PitContent extends Component {
     this.setState({ closingComments: event.target.value });
   };
 
+  handleFollowUp = () => {
+    this.setState({ markForFollowUp: !this.state.markForFollowUp });
+  };
+
   isFormValid() {
     return (
-      this.state.teamNumber !== '' &&
       this.state.weight !== '' &&
       this.state.height !== '' &&
       this.state.driveTrain !== '' &&
@@ -276,12 +383,53 @@ class PitContent extends Component {
 
   handleSumbit = event => {
     event.preventDefault();
-    if (this.isFormValid()) {
+    if (this.isFormValid() || this.state.markForFollowUp) {
+      const data = {
+        competition: this.state.competition,
+        teamNum: this.state.teamNumber,
+        status: this.state.markForFollowUp ? 'Follow Up' : 'Done',
+        group_name: this.state.group,
+        weight: this.state.weight === '' ? 0 : this.state.weight,
+        height: this.state.height === '' ? 0 : this.state.height,
+        drive_train: this.state.driveTrain,
+        motors: JSON.stringify(this.state.driveTrainMotors),
+        wheels: JSON.stringify(this.state.wheels),
+        drive_comments: this.state.driveComments,
+        code_language: this.state.programmingLanguage,
+        auto_comments: this.state.autoComments,
+        abilities: JSON.stringify(this.state.mechanisms),
+        working_comments: this.state.workingOnComments,
+        closing_comments: this.state.closingComments
+      };
+      fetch('/api/submitPitForm', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+        .then(response => response.json())
+        .then(data => {
+          console.log(data);
+        })
+        .catch(error => {
+          console.error('Error', error);
+        });
+      alert('submitted');
     }
     this.setState({ validated: true });
   };
 
   render() {
+    if (this.state.retrieved === '') {
+      return null;
+    } else if (this.state.retrieved === 'invalid') {
+      return (
+        <div className='div-main'>
+          <h1 className='pt-4'>Invalid pit form request</h1>
+        </div>
+      );
+    }
     return (
       <div className='div-main'>
         <div className='justify-content-center'>
@@ -296,530 +444,586 @@ class PitContent extends Component {
           />
         </div>
         <div style={{ width: this.state.widthSize }} className='div-second'>
-          <div className='pit-form'>
-            <div className='div-form'>
-              <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
-                <Form.Label
-                  className='mb-1'
-                  style={{
-                    fontFamily: 'Helvetica, Arial',
-                    fontSize: '110%'
-                  }}
-                >
-                  Group:
-                </Form.Label>
-              </Form.Group>
-              <Form.Group style={{ width: '80%', marginLeft: '2%' }} as={Row}>
-                <Form.Control
-                  style={{
-                    background: 'none',
-                    fontFamily: 'Helvetica, Arial'
-                  }}
-                  className='mb-1'
-                  as='select'
-                  onChange={this.handleGroupChange}
-                >
-                  <option>Group 1 Red Alliance</option>
-                  <option>Group 2 Red Alliance</option>
-                  <option>Group 3 Red Alliance</option>
-                  <option>Group 1 Blue Alliance</option>
-                  <option>Group 2 Blue Alliance</option>
-                  <option>Group 3 Blue Alliance</option>
-                </Form.Control>
-              </Form.Group>
-            </div>
-            <div className='div-form'>
-              <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
-                <Form.Label
-                  className='mb-1'
-                  style={{
-                    fontFamily: 'Helvetica, Arial',
-                    fontSize: '110%'
-                  }}
-                >
-                  Team Number:
-                </Form.Label>
-              </Form.Group>
-              <Form.Group style={{ width: '80%', marginLeft: '2%' }} as={Row}>
-                <Form.Control
-                  autoComplete='off'
-                  type='number'
-                  max={9999}
-                  min={1}
-                  placeholder='Team Number'
-                  onKeyDown={this.checkTeamInput}
-                  onChange={this.checkTeamNum}
-                  isValid={this.state.validated && this.state.teamNumber !== ''}
-                  isInvalid={
-                    this.state.validated && this.state.teamNumber === ''
-                  }
-                  className='mb-1'
-                  style={{ background: 'none', fontFamily: 'Helvetica, Arial' }}
-                />
-                <Form.Control.Feedback type='invalid'>
-                  Please input a team number.
-                </Form.Control.Feedback>
-              </Form.Group>
-            </div>
-            <div className='div-form'>
-              <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
-                <Form.Label
-                  className='mb-1'
-                  style={{
-                    fontFamily: 'Helvetica, Arial',
-                    fontSize: '110%'
-                  }}
-                >
-                  Weight:
-                </Form.Label>
-              </Form.Group>
-              <Form.Group style={{ width: '80%', marginLeft: '2%' }} as={Row}>
-                <Form.Control
-                  autoComplete='off'
-                  type='number'
-                  max={500}
-                  min={0}
-                  placeholder='Weight (lbs)'
-                  onChange={this.checkWeight}
-                  isValid={this.state.validated && this.state.weight !== ''}
-                  isInvalid={this.state.validated && this.state.weight === ''}
-                  className='mb-1'
-                  style={{ background: 'none', fontFamily: 'Helvetica, Arial' }}
-                />
-                <Form.Control.Feedback type='invalid'>
-                  Please input a weight.
-                </Form.Control.Feedback>
-              </Form.Group>
-            </div>
-            <div className='div-form'>
-              <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
-                <Form.Label
-                  className='mb-1'
-                  style={{
-                    fontFamily: 'Helvetica, Arial',
-                    fontSize: '110%'
-                  }}
-                >
-                  Height:
-                </Form.Label>
-              </Form.Group>
-              <Form.Group style={{ width: '80%', marginLeft: '2%' }} as={Row}>
-                <Form.Control
-                  autoComplete='off'
-                  type='number'
-                  max={100}
-                  min={0}
-                  isValid={this.state.validated && this.state.height !== ''}
-                  isInvalid={this.state.validated && this.state.height === ''}
-                  placeholder='Height (inches)'
-                  onChange={this.checkHeight}
-                  className='mb-1'
-                  style={{ background: 'none', fontFamily: 'Helvetica, Arial' }}
-                />
-                <Form.Control.Feedback type='invalid'>
-                  Please input a height.
-                </Form.Control.Feedback>
-              </Form.Group>
-            </div>
-            <div className='div-form'>
-              <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
-                <Form.Label
-                  className='mb-1'
-                  style={{
-                    fontFamily: 'Helvetica, Arial',
-                    fontSize: '110%'
-                  }}
-                >
-                  Drive Train:
-                </Form.Label>
-              </Form.Group>
-              <Form.Group
+          <div className='div-form'>
+            <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
+              <Form.Label
+                className='mb-2'
                 style={{
-                  width: '100%',
-                  marginLeft: '2%',
+                  fontFamily: 'Helvetica, Arial',
+                  fontSize: '100%'
+                }}
+              >
+                Competition: {this.state.competition}
+              </Form.Label>
+            </Form.Group>
+            <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
+              <Form.Label
+                className='mb-2'
+                style={{
+                  fontFamily: 'Helvetica, Arial',
+                  fontSize: '100%'
+                }}
+              >
+                Team Number: {this.state.teamNumber}
+              </Form.Label>
+            </Form.Group>
+            <Form.Group style={{ width: '100%', marginLeft: '1%' }} as={Row}>
+              <Form.Label
+                className='mb-1'
+                style={{
+                  fontFamily: 'Helvetica, Arial',
+                  fontSize: '100%'
+                }}
+              >
+                Team Name: {this.state.teamName}
+              </Form.Label>
+            </Form.Group>
+          </div>
+          <div className='div-form'>
+            <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
+              <Form.Label
+                className='mb-1'
+                style={{
+                  fontFamily: 'Helvetica, Arial',
+                  fontSize: '110%'
+                }}
+              >
+                Group:
+              </Form.Label>
+            </Form.Group>
+            <Form.Group style={{ width: '80%', marginLeft: '2%' }} as={Row}>
+              <Form.Control
+                style={{
+                  background: 'none',
                   fontFamily: 'Helvetica, Arial'
                 }}
-                as={Row}
-                className='mb-3'
+                className='mb-1'
+                as='select'
+                onChange={this.handleGroupChange}
+                value={this.state.group}
               >
-                {this.state.driveTrains.map(driveTrain => (
-                  <Form.Check
-                    isValid={
-                      this.state.validated && !this.state.driveTrain !== ''
+                <option>Group 1 Red Alliance</option>
+                <option>Group 2 Red Alliance</option>
+                <option>Group 3 Red Alliance</option>
+                <option>Group 1 Blue Alliance</option>
+                <option>Group 2 Blue Alliance</option>
+                <option>Group 3 Blue Alliance</option>
+              </Form.Control>
+            </Form.Group>
+          </div>
+          <div className='div-form'>
+            <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
+              <Form.Label
+                className='mb-1'
+                style={{
+                  fontFamily: 'Helvetica, Arial',
+                  fontSize: '110%'
+                }}
+              >
+                Weight:
+              </Form.Label>
+            </Form.Group>
+            <Form.Group style={{ width: '80%', marginLeft: '2%' }} as={Row}>
+              <Form.Control
+                value={this.state.weight}
+                autoComplete='off'
+                type='number'
+                max={500}
+                min={0}
+                placeholder='Weight (lbs)'
+                onChange={this.checkWeight}
+                isValid={
+                  this.state.validated &&
+                  this.state.weight !== '' &&
+                  !this.state.markForFollowUp
+                }
+                isInvalid={
+                  this.state.validated &&
+                  this.state.weight === '' &&
+                  !this.state.markForFollowUp
+                }
+                className='mb-1'
+                style={{ background: 'none', fontFamily: 'Helvetica, Arial' }}
+              />
+              <Form.Control.Feedback type='invalid'>
+                Please input a weight.
+              </Form.Control.Feedback>
+            </Form.Group>
+          </div>
+          <div className='div-form'>
+            <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
+              <Form.Label
+                className='mb-1'
+                style={{
+                  fontFamily: 'Helvetica, Arial',
+                  fontSize: '110%'
+                }}
+              >
+                Height:
+              </Form.Label>
+            </Form.Group>
+            <Form.Group style={{ width: '80%', marginLeft: '2%' }} as={Row}>
+              <Form.Control
+                value={this.state.height}
+                autoComplete='off'
+                type='number'
+                max={100}
+                min={0}
+                isValid={
+                  this.state.validated &&
+                  this.state.height !== '' &&
+                  !this.state.markForFollowUp
+                }
+                isInvalid={
+                  this.state.validated &&
+                  this.state.height === '' &&
+                  !this.state.markForFollowUp
+                }
+                placeholder='Height (inches)'
+                onChange={this.checkHeight}
+                className='mb-1'
+                style={{ background: 'none', fontFamily: 'Helvetica, Arial' }}
+              />
+              <Form.Control.Feedback type='invalid'>
+                Please input a height.
+              </Form.Control.Feedback>
+            </Form.Group>
+          </div>
+          <div className='div-form'>
+            <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
+              <Form.Label
+                className='mb-1'
+                style={{
+                  fontFamily: 'Helvetica, Arial',
+                  fontSize: '110%'
+                }}
+              >
+                Drive Train:
+              </Form.Label>
+            </Form.Group>
+            <Form.Group
+              style={{
+                width: '100%',
+                marginLeft: '2%',
+                fontFamily: 'Helvetica, Arial'
+              }}
+              as={Row}
+              className='mb-3'
+            >
+              {this.state.driveTrains.map(driveTrain => (
+                <Form.Check
+                  isValid={
+                    this.state.validated &&
+                    !this.state.driveTrain !== '' &&
+                    !this.state.markForFollowUp
+                  }
+                  isInvalid={
+                    this.state.validated &&
+                    this.state.driveTrain === '' &&
+                    !this.state.markForFollowUp
+                  }
+                  style={{ fontFamily: 'Helvetica, Arial' }}
+                  inline
+                  custom
+                  onChange={() => this.handleDriveChange(driveTrain)}
+                  label={driveTrain.label}
+                  type='radio'
+                  autoComplete='off'
+                  checked={this.state.driveTrain === driveTrain.label}
+                  id={'driveTrain' + driveTrain.id}
+                  key={'driveTrain' + driveTrain.id}
+                />
+              ))}
+            </Form.Group>
+            <Form.Group style={{ width: '100%' }}>
+              {this.state.driveTrainMotors.map(motor => (
+                <Form.Row
+                  className='mb-2 justify-content-center'
+                  key={'driveTrainMotorRow' + motor.id}
+                >
+                  <Counter
+                    minWidth='170px'
+                    count={motor.value}
+                    margin={
+                      motor.label !== 'Other'
+                        ? '7px 0px 0px 0px'
+                        : '3px 0px 0px 0px'
                     }
-                    isInvalid={
-                      this.state.validated && this.state.driveTrain === ''
-                    }
-                    style={{ fontFamily: 'Helvetica, Arial' }}
-                    inline
-                    custom
-                    onChange={() => this.handleDriveChange(driveTrain)}
-                    label={driveTrain.label}
-                    type='radio'
-                    autoComplete='off'
-                    checked={this.state.driveTrain === driveTrain.label}
-                    id={'driveTrain' + driveTrain.id}
-                    key={'driveTrain' + driveTrain.id}
-                  />
-                ))}
-              </Form.Group>
-              <Form.Group style={{ width: '100%' }}>
-                {this.state.driveTrainMotors.map(motor => (
-                  <Form.Row
-                    className='mb-2 justify-content-center'
-                    key={'driveTrainMotorRow' + motor.id}
-                  >
-                    <Counter
-                      minWidth='170px'
-                      count={motor.value}
-                      margin={
-                        motor.label !== 'Other'
-                          ? '7px 0px 0px 0px'
-                          : '3px 0px 0px 0px'
-                      }
-                      colon=': '
-                      onIncrement={() => this.handleMotorIncrement(motor)}
-                      onDecrement={() => this.handleMotorDecrement(motor)}
-                      label={
-                        motor.label !== 'Other' ? (
-                          motor.label
-                        ) : (
-                          <span
+                    colon=': '
+                    onIncrement={() => this.handleMotorIncrement(motor)}
+                    onDecrement={() => this.handleMotorDecrement(motor)}
+                    label={
+                      motor.label !== 'Other' ? (
+                        motor.label
+                      ) : (
+                        <span
+                          style={{
+                            fontFamily: 'Helvetica, Arial',
+                            maxWidth: '170px',
+                            width: '100px',
+                            display: 'inline-block',
+                            marginLeft: '10px'
+                          }}
+                        >
+                          <Form.Control
+                            autoComplete='off'
+                            type='text'
+                            placeholder={motor.label}
+                            value={motor.motorName}
+                            onChange={event =>
+                              this.handleOtherMotor(event, motor)
+                            }
                             style={{
                               fontFamily: 'Helvetica, Arial',
-                              maxWidth: '170px',
-                              width: '100px',
-                              display: 'inline-block',
-                              marginLeft: '10px'
+                              textJustify: 'center',
+                              textAlign: 'center',
+                              fontSize: '90%',
+                              backgroundImage: 'none',
+                              background: 'none',
+                              backgroundSize: '0px'
                             }}
-                          >
-                            <Form.Control
-                              autoComplete='off'
-                              type='text'
-                              placeholder={motor.label}
-                              onChange={event =>
-                                this.handleOtherMotor(event, motor)
-                              }
-                              style={{
-                                fontFamily: 'Helvetica, Arial',
-                                textJustify: 'center',
-                                textAlign: 'center',
-                                fontSize: '90%',
-                                backgroundImage: 'none',
-                                background: 'none',
-                                backgroundSize: '0px'
-                              }}
-                            />
-                          </span>
-                        )
-                      }
-                      disabled={false}
-                      size='xs'
-                      marginRight='0px'
-                      id={'driveTrainMotor' + motor.id}
-                      key={'driveTrainMotor' + motor.id}
-                    />
-                  </Form.Row>
-                ))}
-              </Form.Group>
-              <Form.Group
-                style={{ width: '100%', marginLeft: '2%' }}
-                className='mt-4'
-              >
-                {this.state.wheels.map(wheel => (
-                  <Form.Row
-                    key={'driveTrainWheelRow' + wheel.id}
-                    className='mb-2'
-                  >
-                    <Col xs='4' style={{ textAlign: 'left' }}>
-                      <Form.Check
-                        isInvalid={
-                          this.state.validated &&
-                          !this.state.driveTrainWheelsValid
-                        }
-                        isValid={
-                          this.state.validated &&
-                          this.state.driveTrainWheelsValid
-                        }
-                        onChange={() => this.handleWheelClick(wheel)}
-                        custom
-                        style={{
-                          fontSize: '90%',
-                          fontFamily: 'Helvetica, Arial'
-                        }}
-                        type='checkbox'
-                        checked={wheel.value}
-                        id={'driveTrainWheel' + wheel.id}
-                        key={'driveTrainWheel' + wheel.id}
-                        label={
-                          wheel.label !== 'Other' ? (
-                            wheel.label
-                          ) : (
-                            <Form.Control
-                              autoComplete='off'
-                              isInvalid={
-                                this.state.validated &&
-                                wheel.value &&
-                                wheel.wheelName === ''
-                              }
-                              isValid={
-                                this.state.validated &&
-                                wheel.value &&
-                                wheel.wheelName !== ''
-                              }
-                              type='text'
-                              placeholder={wheel.label}
-                              disabled={!wheel.value}
-                              onChange={event =>
-                                this.handleOtherWheel(event, wheel)
-                              }
-                              style={{
-                                fontFamily: 'Helvetica, Arial',
-                                maxWidth: '80px',
-                                fontSize: '90%',
-                                backgroundColor: 'transparent'
-                              }}
-                            />
-                          )
-                        }
-                      />
-                    </Col>
-                    <Col xs='3' style={{ textAlign: 'center' }}>
-                      <Form.Control
-                        autoComplete='off'
-                        type='number'
-                        max={12}
-                        min={1}
-                        placeholder='Size (in)'
-                        isInvalid={
-                          this.state.validated &&
-                          wheel.value &&
-                          wheel.size === ''
-                        }
-                        isValid={
-                          this.state.validated &&
-                          wheel.value &&
-                          wheel.size !== ''
-                        }
-                        disabled={!wheel.value}
-                        onChange={event => this.checkWheelSize(event, wheel)}
-                        style={{
-                          fontFamily: 'Helvetica, Arial',
-                          fontSize: '65%',
-                          textAlign: 'center',
-                          marginLeft: '6px',
-                          backgroundColor: 'transparent'
-                        }}
-                      />
-                    </Col>
-                    <Col>
-                      <Counter
-                        count={wheel.count}
-                        onDecrement={() => this.handleWheelDecrement(wheel)}
-                        onIncrement={() => this.handleWheelIncrement(wheel)}
-                        colon=''
-                        label=''
-                        minWidth='24px'
-                        maxWidth='24px'
-                        margin='0px 0px 0px 0px'
-                        disabled={!wheel.value}
-                        size='sm'
-                        marginRight='0px'
-                        key={'driveTrainWheelCounter' + wheel.id}
-                      />
-                    </Col>
-                  </Form.Row>
-                ))}
-              </Form.Group>
-              <div
-                style={{
-                  display: 'inline-block',
-                  width: '80%',
-                  marginTop: '5px'
-                }}
-              >
-                <Form.Group>
-                  <Form.Control
-                    as='textarea'
-                    type='text'
-                    placeholder='Any additional comments about drive train'
-                    onChange={this.handleDriveComment}
-                    rows='3'
-                    style={{
-                      background: 'none',
-                      fontFamily: 'Helvetica, Arial'
-                    }}
-                  />
-                </Form.Group>
-              </div>
-            </div>
-            <div className='div-form'>
-              <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
-                <Form.Label
-                  className='mb-1'
-                  style={{
-                    fontFamily: 'Helvetica, Arial',
-                    fontSize: '110%'
-                  }}
-                >
-                  Autonomous:
-                </Form.Label>
-              </Form.Group>
-              <Form.Group
-                style={{ width: '100%', marginLeft: '2%' }}
-                as={Row}
-                className='mb-3'
-              >
-                {this.state.programmingLanguages.map(language => (
-                  <Form.Check
-                    style={{ fontFamily: 'Helvetica, Arial' }}
-                    isInvalid={
-                      this.state.validated &&
-                      this.state.programmingLanguage === ''
+                          />
+                        </span>
+                      )
                     }
-                    isValid={
-                      this.state.validated &&
-                      this.state.programmingLanguage !== ''
-                    }
-                    inline
-                    custom
-                    label={language.label}
-                    type='radio'
-                    onChange={() => this.handleProgrammingChange(language)}
-                    checked={this.state.programmingLanguage === language.label}
-                    id={'language' + language.id}
-                    key={'language' + language.id}
+                    disabled={false}
+                    size='xs'
+                    marginRight='0px'
+                    id={'driveTrainMotor' + motor.id}
+                    key={'driveTrainMotor' + motor.id}
                   />
-                ))}
-              </Form.Group>
-              <div
-                style={{
-                  display: 'inline-block',
-                  width: '80%',
-                  marginTop: '5px'
-                }}
-              >
-                <Form.Group>
-                  <Form.Control
-                    as='textarea'
-                    type='text'
-                    onChange={this.handleAutoComment}
-                    placeholder='What is their usual strategy in auto?'
-                    className='mb-0'
-                    rows='3'
-                    style={{
-                      background: 'none',
-                      fontFamily: 'Helvetica, Arial'
-                    }}
-                  />
-                </Form.Group>
-              </div>
-            </div>
-            <div className='div-form'>
-              <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
-                <Form.Label
-                  style={{
-                    fontFamily: 'Helvetica, Arial',
-                    fontSize: '110%'
-                  }}
+                </Form.Row>
+              ))}
+            </Form.Group>
+            <Form.Group
+              style={{ width: '100%', marginLeft: '2%' }}
+              className='mt-4'
+            >
+              {this.state.wheels.map(wheel => (
+                <Form.Row
+                  key={'driveTrainWheelRow' + wheel.id}
+                  className='mb-2'
                 >
-                  Abilities:
-                </Form.Label>
-              </Form.Group>
-              <Form.Group style={{ width: '100%', marginLeft: '2%' }}>
-                {this.state.mechanisms.map(mechanism => (
-                  <Form.Row
-                    key={'mechanismRow' + mechanism.id}
-                    className='mb-2'
-                  >
+                  <Col xs='4' style={{ textAlign: 'left' }}>
                     <Form.Check
                       isInvalid={
-                        this.state.validated && !this.state.mechanismsValid
+                        this.state.validated &&
+                        !this.state.driveTrainWheelsValid &&
+                        !this.state.markForFollowUp
                       }
                       isValid={
-                        this.state.validated && this.state.mechanismsValid
+                        this.state.validated &&
+                        this.state.driveTrainWheelsValid &&
+                        !this.state.markForFollowUp
                       }
-                      onChange={() => this.handleMechanismClick(mechanism)}
+                      onChange={() => this.handleWheelClick(wheel)}
                       custom
                       style={{
                         fontSize: '90%',
                         fontFamily: 'Helvetica, Arial'
                       }}
-                      label={mechanism.label}
                       type='checkbox'
-                      checked={mechanism.value}
-                      id={'mechanism' + mechanism.id}
-                      key={'mechanism' + mechanism.id}
+                      checked={wheel.value}
+                      id={'driveTrainWheel' + wheel.id}
+                      key={'driveTrainWheel' + wheel.id}
+                      label={
+                        wheel.label !== 'Other' ? (
+                          wheel.label
+                        ) : (
+                          <Form.Control
+                            autoComplete='off'
+                            isInvalid={
+                              this.state.validated &&
+                              wheel.value &&
+                              wheel.wheelName === '' &&
+                              !this.state.markForFollowUp
+                            }
+                            isValid={
+                              this.state.validated &&
+                              wheel.value &&
+                              wheel.wheelName !== '' &&
+                              !this.state.markForFollowUp
+                            }
+                            type='text'
+                            placeholder={wheel.label}
+                            disabled={!wheel.value}
+                            onChange={event =>
+                              this.handleOtherWheel(event, wheel)
+                            }
+                            value={wheel.wheelName}
+                            style={{
+                              fontFamily: 'Helvetica, Arial',
+                              maxWidth: '80px',
+                              fontSize: '90%',
+                              backgroundColor: 'transparent'
+                            }}
+                          />
+                        )
+                      }
                     />
-                  </Form.Row>
-                ))}
-              </Form.Group>
-            </div>
-            <div className='div-form'>
-              <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
-                <Form.Label
-                  style={{
-                    fontFamily: 'Helvetica, Arial',
-                    fontSize: '110%'
-                  }}
-                >
-                  Closing:
-                </Form.Label>
-              </Form.Group>
-              <div
-                style={{
-                  display: 'inline-block',
-                  width: '80%',
-                  marginTop: '5px'
-                }}
-              >
-                <Form.Group>
-                  <Form.Control
-                    as='textarea'
-                    type='text'
-                    placeholder='Is there anything that the team is still working on?'
-                    onChange={this.handleWorkingOnComment}
-                    className='mb-0'
-                    rows='3'
-                    style={{
-                      background: 'none',
-                      fontFamily: 'Helvetica, Arial'
-                    }}
-                  />
-                </Form.Group>
-              </div>
-              <div
-                style={{
-                  display: 'inline-block',
-                  width: '80%',
-                  marginTop: '5px'
-                }}
-              >
-                <Form.Group>
-                  <Form.Control
-                    as='textarea'
-                    type='text'
-                    placeholder='Additional comments'
-                    onChange={this.handleClosingComment}
-                    className='mb-0'
-                    rows='2'
-                    style={{
-                      background: 'none',
-                      fontFamily: 'Helvetica, Arial'
-                    }}
-                  />
-                </Form.Group>
-              </div>
-            </div>
-            <Button
-              type='btn'
-              style={{ fontFamily: 'Helvetica, Arial' }}
-              onClick={this.handleSumbit}
-              className='btn-lg'
+                  </Col>
+                  <Col xs='3' style={{ textAlign: 'center' }}>
+                    <Form.Control
+                      autoComplete='off'
+                      type='number'
+                      max={12}
+                      min={1}
+                      placeholder='Size (in)'
+                      isInvalid={
+                        this.state.validated &&
+                        wheel.value &&
+                        wheel.size === '' &&
+                        !this.state.markForFollowUp
+                      }
+                      isValid={
+                        this.state.validated &&
+                        wheel.value &&
+                        wheel.size !== '' &&
+                        !this.state.markForFollowUp
+                      }
+                      disabled={!wheel.value}
+                      onChange={event => this.checkWheelSize(event, wheel)}
+                      value={wheel.size}
+                      style={{
+                        fontFamily: 'Helvetica, Arial',
+                        fontSize: '65%',
+                        textAlign: 'center',
+                        marginLeft: '6px',
+                        backgroundColor: 'transparent'
+                      }}
+                    />
+                  </Col>
+                  <Col>
+                    <Counter
+                      count={wheel.count}
+                      onDecrement={() => this.handleWheelDecrement(wheel)}
+                      onIncrement={() => this.handleWheelIncrement(wheel)}
+                      colon=''
+                      label=''
+                      minWidth='24px'
+                      maxWidth='24px'
+                      margin='0px 0px 0px 0px'
+                      disabled={!wheel.value}
+                      size='sm'
+                      marginRight='0px'
+                      key={'driveTrainWheelCounter' + wheel.id}
+                    />
+                  </Col>
+                </Form.Row>
+              ))}
+            </Form.Group>
+            <div
+              style={{
+                display: 'inline-block',
+                width: '80%',
+                marginTop: '5px'
+              }}
             >
-              Submit form
-            </Button>
+              <Form.Group>
+                <Form.Control
+                  value={this.state.driveComments}
+                  as='textarea'
+                  type='text'
+                  placeholder='Any additional comments about drive train'
+                  onChange={this.handleDriveComment}
+                  rows='3'
+                  style={{
+                    background: 'none',
+                    fontFamily: 'Helvetica, Arial'
+                  }}
+                />
+              </Form.Group>
+            </div>
           </div>
+          <div className='div-form'>
+            <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
+              <Form.Label
+                className='mb-1'
+                style={{
+                  fontFamily: 'Helvetica, Arial',
+                  fontSize: '110%'
+                }}
+              >
+                Autonomous:
+              </Form.Label>
+            </Form.Group>
+            <Form.Group
+              style={{ width: '100%', marginLeft: '2%' }}
+              as={Row}
+              className='mb-3'
+            >
+              {this.state.programmingLanguages.map(language => (
+                <Form.Check
+                  style={{ fontFamily: 'Helvetica, Arial' }}
+                  isInvalid={
+                    this.state.validated &&
+                    this.state.programmingLanguage === '' &&
+                    !this.state.markForFollowUp
+                  }
+                  isValid={
+                    this.state.validated &&
+                    this.state.programmingLanguage !== '' &&
+                    !this.state.markForFollowUp
+                  }
+                  inline
+                  custom
+                  label={language.label}
+                  type='radio'
+                  onChange={() => this.handleProgrammingChange(language)}
+                  checked={this.state.programmingLanguage === language.label}
+                  id={'language' + language.id}
+                  key={'language' + language.id}
+                />
+              ))}
+            </Form.Group>
+            <div
+              style={{
+                display: 'inline-block',
+                width: '80%',
+                marginTop: '5px'
+              }}
+            >
+              <Form.Group>
+                <Form.Control
+                  value={this.state.autoComments}
+                  as='textarea'
+                  type='text'
+                  onChange={this.handleAutoComment}
+                  placeholder='What is their usual strategy in auto?'
+                  className='mb-0'
+                  rows='3'
+                  style={{
+                    background: 'none',
+                    fontFamily: 'Helvetica, Arial'
+                  }}
+                />
+              </Form.Group>
+            </div>
+          </div>
+          <div className='div-form'>
+            <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
+              <Form.Label
+                style={{
+                  fontFamily: 'Helvetica, Arial',
+                  fontSize: '110%'
+                }}
+              >
+                Abilities:
+              </Form.Label>
+            </Form.Group>
+            <Form.Group style={{ width: '100%', marginLeft: '2%' }}>
+              {this.state.mechanisms.map(mechanism => (
+                <Form.Row key={'mechanismRow' + mechanism.id} className='mb-2'>
+                  <Form.Check
+                    isInvalid={
+                      this.state.validated &&
+                      !this.state.mechanismsValid &&
+                      !this.state.markForFollowUp
+                    }
+                    isValid={
+                      this.state.validated &&
+                      this.state.mechanismsValid &&
+                      !this.state.markForFollowUp
+                    }
+                    onChange={() => this.handleMechanismClick(mechanism)}
+                    custom
+                    style={{
+                      fontSize: '90%',
+                      fontFamily: 'Helvetica, Arial'
+                    }}
+                    label={mechanism.label}
+                    type='checkbox'
+                    checked={mechanism.value}
+                    id={'mechanism' + mechanism.id}
+                    key={'mechanism' + mechanism.id}
+                  />
+                </Form.Row>
+              ))}
+            </Form.Group>
+          </div>
+          <div className='div-form'>
+            <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
+              <Form.Label
+                style={{
+                  fontFamily: 'Helvetica, Arial',
+                  fontSize: '110%'
+                }}
+              >
+                Closing:
+              </Form.Label>
+            </Form.Group>
+            <div
+              style={{
+                display: 'inline-block',
+                width: '80%',
+                marginTop: '5px'
+              }}
+            >
+              <Form.Group>
+                <Form.Control
+                  value={this.state.workingOnComments}
+                  as='textarea'
+                  type='text'
+                  placeholder='Is there anything that the team is still working on?'
+                  onChange={this.handleWorkingOnComment}
+                  className='mb-0'
+                  rows='3'
+                  style={{
+                    background: 'none',
+                    fontFamily: 'Helvetica, Arial'
+                  }}
+                />
+              </Form.Group>
+            </div>
+            <div
+              style={{
+                display: 'inline-block',
+                width: '80%',
+                marginTop: '5px'
+              }}
+            >
+              <Form.Group>
+                <Form.Control
+                  value={this.state.closingComments}
+                  as='textarea'
+                  type='text'
+                  placeholder='Additional comments'
+                  onChange={this.handleClosingComment}
+                  className='mb-0'
+                  rows='2'
+                  style={{
+                    background: 'none',
+                    fontFamily: 'Helvetica, Arial'
+                  }}
+                />
+              </Form.Group>
+              <Form.Check
+                onChange={this.handleFollowUp}
+                checked={this.state.markForFollowUp}
+                custom
+                style={{
+                  fontSize: '100%',
+                  fontFamily: 'Helvetica, Arial'
+                }}
+                type='checkbox'
+                label='Mark for follow up'
+                id='followUp'
+              />
+            </div>
+          </div>
+          <Button
+            variant='success'
+            type='btn'
+            style={{
+              fontFamily: 'Helvetica, Arial',
+              boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
+              border: '1px solid black'
+            }}
+            onClick={this.handleSumbit}
+            className='btn-lg'
+          >
+            Submit form
+          </Button>
         </div>
       </div>
     );

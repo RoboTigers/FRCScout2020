@@ -30,8 +30,8 @@ app.use(express.static(path.join(__dirname, 'client/build')));
 app.use('/', indexRouter);
 app.use('/', usersRouter);
 app.use('/api', matchesRouter);
-app.use('/', pitNavRouter);
-app.use('/', pitFormRouter);
+app.use('/api', pitNavRouter);
+app.use('/api', pitFormRouter);
 app.use('/', competitionRouter);
 
 // Anything that doesn't match the above, send back index.html

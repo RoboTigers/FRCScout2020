@@ -1,32 +1,73 @@
 import React, { Component } from 'react';
 import './PitContent.css';
 import Logo from './1796NumberswithScratch.png';
-import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
+import { Form, Dropdown } from 'react-bootstrap';
 import BootstrapTable from 'react-bootstrap-table-next';
 import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css';
+import 'react-bootstrap-table2-filter/dist/react-bootstrap-table2-filter.min.css';
 import Button from 'react-bootstrap/Button';
+import { Link } from 'react-router-dom';
+import filterFactory, { selectFilter } from 'react-bootstrap-table2-filter';
+
+const selectOptions = {
+  'Not Started': 'Not Started',
+  'Follow Up': 'Follow Up',
+  Done: 'Done'
+};
 
 class PitNavigation extends Component {
   state = {
-    validated: false,
     widthSize: '',
     heightSize: '',
+    competitions: [],
     competition: '',
-    competitionQuery: '',
     column: [
       {
+        headerStyle: {
+          width: '25%',
+          fontSize: '100%',
+          outline: 'none'
+        },
+        sortCaret: (order, column) => {
+          return '';
+        },
         dataField: 'team_num',
         text: 'Team Number',
         sort: true
       },
-      { dataField: 'team_name', text: 'Team Name', sort: true },
       {
-        dataField: 'status',
-        text: 'Pit Status',
+        headerStyle: {
+          width: '25%',
+          fontSize: '100%',
+          outline: 'none'
+        },
+        sortCaret: (order, column) => {
+          return '';
+        },
+        dataField: 'team_name',
+        text: 'Team Name',
         sort: true
       },
       {
+        headerStyle: {
+          width: '20%',
+          fontSize: '100%',
+          outline: 'none'
+        },
+        dataField: 'coalesce',
+        text: 'Status',
+        formatter: cell => selectOptions[cell],
+        filter: selectFilter({
+          options: selectOptions
+        })
+      },
+      {
+        headerStyle: {
+          width: '30%',
+          fontSize: '100%',
+          outline: 'none'
+        },
         dataField: 'buttonValue',
         text: 'Scout'
       }
@@ -34,42 +75,37 @@ class PitNavigation extends Component {
     tableData: []
   };
 
-  initialSetup = () => {
-    fetch('/currentCompetition')
-      .then(response => response.json())
-      .then(data => {
-        if (data.competition === 'HVR') {
-          this.setState({
-            competition: 'Hudson Valley Regional',
-            competitionQuery: 'HVR'
-          });
-        } else if (data.competition === 'SBPLI') {
-          this.setState({
-            competition: 'SBPLI #2 Regional',
-            competitionQuery: 'SBPLI'
-          });
-        } else if (data.competition === 'NYC') {
-          this.setState({
-            competition: 'New York City Regional',
-            competitionQuery: 'NYC'
-          });
-        } else if (data.competition === 'Champs') {
-          this.setState({ competition: 'Champs', competitionQuery: 'Champs' });
-        }
-        this.getPitData(data.competition);
-      })
-      .catch(error => {
-        console.error('Error:', error);
-      });
-  };
-
   getPitData = competition => {
-    let base = '/pitTable?competition=';
-    fetch(base.concat(competition))
+    this.setState({ competition: competition });
+    fetch(`/api/competitions/${competition}/pits`)
       .then(response => response.json())
       .then(data => {
-        data.pitData.map(team => (team.buttonValue = <Button>Start</Button>));
-        this.setState({ tableData: data.pitData });
+        let pitData = data.pitData;
+        pitData.map(row => {
+          let buttonLabel;
+          if (row.coalesce === 'Not Started') {
+            buttonLabel = 'Start';
+          } else if (row.coalesce === 'Follow Up') {
+            buttonLabel = 'Continue';
+          } else {
+            buttonLabel = 'Edit';
+          }
+          row.buttonValue = (
+            <Link to={`/pits/${this.state.competition}/${row.team_num}`}>
+              <Button
+                variant='success'
+                style={{
+                  fontSize: '100%',
+                  boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
+                  border: '1px solid black'
+                }}
+              >
+                {buttonLabel}
+              </Button>
+            </Link>
+          );
+        });
+        this.setState({ tableData: pitData });
       })
       .catch(error => {
         console.error('Error:', error);
@@ -77,42 +113,74 @@ class PitNavigation extends Component {
   };
 
   componentDidMount() {
-    this.initialSetup();
+    fetch('/competitions')
+      .then(response => response.json())
+      .then(data => {
+        this.setState({ competitions: data.competitions });
+        data.competitions.map(c => {
+          if (c.iscurrent) {
+            this.setState({ competition: c.shortname });
+          }
+        });
+      })
+      .then(() => {
+        fetch(`/api/competitions/${this.state.competition}/pits`)
+          .then(response => response.json())
+          .then(data => {
+            let pitData = data.pitData;
+            pitData.map(row => {
+              let buttonLabel;
+              if (row.coalesce === 'Not Started') {
+                buttonLabel = 'Start';
+              } else if (row.coalesce === 'Follow Up') {
+                buttonLabel = 'Continue';
+              } else {
+                buttonLabel = 'Edit';
+              }
+              row.buttonValue = (
+                <Link to={`/pits/${this.state.competition}/${row.team_num}`}>
+                  <Button
+                    type='btn'
+                    variant='success'
+                    style={{
+                      fontSize: '100%',
+                      boxShadow:
+                        '-3px 3px black, -2px 2px black, -1px 1px black',
+                      border: '1px solid black'
+                    }}
+                  >
+                    {buttonLabel}
+                  </Button>
+                </Link>
+              );
+            });
+            this.setState({ tableData: pitData });
+          });
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
     this.setState({
       widthSize: window.innerWidth <= 760 ? '90%' : '50%'
     });
     this.setState({ heightSize: window.innerHeight + 'px' });
   }
 
-  handleGroupChange = event => {
-    let value = event.target.value;
-    if (value === 'Hudson Valley Regional') {
-      this.setState({
-        competition: 'Hudson Valley Regional',
-        competitionQuery: 'HVR'
-      });
-      this.getPitData('HVR');
-    } else if (value === 'SBPLI #2 Regional') {
-      this.setState({
-        competition: 'SBPLI #2 Regional',
-        competitionQuery: 'SBPLI'
-      });
-      this.getPitData('SBPLI');
-    } else if (value === 'New York City Regional') {
-      this.setState({
-        competition: 'New York City Regional',
-        competitionQuery: 'NYC'
-      });
-      this.getPitData('NYC');
-    } else if (value === 'Champs') {
-      this.setState({ competition: 'Champs', competitionQuery: 'Champs' });
-      this.getPitData('Champs');
-    }
-  };
-
   render() {
+    const competitionItems = this.state.competitions.map(competition => (
+      <Dropdown.Item
+        eventKey={competition.shortname}
+        key={competition.competitionid}
+        style={{ fontFamily: 'Helvetica, Arial' }}
+      >
+        {competition.shortname}
+      </Dropdown.Item>
+    ));
+    if (this.state.competition === '') {
+      return null;
+    }
     return (
-      <div className='div-main'>
+      <div className='div-main' style={{ minHeight: this.state.heightSize }}>
         <div className='justify-content-center'>
           <img
             alt='Logo'
@@ -125,71 +193,65 @@ class PitNavigation extends Component {
           />
         </div>
         <div style={{ width: this.state.widthSize }} className='div-second'>
-          <div className='pit-form'>
-            <div className='div-form'>
-              <Form.Group
+          <div className='div-form'>
+            <Form.Group
+              style={{
+                width: '100%',
+                margin: '0 auto',
+                marginBottom: '10px'
+              }}
+              as={Row}
+            >
+              <Form.Label
+                className='mb-1'
                 style={{
-                  width: '100%',
-                  margin: '0 auto',
-                  marginBottom: '10px'
+                  fontFamily: 'Helvetica, Arial',
+                  fontSize: '110%',
+                  margin: '0 auto'
                 }}
-                as={Row}
               >
-                <Form.Label
-                  className='mb-1'
-                  style={{
-                    fontFamily: 'Helvetica, Arial',
-                    fontSize: '110%',
-                    margin: '0 auto'
-                  }}
-                >
-                  Competition:
-                </Form.Label>
-              </Form.Group>
-              <Form.Group
-                controlId='formCompetition'
-                style={{
-                  width: '80%',
-                  margin: '0 auto',
-                  marginBottom: '10px'
-                }}
-                as={Row}
+                Competition:
+              </Form.Label>
+            </Form.Group>
+            <Dropdown
+              style={{
+                marginBottom: '10px'
+              }}
+              focusFirstItemOnShow={false}
+              onSelect={this.getPitData}
+            >
+              <Dropdown.Toggle
+                style={{ fontFamily: 'Helvetica, Arial', textAlign: 'center' }}
+                size='lg'
+                variant='success'
+                id='dropdown-basic'
               >
-                <Form.Control
-                  style={{
-                    background: 'none',
-                    fontFamily: 'Helvetica, Arial'
-                  }}
-                  as='select'
-                  onChange={this.handleGroupChange}
-                  value={this.state.competition}
-                >
-                  <option>Hudson Valley Regional</option>
-                  <option>SBPLI #2 Regional</option>
-                  <option>New York City Regional</option>
-                  <option>Champs</option>
-                </Form.Control>
-              </Form.Group>
-              <Button
-                type='btn'
-                onClick={() => this.getPitData(this.state.competitionQuery)}
-                className='btn-lg'
-                style={{ fontFamily: 'Helvetica, Arial' }}
-              >
-                Refresh
-              </Button>
-            </div>
+                {this.state.competition}
+              </Dropdown.Toggle>
+              <Dropdown.Menu style={{ minWidth: '3%' }}>
+                {competitionItems}
+              </Dropdown.Menu>
+            </Dropdown>
+            <Button
+              variant='dark'
+              type='btn'
+              onClick={() => this.getPitData(this.state.competition)}
+              className='btn-xs'
+              style={{ fontFamily: 'Helvetica, Arial' }}
+            >
+              Refresh
+            </Button>
           </div>
         </div>
         <BootstrapTable
-          stripped
+          // stripped
           hover
           keyField='team_num'
-          rowStyle={this.state.style}
-          bordered
+          // bordered
           bootstrap4
           data={this.state.tableData}
           columns={this.state.column}
+          filter={filterFactory()}
         />
       </div>
     );

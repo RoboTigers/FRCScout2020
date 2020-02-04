@@ -3,11 +3,12 @@ var router = express.Router();
 const db = require('../db');
 
 router.get('/competitions', (req, res) => {
-  const getAllCompetitionsQuery = 'SELECT short_name as shortname, is_current as iscurrent, competition_id as competitionid FROM competition';
+  const getAllCompetitionsQuery =
+    'SELECT short_name as shortname, is_current as iscurrent, competition_id as competitionid FROM competition';
 
   db.query(getAllCompetitionsQuery)
     .then(data => {
-      let competitions = data.rows
+      let competitions = data.rows;
       res.json({
         competitions
       });

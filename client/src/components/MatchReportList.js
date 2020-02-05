@@ -65,6 +65,7 @@ class MatchReportList extends Component {
     ];
   }
 
+
   render() {
     const matchItems = this.state.matches.map(match => (
       <li key={match.id}>
@@ -81,11 +82,17 @@ class MatchReportList extends Component {
       </Dropdown.Item>
     ));
 
+    const rowEvents = {
+      onClick: (e, row, rowIndex) => {
+        console.log(`clicked on row with index: ${rowIndex}`);
+        console.log(`  the row is: `, row);
+        this.props.history.push(`/matches/${row.matchid}/edit`);
+      }
+    };
+
     return (
       <Form onSubmit={this.handleSubmit} className='matches-form'>
         <ul>{matchItems}</ul>
-
-        <div>{this.state.competition}</div>
 
         <Dropdown
           focusFirstItemOnShow={true}
@@ -105,11 +112,14 @@ class MatchReportList extends Component {
             //rowStyle={this.state.style}
             bordered
             bootstrap4
+            keyField='id'
             data={this.state.matches.map(m => {
-              return { teamnum: m.teamnum, matchnum: m.matchnum };
+              return { matchid: m.matchid, teamnum: m.teamnum, matchnum: m.matchnum };
             })}
             columns={this.state.columns}
+            rowEvents={ rowEvents }
           />
+
         </div>
       </Form>
     );

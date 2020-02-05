@@ -1,18 +1,17 @@
-import React, { Component } from "react";
-import Button from "react-bootstrap/Button";
+import React, { Component } from 'react';
+import Button from 'react-bootstrap/Button';
 
 class Counter extends Component {
   state = {
-    minWidth: ""
+    minWidth: ''
   };
 
   spanStyle = {
-    fontSize: "90%",
-    display: "inline-block",
-    margin: this.props.margin,
+    fontSize: '90%',
+    display: 'inline-block',
     minWidth: this.props.minWidth,
     maxWidth: this.props.maxWidth,
-    fontFamily: "Helvetica, Arial"
+    fontFamily: 'Helvetica, Arial'
     // textAlign: "center"
     // justifyContent: "center"
   };
@@ -25,11 +24,11 @@ class Counter extends Component {
 
   render() {
     return (
-      <React.Fragment>
+      <span style={{ margin: this.props.margin }}>
         <Button
           disabled={this.props.disabled}
-          className="btn"
-          variant={this.props.disabled ? "outline-danger" : "danger"}
+          className='btn'
+          variant={this.props.dynamic ? 'outline-danger' : 'danger'}
           onClick={this.props.onDecrement}
           size={this.props.size}
           style={{ minWidth: this.state.minWidth }}
@@ -47,14 +46,14 @@ class Counter extends Component {
             marginRight: this.props.marginRight
           }}
           disabled={this.props.disabled}
-          className="btn"
-          variant={this.props.disabled ? "outline-success" : "success"}
+          className='btn'
+          variant={this.props.dynamic ? 'outline-success' : 'success'}
           onClick={this.props.onIncrement}
           size={this.props.size}
         >
           +
         </Button>
-      </React.Fragment>
+      </span>
     );
   }
 }

@@ -39,12 +39,12 @@ class PitContent extends Component {
     driveTrainWheelSizesValid: false,
     // prettier-ignore
     wheels: [
-      { id: 1, label: "Traction", value: false, count: 0, size: "", min: 1, max: 10 },
-      { id: 2, label: "Omni", value: false, count: 0, size: "", min: 1, max: 10 },
-      { id: 3, label: "Colson (Rubber)", value: false, count: 0, size: "", min: 1, max: 10 },
-      { id: 4, label: "Pneumatic", value: false, count: 0, size: "", min: 1, max: 10 },
-      { id: 5, label: "Mecanum", value: false, count: 0, size: "", min: 1, max: 10 },
-      { id: 6, label: "Other", wheelName: "", value: false, count: 0, size: "", min: 1, max: 10 }
+      { id: 1, label: "Traction", value: false, count: 0, size: "", min: 0, max: 10 },
+      { id: 2, label: "Omni", value: false, count: 0, size: "", min: 0, max: 10 },
+      { id: 3, label: "Colson (Rubber)", value: false, count: 0, size: "", min: 0, max: 10 },
+      { id: 4, label: "Pneumatic", value: false, count: 0, size: "", min: 0, max: 10 },
+      { id: 5, label: "Mecanum", value: false, count: 0, size: "", min: 0, max: 10 },
+      { id: 6, label: "Other", wheelName: "", value: false, count: 0, size: "", min: 0, max: 10 }
     ],
     driveComments: '',
     programmingLanguage: '',
@@ -247,6 +247,7 @@ class PitContent extends Component {
       motors[index].value = motors[index].value - 1;
     }
     this.setState({ driveTrainMotors: motors });
+    console.log(this.state.driveTrainMotors);
   };
 
   handleMotorIncrement = motor => {
@@ -265,7 +266,6 @@ class PitContent extends Component {
     const index = motors.indexOf(motor);
     motors[index] = { ...motor };
     motors[index].motorName = event.target.value;
-    this.setState({ driveTrainMotors: motors });
   };
 
   handleWheelClick = wheel => {
@@ -559,7 +559,7 @@ class PitContent extends Component {
                   fontSize: '110%'
                 }}
               >
-                Height:
+                Starting Height:
               </Form.Label>
             </Form.Group>
             <Form.Group style={{ width: '80%', marginLeft: '2%' }} as={Row}>
@@ -687,6 +687,7 @@ class PitContent extends Component {
                       )
                     }
                     disabled={false}
+                    dynamic={motor.value == 0}
                     size='xs'
                     marginRight='0px'
                     id={'driveTrainMotor' + motor.id}
@@ -695,6 +696,8 @@ class PitContent extends Component {
                 </Form.Row>
               ))}
             </Form.Group>
+          </div>
+          <div className='div-form'>
             <Form.Group
               style={{ width: '100%', marginLeft: '2%' }}
               className='mt-4'
@@ -788,7 +791,7 @@ class PitContent extends Component {
                         fontFamily: 'Helvetica, Arial',
                         fontSize: '65%',
                         textAlign: 'center',
-                        marginLeft: '6px',
+                        marginLeft: '10px',
                         backgroundColor: 'transparent'
                       }}
                     />
@@ -802,8 +805,9 @@ class PitContent extends Component {
                       label=''
                       minWidth='24px'
                       maxWidth='24px'
-                      margin='0px 0px 0px 0px'
+                      margin='0% 0% 0% 20%'
                       disabled={!wheel.value}
+                      dynamic={!wheel.value}
                       size='sm'
                       marginRight='0px'
                       key={'driveTrainWheelCounter' + wheel.id}

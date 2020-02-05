@@ -8,6 +8,17 @@ import { Link } from 'react-router-dom';
 class MatchContent extends Component {
   statae;
 
+  state = {
+    paramMatchId: ''
+  }
+
+  componentDidMount() {
+    console.log("Entered match content");
+    console.log(this.props);
+    console.log(this.props.match.params.matchId);
+    this.setState({ paramMatchId: this.props.match.params.matchId });
+  }
+
   handleSubmit = event => {
     event.preventDefault();
     const data = {

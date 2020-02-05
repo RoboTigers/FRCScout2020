@@ -10,6 +10,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 //import 'bootstrap/dist/css/bootstrap.css';
 import './App.css';
 import PitNavigation from './components/PitNavigation';
+import MatchContent from './components/MatchContent';
 
 function RenderTabContent({ selectedTab }) {
   if (selectedTab === 'pit') {
@@ -53,6 +54,8 @@ class App extends Component {
           <TabNav onClick={this.handleTabSelect} />
           <Switch>
             <Route path='/pits' exact component={PitNavigation} />
+            <Route path='/matches/:matchId/edit' component={MatchContent} />
+            <Route path='/matches/new' component={MatchContent} />
             <Route path='/matches' component={MatchReportList} />
             <Route path='/analystHome' component={AnalystContent} />
             <Route

@@ -9,6 +9,7 @@ import Counter from './Counter.js';
 import Logo from './1796NumberswithScratch.png';
 import Camera, { FACING_MODES, IMAGE_TYPES } from 'react-html5-camera-photo';
 import 'react-html5-camera-photo/build/css/index.css';
+import ImagePreview from './ImagePreview';
 
 class PitContent extends Component {
   state = {
@@ -80,7 +81,8 @@ class PitContent extends Component {
     ],
     workingOnComments: '',
     closingComments: '',
-    cameraActivated: false
+    cameraActivated: false,
+    dataUri: ''
   };
 
   componentDidMount() {
@@ -396,7 +398,7 @@ class PitContent extends Component {
   };
 
   handleTakePhoto = dataUri => {
-    console.log('took photo');
+    this.setState({ dataUri: dataUri });
   };
 
   isFormValid() {
@@ -1064,29 +1066,33 @@ class PitContent extends Component {
                 />
               </Form.Group>
             </div>
-            <div style={{ justifyContent: 'center' }}>
-              <Button
-                variant='success'
-                type='btn'
-                style={{
-                  fontFamily: 'Helvetica, Arial',
-                  boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
-                  border: '1px solid black'
+            <Button
+              variant='success'
+              type='btn'
+              style={{
+                fontFamily: 'Helvetica, Arial',
+                boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
+                border: '1px solid black'
+              }}
+              onClick={this.handleCameraActivation}
+              className='btn-xs mb-3'
+            >
+              {this.state.cameraActivated ? 'Close Camera' : 'Open Camera'}
+            </Button>
+            {this.state.cameraActivated ? (
+              <Camera
+                isFullscreen={true}
+                isMaxResolution={true}
+                isImageMirror={false}
+                idealFacingMode={FACING_MODES.ENVIRONMENT}
+                onTakePhotoAnimationDone={dataUri => {
+                  this.handleTakePhoto(dataUri);
                 }}
-                onClick={this.handleCameraActivation}
-                className='btn-xs mb-3'
-              >
-                {this.state.cameraActivated ? 'Close Camera' : 'Open Camera'}
-              </Button>
-              {this.state.cameraActivated ? (
-                <Camera
-                  idealFacingMode={FACING_MODES.ENVIRONMENT}
-                  onTakePhoto={dataUri => {
-                    this.handleTakePhoto(dataUri);
-                  }}
-                />
-              ) : null}
-            </div>
+              />
+            ) : null}
+            {this.state.dataUri === '' ? null : (
+              <ImagePreview dataUri={this.state.dataUri} isFullscreen={false} />
+            )}
             <Form.Check
               onChange={this.handleFollowUp}
               checked={this.state.markForFollowUp}

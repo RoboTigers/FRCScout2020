@@ -470,8 +470,8 @@ class PitContent extends Component {
         return (
           <Camera
             idealResolution={{
-              width: window.innerWidth,
-              height: window.innerHeight
+              width: 1600,
+              height: 1200
             }}
             isFullscreen={false}
             isMaxResolution={true}

@@ -474,7 +474,7 @@ class PitContent extends Component {
               height: 1200
             }}
             isFullscreen={false}
-            isMaxResolution={true}
+            isMaxResolution={false}
             isImageMirror={false}
             idealFacingMode={FACING_MODES.ENVIRONMENT}
             onTakePhotoAnimationDone={dataUri => {

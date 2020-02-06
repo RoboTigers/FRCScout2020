@@ -1066,21 +1066,27 @@ class PitContent extends Component {
                 />
               </Form.Group>
             </div>
-            <Button
-              variant='success'
-              type='btn'
-              style={{
-                fontFamily: 'Helvetica, Arial',
-                boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
-                border: '1px solid black'
-              }}
-              onClick={this.handleCameraActivation}
-              className='btn-xs mb-3'
-            >
-              {this.state.cameraActivated ? 'Close Camera' : 'Open Camera'}
-            </Button>
+            <div>
+              <Button
+                variant='success'
+                type='btn'
+                style={{
+                  fontFamily: 'Helvetica, Arial',
+                  boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
+                  border: '1px solid black'
+                }}
+                onClick={this.handleCameraActivation}
+                className='btn-xs mb-3'
+              >
+                {this.state.cameraActivated ? 'Close Camera' : 'Open Camera'}
+              </Button>
+            </div>
             {this.state.cameraActivated ? (
               <Camera
+                idealResolution={{
+                  width: window.innerWidth,
+                  height: window.innerHeight
+                }}
                 isFullscreen={false}
                 isMaxResolution={true}
                 isImageMirror={false}

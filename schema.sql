@@ -133,6 +133,7 @@ create table pit (
     wheels json,
     drive_comments text,
     code_language varchar(10),
+    starting_position varchar(20),
     auto_comments text,
     abilities json,
     working_comments text,

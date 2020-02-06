@@ -7,6 +7,8 @@ import './PitContent.css';
 import './Counter.js';
 import Counter from './Counter.js';
 import Logo from './1796NumberswithScratch.png';
+import Camera, { FACING_MODES, IMAGE_TYPES } from 'react-html5-camera-photo';
+import 'react-html5-camera-photo/build/css/index.css';
 
 class PitContent extends Component {
   state = {
@@ -53,6 +55,12 @@ class PitContent extends Component {
       { id: 2, label: 'C++', value: false },
       { id: 3, label: 'LabView', value: false }
     ],
+    startingPosition: '',
+    startingPositions: [
+      { id: 1, label: 'Left', value: false },
+      { id: 2, label: 'Center', value: false },
+      { id: 3, label: 'Right', value: false }
+    ],
     autoComments: '',
     mechanismsValid: false,
     mechanisms: [
@@ -71,7 +79,8 @@ class PitContent extends Component {
       { id: 13, label: 'None', value: false }
     ],
     workingOnComments: '',
-    closingComments: ''
+    closingComments: '',
+    cameraActivated: false
   };
 
   componentDidMount() {
@@ -83,6 +92,7 @@ class PitContent extends Component {
         if (data.pitFormData.length === 0) {
           this.setState({ retrieved: 'invalid' });
         } else {
+          console.log(data.pitFormData);
           this.setState({ retrieved: 'valid' });
           const existingData = data.pitFormData[0];
           this.setState({
@@ -127,6 +137,12 @@ class PitContent extends Component {
               existingData.code_language === null
                 ? ''
                 : existingData.code_language
+          });
+          this.setState({
+            startingPosition:
+              existingData.starting_position === null
+                ? ''
+                : existingData.starting_position
           });
           this.setState({
             autoComments:
@@ -341,6 +357,12 @@ class PitContent extends Component {
 
   handleProgrammingChange = language => {
     this.setState({ programmingLanguage: language.label });
+    console.log(this.state.programmingLanguage);
+  };
+
+  handlePositionChange = position => {
+    this.setState({ startingPosition: position.label });
+    console.log(this.state.startingPosition);
   };
 
   handleAutoComment = event => {
@@ -369,6 +391,14 @@ class PitContent extends Component {
     this.setState({ markForFollowUp: !this.state.markForFollowUp });
   };
 
+  handleCameraActivation = () => {
+    this.setState({ cameraActivated: !this.state.cameraActivated });
+  };
+
+  handleTakePhoto = dataUri => {
+    console.log('took photo');
+  };
+
   isFormValid() {
     return (
       this.state.weight !== '' &&
@@ -377,6 +407,7 @@ class PitContent extends Component {
       this.state.driveTrainWheelsValid &&
       this.state.driveTrainWheelSizesValid &&
       this.state.programmingLanguage !== '' &&
+      this.state.startingPosition !== '' &&
       this.state.mechanismsValid
     );
   }
@@ -396,11 +427,13 @@ class PitContent extends Component {
         wheels: JSON.stringify(this.state.wheels),
         drive_comments: this.state.driveComments,
         code_language: this.state.programmingLanguage,
+        starting_position: this.state.startingPosition,
         auto_comments: this.state.autoComments,
         abilities: JSON.stringify(this.state.mechanisms),
         working_comments: this.state.workingOnComments,
         closing_comments: this.state.closingComments
       };
+      console.log(data);
       fetch('/api/submitPitForm', {
         method: 'POST',
         headers: {
@@ -880,6 +913,35 @@ class PitContent extends Component {
                 />
               ))}
             </Form.Group>
+            <Form.Group
+              style={{ width: '100%', marginLeft: '2%' }}
+              as={Row}
+              className='mb-3'
+            >
+              {this.state.startingPositions.map(position => (
+                <Form.Check
+                  style={{ fontFamily: 'Helvetica, Arial' }}
+                  isInvalid={
+                    this.state.validated &&
+                    this.state.startingPosition === '' &&
+                    !this.state.markForFollowUp
+                  }
+                  isValid={
+                    this.state.validated &&
+                    this.state.startingPosition !== '' &&
+                    !this.state.markForFollowUp
+                  }
+                  inline
+                  custom
+                  label={position.label}
+                  type='radio'
+                  onChange={() => this.handlePositionChange(position)}
+                  checked={this.state.startingPosition === position.label}
+                  id={'position' + position.id}
+                  key={'position' + position.id}
+                />
+              ))}
+            </Form.Group>
             <div
               style={{
                 display: 'inline-block',
@@ -1001,19 +1063,42 @@ class PitContent extends Component {
                   }}
                 />
               </Form.Group>
-              <Form.Check
-                onChange={this.handleFollowUp}
-                checked={this.state.markForFollowUp}
-                custom
-                style={{
-                  fontSize: '100%',
-                  fontFamily: 'Helvetica, Arial'
-                }}
-                type='checkbox'
-                label='Mark for follow up'
-                id='followUp'
-              />
             </div>
+            <div style={{ justifyContent: 'center' }}>
+              <Button
+                variant='success'
+                type='btn'
+                style={{
+                  fontFamily: 'Helvetica, Arial',
+                  boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
+                  border: '1px solid black'
+                }}
+                onClick={this.handleCameraActivation}
+                className='btn-xs mb-3'
+              >
+                {this.state.cameraActivated ? 'Close Camera' : 'Open Camera'}
+              </Button>
+              {this.state.cameraActivated ? (
+                <Camera
+                  idealFacingMode={FACING_MODES.ENVIRONMENT}
+                  onTakePhoto={dataUri => {
+                    this.handleTakePhoto(dataUri);
+                  }}
+                />
+              ) : null}
+            </div>
+            <Form.Check
+              onChange={this.handleFollowUp}
+              checked={this.state.markForFollowUp}
+              custom
+              style={{
+                fontSize: '100%',
+                fontFamily: 'Helvetica, Arial'
+              }}
+              type='checkbox'
+              label='Mark for follow up'
+              id='followUp'
+            />
           </div>
           <Button
             variant='success'

@@ -3,31 +3,38 @@ import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import { Link } from 'react-router-dom';
 
 class MatchContent extends Component {
-  statae;
-
   state = {
-    paramMatchId: ''
-  }
+    matchData: {}
+  };
 
   componentDidMount() {
-    console.log("Entered match content");
+    console.log('Entered match content');
     console.log(this.props);
     console.log(this.props.match.params.matchId);
-    this.setState({ paramMatchId: this.props.match.params.matchId });
+    fetch(`/api/matches/${this.props.match.params.matchId}`)
+      .then(response => response.json())
+      .then(data => {
+        //should only be 1 row but let's be safe
+        data.matchList.map(m => {
+          this.setState({ matchData: m });
+        });
+        console.log('Success:', data);
+        console.log(this.state.matchData);
+      });
   }
 
   handleSubmit = event => {
     event.preventDefault();
+    console.log('Handing: ', this.state.matchData);
     const data = {
-      competition: document.getElementById('formCompetition').value,
-      teamNum: document.getElementById('formTeamNum').value,
+      matchId: this.state.matchData.matchid,
       matchNum: document.getElementById('formMatchNum').value
     };
+    console.log('content data: ', data);
 
-    fetch('/match', {
+    fetch('/api/match', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -45,42 +52,19 @@ class MatchContent extends Component {
   };
 
   render() {
-    const matches = [
-      { name: 'jonMatch', id: 123 },
-      { name: 'SharonMatch', id: 124 },
-      { name: 'FonMatch', id: 125 },
-      { name: 'GonMatch', id: 126 },
-      { name: 'HonMatch', id: 127 }
-    ];
-
-    const listItems = matches.map(match => (
-      <li key={match.id}>
-        <Link to={`/matches/${match.id}`}>{match.name}</Link>
-      </li>
-    ));
-
     return (
       <Form onSubmit={this.handleSubmit} className='match-form'>
-        <ul>{listItems}</ul>
-
-        <Form.Group className='mt-3' as={Row} controlId='formCompetition'>
-          <Form.Label column xs='2'></Form.Label>
-          <Col xs='6'>
-            <Form.Control as='select'>
-              <option>HVR</option>
-              <option>SBPLI</option>
-              <option>NYC</option>
-              <option>Champs</option>
-            </Form.Control>
-          </Col>
-        </Form.Group>
+        <div>{this.state.matchData.shortname}</div>
 
         <Form.Group as={Row} controlId='formTeamNum'>
           <Form.Label column xs='2'>
             Team Number
           </Form.Label>
           <Col xs='9'>
-            <Form.Control type='number' placeholder='Team Number' />
+            <Form.Control
+              type='number'
+              defaultValue={this.state.matchData.teamnum}
+            />
           </Col>
         </Form.Group>
 
@@ -89,21 +73,15 @@ class MatchContent extends Component {
             Match Number
           </Form.Label>
           <Col xs='9'>
-            <Form.Control type='text' placeholder='Match Number' />
-          </Col>
-        </Form.Group>
-
-        <Form.Group as={Row} controlId='formAuto'>
-          <Form.Label column xs='2'>
-            Auto
-          </Form.Label>
-          <Col xs='1'>
-            <Form.Check custom='true' type='switch' label='' />
+            <Form.Control
+              type='text'
+              defaultValue={this.state.matchData.matchnum}
+            />
           </Col>
         </Form.Group>
 
         <Button type='submit' className='btn-lg'>
-          Submit form
+          Done
         </Button>
       </Form>
     );

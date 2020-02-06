@@ -1081,7 +1081,7 @@ class PitContent extends Component {
             </Button>
             {this.state.cameraActivated ? (
               <Camera
-                isFullscreen={true}
+                isFullscreen={false}
                 isMaxResolution={true}
                 isImageMirror={false}
                 idealFacingMode={FACING_MODES.ENVIRONMENT}

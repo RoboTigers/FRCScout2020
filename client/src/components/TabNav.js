@@ -41,6 +41,9 @@ class TabNav extends Component {
             Analyst
           </Link>
         </Nav.Item>
+        <Nav.Item>
+          <a class="nav-link" href="/logout">Logout</a>
+        </Nav.Item>
       </Nav>
     );
   }

@@ -1,0 +1,17 @@
+extends layout
+
+block content
+  h1 Login
+  if errors
+    ul
+      each error in errors
+        li= error
+  form(method='POST' action='/login')
+    div
+      label(for='username') Username:
+      input(name='username' type='text')
+    div
+      label(for='password') Password:
+      input(name='password' type='password')
+    div
+      button(type='submit') Login

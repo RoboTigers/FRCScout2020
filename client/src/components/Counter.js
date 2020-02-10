@@ -7,7 +7,7 @@ class Counter extends Component {
   };
 
   spanStyle = {
-    fontSize: '90%',
+    fontSize: '100%',
     display: 'inline-block',
     minWidth: this.props.minWidth,
     maxWidth: this.props.maxWidth,

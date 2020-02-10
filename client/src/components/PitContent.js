@@ -7,7 +7,7 @@ import './PitContent.css';
 import './Counter.js';
 import Counter from './Counter.js';
 import Logo from './1796NumberswithScratch.png';
-import Camera, { FACING_MODES, IMAGE_TYPES } from 'react-html5-camera-photo';
+import Camera, { FACING_MODES } from 'react-html5-camera-photo';
 import 'react-html5-camera-photo/build/css/index.css';
 import ImagePreview from './ImagePreview';
 
@@ -94,7 +94,6 @@ class PitContent extends Component {
         if (data.pitFormData.length === 0) {
           this.setState({ retrieved: 'invalid' });
         } else {
-          console.log(data.pitFormData);
           this.setState({ retrieved: 'valid' });
           const existingData = data.pitFormData[0];
           this.setState({
@@ -265,7 +264,6 @@ class PitContent extends Component {
       motors[index].value = motors[index].value - 1;
     }
     this.setState({ driveTrainMotors: motors });
-    console.log(this.state.driveTrainMotors);
   };
 
   handleMotorIncrement = motor => {
@@ -359,12 +357,10 @@ class PitContent extends Component {
 
   handleProgrammingChange = language => {
     this.setState({ programmingLanguage: language.label });
-    console.log(this.state.programmingLanguage);
   };
 
   handlePositionChange = position => {
     this.setState({ startingPosition: position.label });
-    console.log(this.state.startingPosition);
   };
 
   handleAutoComment = event => {
@@ -436,7 +432,6 @@ class PitContent extends Component {
         working_comments: this.state.workingOnComments,
         closing_comments: this.state.closingComments
       };
-      console.log(data);
       fetch('/api/submitPitForm', {
         method: 'POST',
         headers: {
@@ -445,9 +440,7 @@ class PitContent extends Component {
         body: JSON.stringify(data)
       })
         .then(response => response.json())
-        .then(data => {
-          console.log(data);
-        })
+        .then(data => {})
         .catch(error => {
           console.error('Error', error);
         });
@@ -604,9 +597,6 @@ class PitContent extends Component {
                       fontFamily: 'Helvetica, Arial'
                     }}
                   />
-                  <Form.Control.Feedback type='invalid'>
-                    Please input a weight.
-                  </Form.Control.Feedback>
                 </Form.Group>
               </div>
               <div className='div-form'>
@@ -646,9 +636,6 @@ class PitContent extends Component {
                       fontFamily: 'Helvetica, Arial'
                     }}
                   />
-                  <Form.Control.Feedback type='invalid'>
-                    Please input a height.
-                  </Form.Control.Feedback>
                 </Form.Group>
               </div>
               <div className='div-form'>
@@ -749,7 +736,7 @@ class PitContent extends Component {
                           )
                         }
                         disabled={false}
-                        dynamic={motor.value == 0}
+                        dynamic={motor.value === 0}
                         size='xs'
                         marginRight='0px'
                         id={'driveTrainMotor' + motor.id}

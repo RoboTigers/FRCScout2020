@@ -4,7 +4,7 @@ const db = require('../db');
 
 router.get('/competitions/:shortName/matches', (req, res) => {
   const getMatchesForCompetitionQuery =
-    'SELECT m.match_id as matchid, t.team_num as teamnum, m.match_num as matchnum FROM match m INNER JOIN comp_team_mapping mapping on mapping.mapping_id=m.mapping_id INNER JOIN team t ON t.team_id=mapping.team_id INNER JOIN competition c ON c.competition_id=mapping.competition_id WHERE c.short_name = $1';
+    'SELECT m.match_id as matchid, t.team_num as teamnum, m.match_num as matchnum, m.scout_name as scoutname, m.report_status as reportstatus FROM match m INNER JOIN comp_team_mapping mapping on mapping.mapping_id=m.mapping_id INNER JOIN team t ON t.team_id=mapping.team_id INNER JOIN competition c ON c.competition_id=mapping.competition_id WHERE c.short_name = $1';
   const getMatchesForCompetitionValues = [req.params.shortName];
 
   db.query(getMatchesForCompetitionQuery, getMatchesForCompetitionValues)
@@ -47,7 +47,6 @@ router.post('/competitions/:id/matches', (req, res) => {
     .catch(e => console.error(e.stack));
 });
 
-
 router.post('/match', (req, res) => {
   let params = req.body;
 
@@ -61,9 +60,7 @@ router.post('/match', (req, res) => {
   // const addMatchValues = [params.compTeamMappingId, params.matchNum];
 
   const updateMatchQuery =
-    'UPDATE match ' +
-    'set match_num = $2 ' +
-    'WHERE match_id = $1';
+    'UPDATE match ' + 'set match_num = $2 ' + 'WHERE match_id = $1';
   const updateMatchValues = [params.matchId, params.matchNum];
 
   db.query(updateMatchQuery, updateMatchValues)

@@ -1,36 +1,117 @@
 import React, { Component } from 'react';
 import { Form, Dropdown } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+import Logo from './1796NumberswithScratch.png';
+import Row from 'react-bootstrap/Row';
+import Button from 'react-bootstrap/Button';
+import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css';
 import BootstrapTable from 'react-bootstrap-table-next';
 
 class MatchReportList extends Component {
   state = {
+    widthSize: '',
+    heightSize: '',
     competition: '',
     competitions: [],
-    matches: [],
-    columns: [{}]
+    columns: [
+      { dataField: 'matchid', text: 'Match ID', hidden: true },
+      {
+        headerStyle: {
+          width: '20%',
+          fontSize: '100%',
+          outline: 'none'
+        },
+        sortCaret: (order, column) => {
+          return '';
+        },
+        dataField: 'teamnum',
+        text: 'Team',
+        sort: true
+      },
+      {
+        headerStyle: {
+          width: '18%',
+          fontSize: '100%',
+          outline: 'none'
+        },
+        sortCaret: (order, column) => {
+          return '';
+        },
+        dataField: 'matchnum',
+        text: 'Match',
+        sort: true
+      },
+      {
+        headerStyle: {
+          width: '25%',
+          fontSize: '100%',
+          outline: 'none'
+        },
+        sortCaret: (order, column) => {
+          return '';
+        },
+        dataField: 'scoutname',
+        text: 'Scouter',
+        sort: true
+      },
+      {
+        headerStyle: {
+          width: '20%',
+          fontSize: '100%',
+          outline: 'none'
+        },
+        dataField: 'reportstatus',
+        text: 'Status'
+      },
+      {
+        headerStyle: {
+          width: '25%',
+          fontSize: '100%',
+          outline: 'none'
+        },
+        dataField: 'buttonValue',
+        text: 'Scout'
+      }
+    ],
+    matches: []
   };
 
   getMatchReportListForCompetition = competition => {
-    this.setState({
-      competition: competition
-    });
+    this.setState({ competition: competition });
     fetch(`/api/competitions/${competition}/matches`)
       .then(response => response.json())
       .then(data => {
-        console.log('DATA', data);
-        this.setState({
-          matches: data.matchList
+        let matchList = data.matchList;
+        matchList.map(row => {
+          let buttonLabel;
+          if (row.reportstatus === 'Follow Up') {
+            buttonLabel = 'Fix';
+          } else if (row.reportstatus === 'Done') {
+            buttonLabel = 'Edit';
+          }
+          row.buttonValue = (
+            <Link to={`matches/${row.matchid}/edit`}>
+              <Button
+                variant='success'
+                style={{
+                  fontSize: '100%',
+                  boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
+                  border: '1px solid black'
+                }}
+              >
+                {buttonLabel}
+              </Button>
+            </Link>
+          );
         });
-        this.setState({
-          columns: this.getMatchFields()
-        });
+        this.setState({ matches: matchList });
+      })
+      .catch(error => {
+        console.error('Error:', error);
       });
   };
 
   componentDidMount() {
-    // Chain the fetches to ensure sync so that we have is_current competiton
-    // before querying for matches in that competition.
     fetch('/competitions')
       .then(response => response.json())
       .then(data => {
@@ -40,88 +121,139 @@ class MatchReportList extends Component {
             this.setState({ competition: c.shortname });
           }
         });
-        console.log('Success:', data);
       })
       .then(() => {
         fetch(`/api/competitions/${this.state.competition}/matches`)
           .then(response => response.json())
           .then(data => {
-            this.setState({ matches: data.matchList });
-            this.setState({ columns: this.getMatchFields() });
+            let matchList = data.matchList;
+            matchList.map(row => {
+              let buttonLabel;
+              if (row.reportstatus === 'Follow Up') {
+                buttonLabel = 'Fix';
+              } else if (row.reportstatus === 'Done') {
+                buttonLabel = 'Edit';
+              }
+              row.buttonValue = (
+                <Link to={`matches/${row.matchid}/edit`}>
+                  <Button
+                    variant='success'
+                    style={{
+                      fontSize: '100%',
+                      boxShadow:
+                        '-3px 3px black, -2px 2px black, -1px 1px black',
+                      border: '1px solid black'
+                    }}
+                  >
+                    {buttonLabel}
+                  </Button>
+                </Link>
+              );
+            });
+            this.setState({ matches: matchList });
+          })
+          .catch(error => {
+            console.error('Error:', error);
           });
-      })
-
-      .catch(error => {
-        console.error('Error:', error);
       });
+    this.setState({
+      widthSize: window.innerWidth <= 760 ? '90%' : '50%'
+    });
+    this.setState({ heightSize: window.innerHeight + 'px' });
   }
-
-  getMatchFields() {
-    return [
-      { dataField: 'teamnum', text: 'Team' },
-      { dataField: 'matchnum', text: 'Match' },
-      { dataField: 'scoutname', text: 'Scout' },
-      { dataField: 'reportstatus', text: 'Status' }
-    ];
-  }
-
 
   render() {
-    const matchItems = this.state.matches.map(match => (
-      <li key={match.id}>
-        <Link to={`/matches/${match.matchid}`}>{match.teamnum}</Link>
-      </li>
-    ));
-
     const competitionItems = this.state.competitions.map(competition => (
       <Dropdown.Item
         eventKey={competition.shortname}
         value={competition.competitionid}
+        key={competition.competitionid}
+        style={{ fontFamily: 'Helvetica, Arial' }}
       >
         {competition.shortname}
       </Dropdown.Item>
     ));
 
-    const rowEvents = {
-      onClick: (e, row, rowIndex) => {
-        console.log(`clicked on row with index: ${rowIndex}`);
-        console.log(`  the row is: `, row);
-        this.props.history.push(`/matches/${row.matchid}/edit`);
-      }
-    };
-
+    if (this.state.competition === '') {
+      return null;
+    }
     return (
-      <Form onSubmit={this.handleSubmit} className='matches-form'>
-        <ul>{matchItems}</ul>
-
-        <Dropdown
-          focusFirstItemOnShow={true}
-          onSelect={this.getMatchReportListForCompetition}
-        >
-          <Dropdown.Toggle variant='success' id='dropdown-basic'>
-            {this.state.competition || 'Select One'}
-          </Dropdown.Toggle>
-          <Dropdown.Menu>{competitionItems}</Dropdown.Menu>
-        </Dropdown>
-
-        <div>
-          <BootstrapTable
-            stripped
-            hover
-            keyField='matchid'
-            //rowStyle={this.state.style}
-            bordered
-            bootstrap4
-            keyField='id'
-            data={this.state.matches.map(m => {
-              return { matchid: m.matchid, teamnum: m.teamnum, matchnum: m.matchnum };
-            })}
-            columns={this.state.columns}
-            rowEvents={ rowEvents }
+      <div className='div-main' style={{ minHeight: this.state.heightSize }}>
+        <div className='justify-content-center'>
+          <img
+            alt='Logo'
+            src={Logo}
+            style={{
+              width: this.state.widthSize === '90%' ? '70%' : '30%',
+              marginTop: '20px',
+              marginLeft: '10px'
+            }}
           />
-
         </div>
-      </Form>
+        <div style={{ width: this.state.widthSize }} className='div-second'>
+          <div className='div-form'>
+            <Form.Group
+              style={{
+                width: '100%',
+                margin: '0 auto',
+                marginBottom: '10px'
+              }}
+              as={Row}
+            >
+              <Form.Label
+                className='mb-1'
+                style={{
+                  fontFamily: 'Helvetica, Arial',
+                  fontSize: '110%',
+                  margin: '0 auto'
+                }}
+              >
+                Competition:
+              </Form.Label>
+            </Form.Group>
+            <Dropdown
+              style={{
+                marginBottom: '10px'
+              }}
+              focusFirstItemOnShow={false}
+              onSelect={this.getMatchReportListForCompetition}
+            >
+              <Dropdown.Toggle
+                variant='success'
+                id='dropdown-basic'
+                style={{ fontFamily: 'Helvetica, Arial', textAlign: 'center' }}
+                size='lg'
+              >
+                {this.state.competition}
+              </Dropdown.Toggle>
+              <Dropdown.Menu style={{ minWidth: '3%' }}>
+                {competitionItems}
+              </Dropdown.Menu>
+            </Dropdown>
+            <Button
+              variant='dark'
+              type='btn'
+              onClick={() =>
+                this.getMatchReportListForCompetition(this.state.competition)
+              }
+              className='btn-xs'
+              style={{ fontFamily: 'Helvetica, Arial' }}
+            >
+              Refresh
+            </Button>
+          </div>
+        </div>
+        <BootstrapTable
+          stripped
+          hover
+          keyField='matchid'
+          //rowStyle={this.state.style}
+          bordered
+          bootstrap4
+          data={this.state.matches}
+          columns={this.state.columns}
+        />
+      </div>
     );
   }
 }

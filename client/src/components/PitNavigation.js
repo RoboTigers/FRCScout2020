@@ -20,8 +20,8 @@ class PitNavigation extends Component {
   state = {
     widthSize: '',
     heightSize: '',
-    competitions: [],
     competition: '',
+    competitions: [],
     column: [
       {
         headerStyle: {
@@ -155,10 +155,10 @@ class PitNavigation extends Component {
               );
             });
             this.setState({ tableData: pitData });
+          })
+          .catch(error => {
+            console.error('Error:', error);
           });
-      })
-      .catch(error => {
-        console.error('Error:', error);
       });
     this.setState({
       widthSize: window.innerWidth <= 760 ? '90%' : '50%'
@@ -244,10 +244,10 @@ class PitNavigation extends Component {
           </div>
         </div>
         <BootstrapTable
-          // stripped
+          stripped
           hover
           keyField='team_num'
-          // bordered
+          bordered
           bootstrap4
           data={this.state.tableData}
           columns={this.state.column}

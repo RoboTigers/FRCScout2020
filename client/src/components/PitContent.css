@@ -18,10 +18,44 @@
 }
 
 .div-main {
-  padding-bottom: 1px;
+  align-items: center;
+  text-align: center;
   justify-content: center;
   width: 100%;
-  min-height: 100vmax;
   height: max-content;
   background-color: rgb(230, 243, 227);
+}
+
+.slider {
+  -webkit-appearance: none;
+  width: 50%;
+  height: 10px;
+  border-radius: 5px;
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: 0.2s;
+  transition: opacity 0.2s;
+}
+
+.slider:hover {
+  opacity: 1;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  background: url('powercell.png');
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  background: url('powercell.png');
+  cursor: pointer;
 }

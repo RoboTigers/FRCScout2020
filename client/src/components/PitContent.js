@@ -133,6 +133,7 @@ class PitContent extends Component {
         } else {
           this.setState({ retrieved: 'valid' });
           const existingData = data.pitFormData[0];
+          console.log(existingData.abilities);
           this.setState({
             group:
               existingData.group_name === null
@@ -333,6 +334,7 @@ class PitContent extends Component {
     const index = motors.indexOf(motor);
     motors[index] = { ...motor };
     motors[index].motorName = event.target.value;
+    this.setState({ driveTrainMotors: motors });
   };
 
   handleWheelClick = wheel => {
@@ -345,6 +347,15 @@ class PitContent extends Component {
     this.setState({
       driveTrainWheelsValid: filtered.length === 0 ? false : true
     });
+    let newValidity = true;
+    wheels
+      .filter(wheel => wheel.value)
+      .map(wheel => {
+        if (wheel.size === '') {
+          newValidity = false;
+        }
+      });
+    this.setState({ driveTrainWheelSizesValid: newValidity });
   };
 
   checkWheelSize = (event, wheel) => {
@@ -955,8 +966,19 @@ class PitContent extends Component {
                     Autonomous:
                   </Form.Label>
                 </Form.Group>
+                <Form.Group style={{ width: '80%', marginLeft: '2%' }} as={Row}>
+                  <Form.Label
+                    className='mb-1'
+                    style={{
+                      fontFamily: 'Helvetica, Arial',
+                      fontSize: '100%'
+                    }}
+                  >
+                    Programming Language:
+                  </Form.Label>
+                </Form.Group>
                 <Form.Group
-                  style={{ width: '100%', marginLeft: '2%' }}
+                  style={{ width: '100%', marginLeft: '3%' }}
                   as={Row}
                   className='mb-3'
                 >
@@ -986,8 +1008,19 @@ class PitContent extends Component {
                     />
                   ))}
                 </Form.Group>
+                <Form.Group style={{ width: '80%', marginLeft: '2%' }} as={Row}>
+                  <Form.Label
+                    className='mb-1'
+                    style={{
+                      fontFamily: 'Helvetica, Arial',
+                      fontSize: '100%'
+                    }}
+                  >
+                    Starting Position:
+                  </Form.Label>
+                </Form.Group>
                 <Form.Group
-                  style={{ width: '100%', marginLeft: '2%' }}
+                  style={{ width: '100%', marginLeft: '3%' }}
                   as={Row}
                   className='mb-3'
                 >

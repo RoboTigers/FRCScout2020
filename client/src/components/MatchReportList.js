@@ -23,6 +23,13 @@ const scoutSelectOptions = {
   Fix: 'FIx'
 };
 
+const defaultSorted = [
+  {
+    dataField: 'matchnum',
+    order: 'asc'
+  }
+];
+
 class MatchReportList extends Component {
   state = {
     widthSize: '',
@@ -307,6 +314,7 @@ class MatchReportList extends Component {
           //rowStyle={this.state.style}
           bordered
           bootstrap4
+          defaultSorted={defaultSorted}
           data={this.state.matches}
           columns={this.state.columns}
           filter={filterFactory()}

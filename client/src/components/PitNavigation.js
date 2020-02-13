@@ -19,6 +19,13 @@ const selectOptions = {
   Done: 'Done'
 };
 
+const defaultSorted = [
+  {
+    dataField: 'team_num',
+    order: 'asc'
+  }
+];
+
 class PitNavigation extends Component {
   state = {
     widthSize: '',
@@ -258,6 +265,7 @@ class PitNavigation extends Component {
           keyField='team_num'
           bordered
           bootstrap4
+          defaultSorted={defaultSorted}
           data={this.state.tableData}
           columns={this.state.column}
           filter={filterFactory()}

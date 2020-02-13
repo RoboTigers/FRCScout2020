@@ -7,9 +7,46 @@ import './PitContent.css';
 import './Counter.js';
 import Counter from './Counter.js';
 import Logo from './1796NumberswithScratch.png';
-import Camera, { FACING_MODES } from 'react-html5-camera-photo';
+import Camera, { FACING_MODES, IMAGE_TYPES } from 'react-html5-camera-photo';
 import 'react-html5-camera-photo/build/css/index.css';
 import ImagePreview from './ImagePreview';
+
+function getBase64Image(img) {
+  // Create an empty canvas element
+  var canvas = document.createElement('canvas');
+  canvas.width = img.width;
+  canvas.height = img.height;
+
+  // Copy the image contents to the canvas
+  var ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+
+  // Get the data-URL formatted image
+  // Firefox supports PNG and JPEG. You could check img.src to
+  // guess the original format, but be aware the using "image/jpg"
+  // will re-encode the image.
+  var dataURL = canvas.toDataURL('image/png');
+
+  return dataURL.replace(/^data:image\/(png|jpg);base64,/, '');
+}
+
+function base64toHEX(base64) {
+  let newBase64 = base64.slice(22);
+  var raw = atob(base64.slice(22));
+  console.log(base64.slice(22));
+
+  var HEX = '';
+  let i = 0;
+
+  for (i = 0; i < raw.length; i++) {
+    var _hex = raw.charCodeAt(i).toString(16);
+
+    HEX += _hex.length == 2 ? _hex : '0' + _hex;
+  }
+  let finalHex = "'" + HEX + "'";
+  console.log(finalHex);
+  return finalHex.toUpperCase();
+}
 
 class PitContent extends Component {
   state = {
@@ -121,12 +158,32 @@ class PitContent extends Component {
                 ? this.state.driveTrainMotors
                 : existingData.motors
           });
-          this.setState({
-            wheels:
-              existingData.wheels === null
-                ? this.state.wheels
-                : existingData.wheels
-          });
+          this.setState(
+            {
+              wheels:
+                existingData.wheels === null
+                  ? this.state.wheels
+                  : existingData.wheels
+            },
+            () => {
+              const filteredWheels = this.state.wheels.filter(
+                wheel => wheel.value
+              );
+              this.setState({
+                driveTrainWheelsValid:
+                  filteredWheels.length === 0 ? false : true
+              });
+              let newValidity = true;
+              this.state.wheels
+                .filter(wheel => wheel.value)
+                .map(wheel => {
+                  if (wheel.size === '') {
+                    newValidity = false;
+                  }
+                });
+              this.setState({ driveTrainWheelSizesValid: newValidity });
+            }
+          );
           this.setState({
             driveComments:
               existingData.drive_comments === null
@@ -151,12 +208,22 @@ class PitContent extends Component {
                 ? ''
                 : existingData.auto_comments
           });
-          this.setState({
-            mechanisms:
-              existingData.abilities === null
-                ? this.state.mechanisms
-                : existingData.abilities
-          });
+          this.setState(
+            {
+              mechanisms:
+                existingData.abilities === null
+                  ? this.state.mechanisms
+                  : existingData.abilities
+            },
+            () => {
+              const filteredMechanisms = this.state.mechanisms.filter(
+                mechanism => mechanism.value
+              );
+              this.setState({
+                mechanismsValid: filteredMechanisms.length === 0 ? false : true
+              });
+            }
+          );
           this.setState({
             workingOnComments:
               existingData.working_comments === null
@@ -170,29 +237,13 @@ class PitContent extends Component {
                 : existingData.closing_comments
           });
           this.setState({
+            dataUri: existingData.image === null ? '' : existingData.image
+          });
+          this.setState({
             markForFollowUp:
               existingData.status === null || existingData.status === 'Done'
                 ? false
                 : true
-          });
-          const filteredWheels = this.state.wheels.filter(wheel => wheel.value);
-          this.setState({
-            driveTrainWheelsValid: filteredWheels.length === 0 ? false : true
-          });
-          let newValidity = true;
-          this.state.wheels
-            .filter(wheel => wheel.value)
-            .map(wheel => {
-              if (wheel.size === '') {
-                newValidity = false;
-              }
-            });
-          this.setState({ driveTrainWheelSizesValid: newValidity });
-          const filteredMechanisms = this.state.mechanisms.filter(
-            mechanism => mechanism.value
-          );
-          this.setState({
-            mechanismsValid: filteredMechanisms.length === 0 ? false : true
           });
         }
       })
@@ -430,7 +481,8 @@ class PitContent extends Component {
         auto_comments: this.state.autoComments,
         abilities: JSON.stringify(this.state.mechanisms),
         working_comments: this.state.workingOnComments,
-        closing_comments: this.state.closingComments
+        closing_comments: this.state.closingComments,
+        image: this.state.dataUri === '' ? null : this.state.dataUri
       };
       fetch('/api/submitPitForm', {
         method: 'POST',
@@ -466,9 +518,12 @@ class PitContent extends Component {
               width: 1600,
               height: 1200
             }}
+            imageType={IMAGE_TYPES.JPG}
             isFullscreen={false}
             isMaxResolution={false}
             isImageMirror={false}
+            // imageCompression={1}
+            // sizeFactor={0.1}
             idealFacingMode={FACING_MODES.ENVIRONMENT}
             onTakePhotoAnimationDone={dataUri => {
               this.handleTakePhoto(dataUri);

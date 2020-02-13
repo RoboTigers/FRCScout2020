@@ -8,7 +8,10 @@ import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css';
 import 'react-bootstrap-table2-filter/dist/react-bootstrap-table2-filter.min.css';
 import Button from 'react-bootstrap/Button';
 import { Link } from 'react-router-dom';
-import filterFactory, { selectFilter } from 'react-bootstrap-table2-filter';
+import filterFactory, {
+  selectFilter,
+  textFilter
+} from 'react-bootstrap-table2-filter';
 
 const selectOptions = {
   'Not Started': 'Not Started',
@@ -34,7 +37,10 @@ class PitNavigation extends Component {
         },
         dataField: 'team_num',
         text: 'Team Number',
-        sort: true
+        sort: true,
+        filter: textFilter({
+          className: 'customtextbar'
+        })
       },
       {
         headerStyle: {
@@ -47,7 +53,10 @@ class PitNavigation extends Component {
         },
         dataField: 'team_name',
         text: 'Team Name',
-        sort: true
+        sort: true,
+        filter: textFilter({
+          className: 'customtextbar'
+        })
       },
       {
         headerStyle: {

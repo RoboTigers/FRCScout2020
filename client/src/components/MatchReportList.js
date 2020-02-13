@@ -5,7 +5,23 @@ import Logo from './1796NumberswithScratch.png';
 import Row from 'react-bootstrap/Row';
 import Button from 'react-bootstrap/Button';
 import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css';
+import 'react-bootstrap-table2-filter/dist/react-bootstrap-table2-filter.min.css';
 import BootstrapTable from 'react-bootstrap-table-next';
+import filterFactory, {
+  selectFilter,
+  numberFilter,
+  textFilter
+} from 'react-bootstrap-table2-filter';
+import './PitContent.css';
+
+const statusSelectOptions = {
+  'Follow Up': 'Follow Up',
+  Done: 'Done'
+};
+const scoutSelectOptions = {
+  Edit: 'Edit',
+  Fix: 'FIx'
+};
 
 class MatchReportList extends Component {
   state = {
@@ -26,11 +42,16 @@ class MatchReportList extends Component {
         },
         dataField: 'teamnum',
         text: 'Team',
-        sort: true
+        sort: true,
+        filter: textFilter({
+          autoComplete: 'off',
+          type: 'number',
+          className: 'customtextbar'
+        })
       },
       {
         headerStyle: {
-          width: '18%',
+          width: '20%',
           fontSize: '100%',
           outline: 'none'
         },
@@ -39,7 +60,10 @@ class MatchReportList extends Component {
         },
         dataField: 'matchnum',
         text: 'Match',
-        sort: true
+        sort: true,
+        filter: textFilter({
+          className: 'customtextbar'
+        })
       },
       {
         headerStyle: {
@@ -52,7 +76,11 @@ class MatchReportList extends Component {
         },
         dataField: 'scoutname',
         text: 'Scouter',
-        sort: true
+        sort: true,
+        filter: textFilter({
+          className: 'customtextbar',
+          autoComplete: 'off'
+        })
       },
       {
         headerStyle: {
@@ -61,7 +89,12 @@ class MatchReportList extends Component {
           outline: 'none'
         },
         dataField: 'reportstatus',
-        text: 'Status'
+        text: 'Status',
+        formatter: cell => statusSelectOptions[cell],
+        filter: selectFilter({
+          options: statusSelectOptions
+        }),
+        hidden: true
       },
       {
         headerStyle: {
@@ -70,7 +103,11 @@ class MatchReportList extends Component {
           outline: 'none'
         },
         dataField: 'buttonValue',
-        text: 'Scout'
+        text: 'Scout',
+        filter: selectFilter({
+          options: statusSelectOptions
+        }),
+        filterValue: (cell, row) => row.reportstatus
       }
     ],
     matches: []
@@ -90,7 +127,9 @@ class MatchReportList extends Component {
             buttonLabel = 'Edit';
           }
           row.buttonValue = (
-            <Link to={`matches/${row.matchid}/edit`}>
+            <Link
+              to={`matches/${this.state.competition}/${row.teamnum}/${row.matchnum}`}
+            >
               <Button
                 variant='success'
                 style={{
@@ -135,7 +174,9 @@ class MatchReportList extends Component {
                 buttonLabel = 'Edit';
               }
               row.buttonValue = (
-                <Link to={`matches/${row.matchid}/edit`}>
+                <Link
+                  to={`matches/${this.state.competition}/${row.teamnum}/${row.matchnum}`}
+                >
                   <Button
                     variant='success'
                     style={{
@@ -252,6 +293,7 @@ class MatchReportList extends Component {
           bootstrap4
           data={this.state.matches}
           columns={this.state.columns}
+          filter={filterFactory()}
         />
       </div>
     );

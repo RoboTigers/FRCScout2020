@@ -54,7 +54,10 @@ class App extends Component {
           <TabNav onClick={this.handleTabSelect} />
           <Switch>
             <Route path='/pits' exact component={PitNavigation} />
-            <Route path='/matches/:matchId/edit' component={MatchContent} />
+            <Route
+              path='/matches/:competition/:team/:matchNum/'
+              component={MatchContent}
+            />
             <Route path='/matches/new' component={MatchContent} />
             <Route path='/matches' component={MatchReportList} />
             <Route path='/analystHome' component={AnalystContent} />

@@ -50,7 +50,7 @@ class Stopwatch extends Component {
     let seconds = ('0' + (Math.floor(timerTime / 1000) % 60)).slice(-2);
     let minutes = ('0' + (Math.floor(timerTime / 60000) % 60)).slice(-2);
     return (
-      <div className='mb-3'>
+      <div className='mb-3' style={{ textAlign: 'center', margin: '0 auto' }}>
         <div style={{ fontFamily: 'Helvetica, Arial', fontSize: '150%' }}>
           {minutes}:{seconds}:{centiseconds}
         </div>
@@ -64,7 +64,7 @@ class Stopwatch extends Component {
             fontFamily: 'Helvetica, Arial',
             boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
             border: '1px solid black',
-            marginRight: '8%',
+            marginRight: '4%',
             fontSize: '120%'
           }}
           onClick={this.startTimer}
@@ -80,7 +80,8 @@ class Stopwatch extends Component {
             fontFamily: 'Helvetica, Arial',
             boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
             border: '1px solid black',
-            fontSize: '120%'
+            fontSize: '120%',
+            marginLeft: '4%'
           }}
           onClick={this.resetTimer}
           className='btn-sm'

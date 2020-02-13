@@ -9,6 +9,7 @@ import GeneratorSwitch from './generatorswitch.png';
 import Counter from './Counter.js';
 import PenaltyCounter from './PenaltyCounter.js';
 import StopWatch from './StopWatch.js';
+import { useHistory } from 'react-router-dom';
 
 class MatchContent extends Component {
   state = {
@@ -111,10 +112,10 @@ class MatchContent extends Component {
 
   componentDidMount() {
     if (this.props.match.url === '/matches/new') {
-      console.log(this.props.match);
       fetch('/competitions')
         .then(response => response.json())
         .then(data => {
+          this.setState({ retrieved: 'valid' });
           this.setState({ competitions: data.competitions });
           data.competitions.map(c => {
             if (c.iscurrent) {
@@ -523,7 +524,6 @@ class MatchContent extends Component {
         negatives: JSON.stringify(this.state.negatives),
         reflectionComments: this.state.reflectionComments
       };
-      console.log(data);
       fetch('/api/submitMatchForm', {
         method: 'POST',
         headers: {
@@ -532,7 +532,9 @@ class MatchContent extends Component {
         body: JSON.stringify(data)
       })
         .then(response => response.json())
-        .then(data => {})
+        .then(data => {
+          console.log(data);
+        })
         .catch(error => {
           console.error('Error:', error);
         });

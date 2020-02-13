@@ -271,17 +271,33 @@ class MatchReportList extends Component {
                 {competitionItems}
               </Dropdown.Menu>
             </Dropdown>
-            <Button
-              variant='dark'
-              type='btn'
-              onClick={() =>
-                this.getMatchReportListForCompetition(this.state.competition)
-              }
-              className='btn-xs'
-              style={{ fontFamily: 'Helvetica, Arial' }}
-            >
-              Refresh
-            </Button>
+            <div>
+              <Button
+                variant='dark'
+                type='btn'
+                onClick={() =>
+                  this.getMatchReportListForCompetition(this.state.competition)
+                }
+                className='btn-xs'
+                style={{ fontFamily: 'Helvetica, Arial' }}
+              >
+                Refresh
+              </Button>
+            </div>
+            <Link to={'matches/new'}>
+              <Button
+                variant='success'
+                type='btn'
+                className='btn-xs mt-2'
+                style={{
+                  fontFamily: 'Helvetica, Arial',
+                  boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
+                  border: '1px solid black'
+                }}
+              >
+                New Form
+              </Button>
+            </Link>
           </div>
         </div>
         <BootstrapTable

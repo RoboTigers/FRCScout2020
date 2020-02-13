@@ -133,13 +133,6 @@ create table match (
     CONSTRAINT match_composite_key UNIQUE (mapping_id, match_num)
 );
 
-insert into match (mapping_id, match_num, scout_name, report_status) values (1, 1, 'Mike', 'Follow Up');
-insert into match (mapping_id, match_num, scout_name, report_status) values (1, 2, 'Ada', 'Done');
-insert into match (mapping_id, match_num, scout_name, report_status) values (1, 3, 'Grace', 'Done');
-insert into match (mapping_id, match_num, scout_name, report_status) values (1, 4, 'Mike', 'Done');
-insert into match (mapping_id, match_num, scout_name, report_status) values (31, 1, 'Mike', 'Done');
-insert into match (mapping_id, match_num, scout_name, report_status) values (32, 1, 'Dean', 'Done');
-
 drop table if exists pit;
 
 create table pit (

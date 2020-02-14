@@ -18,12 +18,84 @@
 }
 
 .div-main {
-  padding-bottom: 1px;
   align-items: center;
   text-align: center;
   justify-content: center;
   width: 100%;
-  min-height: 100vmax;
   height: max-content;
   background-color: rgb(230, 243, 227);
+}
+
+.slidercell {
+  -webkit-appearance: none;
+  width: 50%;
+  height: 10px;
+  border-radius: 5px;
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: 0.2s;
+  transition: opacity 0.2s;
+}
+
+.slidercell:hover {
+  opacity: 1;
+}
+
+.slidercell::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  background: url('powercell.png');
+  cursor: pointer;
+}
+
+.slidercell::-moz-range-thumb {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  background: url('powercell.png');
+  cursor: pointer;
+}
+
+.sliderlevel {
+  -webkit-appearance: none;
+  width: 50%;
+  height: 10px;
+  border-radius: 5px;
+  background: black;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: 0.2s;
+  transition: opacity 0.2s;
+}
+
+.sliderlevel:hover {
+  opacity: 1;
+}
+
+.sliderlevel::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: red;
+  cursor: pointer;
+}
+
+.sliderlevel::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: red;
+  cursor: pointer;
+}
+
+.customtextbar:focus {
+  position: relative;
+  width: 200%;
+  z-index: 1;
 }

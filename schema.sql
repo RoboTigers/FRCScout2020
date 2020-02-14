@@ -108,16 +108,30 @@ create table match (
     match_num int NOT NULL,
     scout_name varchar(100),
     report_status varchar(30),
+    alliance_station varchar(20),
+    auto_team boolean,
+    auto_power_cells int,
+    starting_position varchar(20),
+    cross_line varchar(10),
+    auto_scored json,
+    auto_comments text,
+    teleop_scored json,
+    rotation_control varchar(30),
+    rotation_timer int,
+    position_control varchar(30),
+    position_timer int,
+    end_game varchar(30),
+    end_game_timer int,
+    climb varchar(20),
+    level varchar(20),
+    level_position decimal,
+    communication varchar(10),
+    break varchar(10),
+    negatives json,
+    reflection_comments text,
     last_modified timestamp(0) NOT NULL DEFAULT (now())::timestamp(0),
     CONSTRAINT match_composite_key UNIQUE (mapping_id, match_num)
 );
-
-insert into match (mapping_id, match_num, scout_name, report_status) values (1, 1, 'Mike', 'Completed');
-insert into match (mapping_id, match_num, scout_name, report_status) values (1, 1, 'Ada', 'Completed');
-insert into match (mapping_id, match_num, scout_name, report_status) values (1, 1, 'Grace', 'Completed');
-insert into match (mapping_id, match_num, scout_name, report_status) values (1, 2, 'Mike', 'Completed');
-insert into match (mapping_id, match_num, scout_name, report_status) values (31, 1, 'Mike', 'Completed');
-insert into match (mapping_id, match_num, scout_name, report_status) values (32, 1, 'Dean', 'Completed');
 
 drop table if exists pit;
 
@@ -133,10 +147,12 @@ create table pit (
     wheels json,
     drive_comments text,
     code_language varchar(10),
+    starting_position varchar(20),
     auto_comments text,
     abilities json,
     working_comments text,
     closing_comments text,
+    image varchar,
     last_modified timestamp(0) NOT NULL DEFAULT (now())::timestamp(0),
     CONSTRAINT mapping_key UNIQUE (mapping_id)
 );

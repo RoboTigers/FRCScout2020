@@ -8,7 +8,10 @@ import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css';
 import 'react-bootstrap-table2-filter/dist/react-bootstrap-table2-filter.min.css';
 import Button from 'react-bootstrap/Button';
 import { Link } from 'react-router-dom';
-import filterFactory, { selectFilter } from 'react-bootstrap-table2-filter';
+import filterFactory, {
+  selectFilter,
+  textFilter
+} from 'react-bootstrap-table2-filter';
 
 const selectOptions = {
   'Not Started': 'Not Started',
@@ -16,12 +19,19 @@ const selectOptions = {
   Done: 'Done'
 };
 
+const defaultSorted = [
+  {
+    dataField: 'team_num',
+    order: 'asc'
+  }
+];
+
 class PitNavigation extends Component {
   state = {
     widthSize: '',
     heightSize: '',
-    competitions: [],
     competition: '',
+    competitions: [],
     column: [
       {
         headerStyle: {
@@ -34,7 +44,10 @@ class PitNavigation extends Component {
         },
         dataField: 'team_num',
         text: 'Team Number',
-        sort: true
+        sort: true,
+        filter: textFilter({
+          className: 'customtextbar'
+        })
       },
       {
         headerStyle: {
@@ -47,7 +60,10 @@ class PitNavigation extends Component {
         },
         dataField: 'team_name',
         text: 'Team Name',
-        sort: true
+        sort: true,
+        filter: textFilter({
+          className: 'customtextbar'
+        })
       },
       {
         headerStyle: {
@@ -155,10 +171,10 @@ class PitNavigation extends Component {
               );
             });
             this.setState({ tableData: pitData });
+          })
+          .catch(error => {
+            console.error('Error:', error);
           });
-      })
-      .catch(error => {
-        console.error('Error:', error);
       });
     this.setState({
       widthSize: window.innerWidth <= 760 ? '90%' : '50%'
@@ -244,11 +260,12 @@ class PitNavigation extends Component {
           </div>
         </div>
         <BootstrapTable
-          // stripped
+          stripped
           hover
           keyField='team_num'
-          // bordered
+          bordered
           bootstrap4
+          defaultSorted={defaultSorted}
           data={this.state.tableData}
           columns={this.state.column}
           filter={filterFactory()}

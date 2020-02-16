@@ -37,6 +37,11 @@ class TabNav extends Component {
           </Link>
         </Nav.Item>
         <Nav.Item>
+          <Link className='nav-link' to='/data'>
+            Data
+          </Link>
+        </Nav.Item>
+        <Nav.Item>
           <Link className='nav-link' to='/analystHome'>
             Analyst
           </Link>

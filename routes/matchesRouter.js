@@ -95,7 +95,15 @@ router.post('/submitMatchForm', (req, res) => {
   db.query(addMatchQuery, addMatchValues)
     .then(data => {
       console.log(data);
+      res.json({
+        message: 'Submitted'
+      });
     })
-    .catch(e => console.error(e.stack));
+    .catch(e => {
+      console.error(e.stack);
+      res.json({
+        message: 'Failed'
+      });
+    });
 });
 module.exports = router;

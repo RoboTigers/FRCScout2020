@@ -99,3 +99,14 @@
   width: 200%;
   z-index: 1;
 }
+
+.dot {
+  margin: 0 2% 3% 2%;
+  height: 50px;
+  font: 25px/25px Helvetica, Arial;
+  padding: 10px 3px 0 3px;
+  border-style: solid;
+  border-radius: 50%;
+  display: inline-block;
+  text-align: center;
+}

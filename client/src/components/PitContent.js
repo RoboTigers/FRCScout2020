@@ -503,11 +503,16 @@ class PitContent extends Component {
         body: JSON.stringify(data)
       })
         .then(response => response.json())
-        .then(data => {})
+        .then(data => {
+          if (data.message === 'Submitted') {
+            this.props.history.push('/pits');
+          } else {
+            alert(data.message);
+          }
+        })
         .catch(error => {
           console.error('Error', error);
         });
-      alert('submitted');
     }
     this.setState({ validated: true });
   };
@@ -716,10 +721,21 @@ class PitContent extends Component {
                     Drive Train:
                   </Form.Label>
                 </Form.Group>
+                <Form.Group style={{ width: '80%', marginLeft: '2%' }} as={Row}>
+                  <Form.Label
+                    className='mb-1'
+                    style={{
+                      fontFamily: 'Helvetica, Arial',
+                      fontSize: '100%'
+                    }}
+                  >
+                    Type:
+                  </Form.Label>
+                </Form.Group>
                 <Form.Group
                   style={{
                     width: '100%',
-                    marginLeft: '2%',
+                    marginLeft: '3%',
                     fontFamily: 'Helvetica, Arial'
                   }}
                   as={Row}
@@ -749,6 +765,17 @@ class PitContent extends Component {
                       key={'driveTrain' + driveTrain.id}
                     />
                   ))}
+                </Form.Group>
+                <Form.Group style={{ width: '80%', marginLeft: '2%' }} as={Row}>
+                  <Form.Label
+                    className='mb-1'
+                    style={{
+                      fontFamily: 'Helvetica, Arial',
+                      fontSize: '100%'
+                    }}
+                  >
+                    Motors:
+                  </Form.Label>
                 </Form.Group>
                 <Form.Group style={{ width: '100%' }}>
                   {this.state.driveTrainMotors.map(motor => (
@@ -813,6 +840,17 @@ class PitContent extends Component {
                 </Form.Group>
               </div>
               <div className='div-form'>
+                <Form.Group style={{ width: '80%', marginLeft: '2%' }} as={Row}>
+                  <Form.Label
+                    className='mb-1'
+                    style={{
+                      fontFamily: 'Helvetica, Arial',
+                      fontSize: '100%'
+                    }}
+                  >
+                    Wheels:
+                  </Form.Label>
+                </Form.Group>
                 <Form.Group
                   style={{ width: '100%', marginLeft: '2%' }}
                   className='mt-4'

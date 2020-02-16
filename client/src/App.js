@@ -11,6 +11,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import PitNavigation from './components/PitNavigation';
 import MatchContent from './components/MatchContent';
+import Data from './components/Data';
 
 function RenderTabContent({ selectedTab }) {
   if (selectedTab === 'pit') {
@@ -56,16 +57,18 @@ class App extends Component {
             <Route path='/pits' exact component={PitNavigation} />
             <Route
               path='/matches/:competition/:team/:matchNum/'
+              exact
               component={MatchContent}
             />
-            <Route path='/matches/new' component={MatchContent} />
-            <Route path='/matches' component={MatchReportList} />
+            <Route path='/matches/new' exact component={MatchContent} />
+            <Route path='/matches' exact component={MatchReportList} />
             <Route path='/analystHome' component={AnalystContent} />
             <Route
               path='/pits/:competition/:team'
               exact
               component={PitContent}
             />
+            <Route path='/data' exact component={Data} />
           </Switch>
         </Router>
       </div>

@@ -14,7 +14,7 @@ router.get('/api/isLoggedIn', (req, res, next) => {
 });
 
 router.get('/login', (req, res, next) => {
-  res.render('login', { errors: req.flash('error') });
+  res.render('login');
 });
 
 router.post('/login',

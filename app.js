@@ -4,7 +4,6 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require('cors');
-var flash = require('connect-flash');
 
 // AUTHENTICATION
 var passport = require('passport');
@@ -36,7 +35,6 @@ app.use(require('express-session')({
   resave: false,
   saveUninitialized: false
 }));
-app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.static(path.join(__dirname, 'client/build')));

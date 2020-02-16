@@ -87,10 +87,13 @@ class App extends Component {
       <AuthProvider ref={this.authProvider}>
         <div className='App'>
           <Router>
-            <TabNav onClick={this.handleTabSelect} loggedIn={this.state.isLoggedIn} />
+            <TabNav onClick={this.handleTabSelect} />
             <Switch>
               <ProtectedRoute path='/pits' exact component={PitNavigation} />
-              <ProtectedRoute path='/matches/:matchId/edit' component={MatchContent} />
+              <ProtectedRoute
+                path='/matches/:competition/:team/:matchNum/'
+                component={MatchContent}
+              />
               <ProtectedRoute path='/matches/new' component={MatchContent} />
               <ProtectedRoute path='/matches' component={MatchReportList} />
               <ProtectedRoute path='/analystHome' component={AnalystContent} />

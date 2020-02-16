@@ -16,6 +16,20 @@ router.get('/competitions/:shortName/matches', (req, res) => {
     .catch(e => console.error(e.stack));
 });
 
+router.get('/competitions/:shortName/matchData', (req, res) => {
+  const getMatchDataForCompetitionQuery =
+    'SELECT m.match_id, t.team_num, m.match_num, m.report_status, m.cross_line, m.auto_scored, m.teleop_scored, m.rotation_control, m.rotation_timer, m.position_control, m.position_timer, m.end_game, m.end_game_timer, m.climb, m.level, m.communication, m.break, m.negatives FROM match m INNER JOIN comp_team_mapping mapping on mapping.mapping_id=m.mapping_id INNER JOIN team t ON t.team_id=mapping.team_id INNER JOIN competition c ON c.competition_id=mapping.competition_id WHERE c.short_name = $1';
+  const getMatchDataForCompetitionValues = [req.params.shortName];
+
+  db.query(getMatchDataForCompetitionQuery, getMatchDataForCompetitionValues)
+    .then(data => {
+      res.json({
+        matchData: data.rows
+      });
+    })
+    .catch(er => console.error(e.stack));
+});
+
 router.get(
   '/competitions/:shortName/team/:teamNum/matchNum/:matchNum/match',
   (req, res) => {

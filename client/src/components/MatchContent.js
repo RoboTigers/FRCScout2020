@@ -74,10 +74,8 @@ class MatchContent extends Component {
     oldPositionTimer: '',
     endGameOptions: [
       { id: 1, label: 'Hang' },
-      { id: 2, label: 'Unsuccessful hang' },
-      { id: 3, label: 'Unsuccessful park' },
-      { id: 4, label: 'Park' },
-      { id: 5, label: 'None' }
+      { id: 2, label: 'Park' },
+      { id: 3, label: 'None' }
     ],
     endGame: '',
     endGameTimer: 0,
@@ -1202,7 +1200,7 @@ class MatchContent extends Component {
                   fontFamily: 'Helvetica, Arial',
                   boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
                   border: '1px solid black',
-                  marginRight: '8%'
+                  marginRight: '4%'
                 }}
                 onClick={this.handleStage1Decrement}
                 className='btn-lg'
@@ -1216,8 +1214,8 @@ class MatchContent extends Component {
                   fontFamily: 'Helvetica, Arial',
                   boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
                   border: '1px solid black',
-                  marginLeft: '8%',
-                  marginRight: '8%'
+                  marginLeft: '4%',
+                  marginRight: '4%'
                 }}
                 onClick={this.handleStage1Increment}
                 className='btn-lg'
@@ -1231,7 +1229,7 @@ class MatchContent extends Component {
                   fontFamily: 'Helvetica, Arial',
                   boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
                   border: '1px solid black',
-                  marginLeft: '8%'
+                  marginLeft: '4%'
                 }}
                 onClick={this.handleSubmit}
                 className='btn-lg'
@@ -1506,7 +1504,7 @@ class MatchContent extends Component {
                   fontFamily: 'Helvetica, Arial',
                   boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
                   border: '1px solid black',
-                  marginRight: '8%'
+                  marginRight: '4%'
                 }}
                 onClick={this.handleStage2Decrement}
                 className='btn-lg'
@@ -1520,8 +1518,8 @@ class MatchContent extends Component {
                   fontFamily: 'Helvetica, Arial',
                   boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
                   border: '1px solid black',
-                  marginLeft: '8%',
-                  marginRight: '8%'
+                  marginLeft: '4%',
+                  marginRight: '4%'
                 }}
                 onClick={this.handleStage2Increment}
                 className='btn-lg'
@@ -1535,7 +1533,7 @@ class MatchContent extends Component {
                   fontFamily: 'Helvetica, Arial',
                   boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
                   border: '1px solid black',
-                  marginLeft: '8%'
+                  marginLeft: '4%'
                 }}
                 onClick={this.handleSubmit}
                 className='btn-lg'
@@ -1855,7 +1853,7 @@ class MatchContent extends Component {
                   fontFamily: 'Helvetica, Arial',
                   boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
                   border: '1px solid black',
-                  marginRight: '8%'
+                  marginRight: '4%'
                 }}
                 onClick={this.handleStage3Decrement}
                 className='btn-lg'
@@ -1869,8 +1867,8 @@ class MatchContent extends Component {
                   fontFamily: 'Helvetica, Arial',
                   boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
                   border: '1px solid black',
-                  marginLeft: '8%',
-                  marginRight: '8%'
+                  marginLeft: '4%',
+                  marginRight: '4%'
                 }}
                 onClick={this.handleStage3Increment}
                 className='btn-lg'
@@ -1884,7 +1882,7 @@ class MatchContent extends Component {
                   fontFamily: 'Helvetica, Arial',
                   boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
                   border: '1px solid black',
-                  marginLeft: '8%'
+                  marginLeft: '4%'
                 }}
                 onClick={this.handleSubmit}
                 className='btn-lg'

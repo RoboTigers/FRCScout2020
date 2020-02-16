@@ -38,14 +38,15 @@ app.use(require('express-session')({
 app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(express.static(path.join(__dirname, 'client/build')));
+
 app.use((req, res, next) => {
   if (req.user == null && req.path.indexOf('/login') !== 0) {
-    res.redirect('/login');
+    res.sendStatus(401);
   } else {
     next()
   }
 });
-app.use(express.static(path.join(__dirname, 'client/build')));
 
 app.use('/', authenticationRouter);
 app.use('/', indexRouter);

@@ -1,13 +1,15 @@
-import React, { Component } from 'react';
+import React, { useContext, Component } from 'react';
 import './components/TabNav';
 import TabNav from './components/TabNav';
 import PitContent from './components/PitContent';
 import MatchReportList from './components/MatchReportList';
 import AnalystContent from './components/AnalystContent';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import Login from './components/Login';
+import Logout from './components/Logout';
+import { AuthConsumer, AuthContext, AuthProvider } from './contexts/auth_context';
+import { BrowserRouter as Router, Redirect, Route, Switch } from 'react-router-dom';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
-//import 'bootstrap/dist/css/bootstrap.css';
 import './App.css';
 import PitNavigation from './components/PitNavigation';
 import MatchContent from './components/MatchContent';
@@ -26,15 +28,48 @@ window.onunload = event => {
   window.scrollTo(0, 0);
 };
 
+
+const ProtectedRoute = ({ component: Component, ...rest }) => {
+  const authContext = useContext(AuthContext);
+
+  return (
+    <Route { ...rest } render={(props) => (
+      authContext.isLoggedIn === true
+        ? <Component {...props} />
+        : <Redirect to={{
+            pathname: '/login',
+            state: { from: props.location }
+          }}/>
+    )} />
+  )
+};
+
 class App extends Component {
   state = {
     apiResponse: '',
-    selectedTab: ''
+    selectedTab: '',
   };
+
+  constructor(props) {
+    super(props);
+    this.authProvider = React.createRef();
+  }
 
   componentDidMount() {
     this.setState({
       selectedTab: localStorage.getItem('selectedTab') || 'match'
+    });
+    fetch('/api/isLoggedIn').then((response) => {
+      if (response.ok) {
+        response.json().then((user) => {
+          this.authProvider.current.logInUser(user);
+          console.log('Logging in the user');
+          console.log(this.authProvider.current.user);
+        });
+      } else {
+        this.authProvider.current.logOutUser();
+        console.log('No user right now');
+      }
     });
   }
 
@@ -49,40 +84,29 @@ class App extends Component {
 
   render() {
     return (
-      <div className='App'>
-        <Router>
-          <TabNav onClick={this.handleTabSelect} />
-          <Switch>
-            <Route path='/pits' exact component={PitNavigation} />
-            <Route path='/matches/:matchId/edit' component={MatchContent} />
-            <Route path='/matches/new' component={MatchContent} />
-            <Route path='/matches' component={MatchReportList} />
-            <Route path='/analystHome' component={AnalystContent} />
-            <Route
-              path='/pits/:competition/:team'
-              exact
-              component={PitContent}
-            />
-          </Switch>
-        </Router>
-      </div>
+      <AuthProvider ref={this.authProvider}>
+        <div className='App'>
+          <Router>
+            <TabNav onClick={this.handleTabSelect} loggedIn={this.state.isLoggedIn} />
+            <Switch>
+              <ProtectedRoute path='/pits' exact component={PitNavigation} />
+              <ProtectedRoute path='/matches/:matchId/edit' component={MatchContent} />
+              <ProtectedRoute path='/matches/new' component={MatchContent} />
+              <ProtectedRoute path='/matches' component={MatchReportList} />
+              <ProtectedRoute path='/analystHome' component={AnalystContent} />
+              <ProtectedRoute
+                path='/pits/:competition/:team'
+                exact
+                component={PitContent}
+              />
+              <Route path='/login' component={Login} />
+              <Route path='/logout' component={Logout} />
+            </Switch>
+          </Router>
+        </div>
+      </AuthProvider>
     );
   }
-
-  //   render() {
-  //     const App = () => (
-  //       <div>
-  //         <Switch>
-  //           <Route exact path='/' component={TabNav}/>
-  //         </Switch>
-  //       </div>
-  //     )
-  //     return (
-  //       <Switch>
-  //         <App/>
-  //       </Switch>
-  //     )
-  //   }
 }
 
 export default App;

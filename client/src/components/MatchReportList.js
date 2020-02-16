@@ -13,6 +13,7 @@ import filterFactory, {
   textFilter
 } from 'react-bootstrap-table2-filter';
 import './PitContent.css';
+import { AuthContext } from '../contexts/auth_context';
 
 const statusSelectOptions = {
   'Follow Up': 'Follow Up',
@@ -31,6 +32,8 @@ const defaultSorted = [
 ];
 
 class MatchReportList extends Component {
+  static contextType = AuthContext;
+
   state = {
     widthSize: '',
     heightSize: '',
@@ -291,20 +294,22 @@ class MatchReportList extends Component {
                 Refresh
               </Button>
             </div>
-            <Link to={'matches/new'}>
-              <Button
-                variant='success'
-                type='btn'
-                className='btn-xs mt-2'
-                style={{
-                  fontFamily: 'Helvetica, Arial',
-                  boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
-                  border: '1px solid black'
-                }}
-              >
-                New Form
-              </Button>
-            </Link>
+            { this.context.isLoggedIn === true && this.context.user.role === 'admin' &&
+              <Link to={'matches/new'}>
+                <Button
+                  variant='success'
+                  type='btn'
+                  className='btn-xs mt-2'
+                  style={{
+                    fontFamily: 'Helvetica, Arial',
+                    boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
+                    border: '1px solid black'
+                  }}
+                >
+                  New Form
+                </Button>
+              </Link>
+            }
           </div>
         </div>
         <BootstrapTable

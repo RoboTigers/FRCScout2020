@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const db = require('../db');
+const ensureAdmin = require('../middlewares/ensure_admin');
 
 router.get('/competitions/:shortName/matches', (req, res) => {
   const getMatchesForCompetitionQuery =
@@ -38,7 +39,7 @@ router.get(
   }
 );
 
-router.post('/submitMatchForm', (req, res) => {
+router.post('/submitMatchForm', ensureAdmin, (req, res) => {
   let params = req.body;
 
   const addMatchQuery =

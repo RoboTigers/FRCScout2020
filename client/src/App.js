@@ -44,6 +44,26 @@ const ProtectedRoute = ({ component: Component, ...rest }) => {
   )
 };
 
+const AdminRoute = ({ component: Component, ...rest }) => {
+  const authContext = useContext(AuthContext);
+
+  return (
+    <Route { ...rest } render={(props) => (
+      authContext.isLoggedIn === true && authContext.user.role === 'admin'
+        ? <Component {...props} />
+        : <Redirect to={{
+            pathname: '/login',
+            state: {
+              from: props.location,
+              messages: [
+                { type: 'warning', message: 'You must be an admin to access this page' }
+              ]
+            }
+          }}/>
+    )} />
+  )
+}
+
 class App extends Component {
   state = {
     apiResponse: '',
@@ -63,18 +83,14 @@ class App extends Component {
       if (response.ok) {
         response.json().then((user) => {
           this.authProvider.current.logInUser(user);
-          console.log('Logging in the user');
-          console.log(this.authProvider.current.user);
         });
       } else {
         this.authProvider.current.logOutUser();
-        console.log('No user right now');
       }
     });
   }
 
   handleTabSelect = event => {
-    console.log('event in APP', event);
     this.setState({
       selectedTab: event
     });
@@ -94,7 +110,7 @@ class App extends Component {
                 path='/matches/:competition/:team/:matchNum/'
                 component={MatchContent}
               />
-              <ProtectedRoute path='/matches/new' component={MatchContent} />
+              <AdminRoute path='/matches/new' component={MatchContent} />
               <ProtectedRoute path='/matches' component={MatchReportList} />
               <ProtectedRoute path='/analystHome' component={AnalystContent} />
               <ProtectedRoute

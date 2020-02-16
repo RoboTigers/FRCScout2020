@@ -17,9 +17,16 @@ class Login extends Component {
   state = {
     username: '',
     password: '',
-    errors: [],
+    messages: [],
     redirectToReferrer: false
   };
+
+  constructor(props) {
+    super(props);
+    if (props.location && props.location.state && Array.isArray(props.location.state.messages) && props.location.state.messages.length > 0) {
+      this.state.messages = props.location.state.messages;
+    }
+  }
 
   handleUsernameChange = (event) => {
     this.setState({ username: event.target.value })
@@ -31,7 +38,6 @@ class Login extends Component {
 
   handleSubmit = (event) => {
     event.preventDefault();
-    console.log('handleSubmit', this.state);
     fetch('/login', {
       method: 'POST',
       headers: {
@@ -41,16 +47,18 @@ class Login extends Component {
     }).then((response) => {
       if (response.ok) {
         response.json().then((user) => {
-          console.log('Successful login');
           this.context.logInUser(user);
-          console.log(this.context.user);
           this.setState({
-            errors: [],
+            messages: [],
             redirectToReferrer: true
           });
         });
       } else {
-        this.setState({ errors: ['Failed to login. Please try again.'] });
+        this.setState({
+          messages: [
+            { type: 'danger', message: 'Failed to login. Please try again.' }
+          ]
+        });
       }
     });
   }
@@ -69,7 +77,7 @@ class Login extends Component {
           <Col></Col>
           <Col lg={6}>
             <h1>Login</h1>
-            {this.state.errors.map((error, index) => (<Alert key={index} variant="danger">{error}</Alert>))}
+            {this.state.messages.map(({ type, message }, index) => (<Alert key={index} variant={type}>{message}</Alert>))}
             <Form onSubmit={this.handleSubmit}>
               <Form.Group>
                 <Form.Label>Username</Form.Label>

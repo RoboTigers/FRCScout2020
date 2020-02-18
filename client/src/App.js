@@ -144,6 +144,7 @@ class App extends Component {
                 exact
                 component={PitContent}
               />
+              <ProtectedRoute path='/data' component={Data} />
               <Route path='/login' component={Login} />
               <Route path='/logout' component={Logout} />
             </Switch>

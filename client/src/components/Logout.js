@@ -6,7 +6,9 @@ class Logout extends Component {
   static contextType = AuthContext;
 
   componentDidMount() {
-    fetch('/logout').then((response) => {
+    fetch('/logout', {
+      method: 'DELETE'
+    }).then((response) => {
       this.context.logOutUser();
     });
   }

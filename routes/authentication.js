@@ -13,10 +13,6 @@ router.get('/api/isLoggedIn', (req, res, next) => {
   }
 });
 
-router.get('/login', (req, res, next) => {
-  res.render('login');
-});
-
 router.post('/login',
   passport.authenticate('local', {
     failWithError: true
@@ -34,9 +30,9 @@ router.post('/login',
   }
 );
 
-router.get('/logout', (req, res, nex) => {
+router.delete('/logout', (req, res, nex) => {
   req.logout();
-  res.redirect('/');
+  res.send(200);
 });
 
 module.exports = router;

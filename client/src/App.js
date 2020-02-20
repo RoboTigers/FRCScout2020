@@ -23,16 +23,7 @@ import './App.css';
 import PitNavigation from './components/PitNavigation';
 import MatchContent from './components/MatchContent';
 import Data from './components/Data';
-
-function RenderTabContent({ selectedTab }) {
-  if (selectedTab === 'pit') {
-    return <PitNavigation />;
-  } else if (selectedTab === 'match') {
-    return <MatchReportList />;
-  } else {
-    return <AnalystContent />;
-  }
-}
+import Home from './components/Home';
 
 window.onunload = event => {
   window.scrollTo(0, 0);
@@ -92,8 +83,7 @@ const AdminRoute = ({ component: Component, ...rest }) => {
 
 class App extends Component {
   state = {
-    apiResponse: '',
-    selectedTab: ''
+    apiResponse: ''
   };
 
   constructor(props) {
@@ -102,9 +92,6 @@ class App extends Component {
   }
 
   componentDidMount() {
-    this.setState({
-      selectedTab: localStorage.getItem('selectedTab') || 'match'
-    });
     fetch('/api/isLoggedIn').then(response => {
       if (response.ok) {
         response.json().then(user => {
@@ -116,21 +103,14 @@ class App extends Component {
     });
   }
 
-  handleTabSelect = event => {
-    this.setState({
-      selectedTab: event
-    });
-    localStorage.setItem('selectedTab', event);
-    sessionStorage.clear();
-  };
-
   render() {
     return (
       <AuthProvider ref={this.authProvider}>
         <div className='App'>
           <Router>
-            <TabNav onClick={this.handleTabSelect} />
+            <TabNav />
             <Switch>
+              <ProtectedRoute path='/' exact component={Home} />
               <ProtectedRoute path='/pits' exact component={PitNavigation} />
               <ProtectedRoute
                 path='/matches/:competition/:team/:matchNum/'

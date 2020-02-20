@@ -8,9 +8,16 @@ import BootstrapTable from 'react-bootstrap-table-next';
 import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css';
 import 'react-bootstrap-table2-filter/dist/react-bootstrap-table2-filter.min.css';
 import filterFactory, {
+  Comparator,
   selectFilter,
   textFilter
 } from 'react-bootstrap-table2-filter';
+
+const scoreTypes = [
+  { value: 'Average', label: 'Average' },
+  { value: 'Median', label: 'Median' },
+  { value: 'Max', label: 'Max' }
+];
 
 class Data extends Component {
   state = {
@@ -19,8 +26,15 @@ class Data extends Component {
     competition: '',
     competitions: [],
     competitionData: [],
-    teamData: []
+    teamData: [],
+    autoDataField: 'Median'
   };
+
+  median(arr) {
+    const mid = Math.floor(arr.length / 2),
+      nums = [...arr].sort((a, b) => a - b);
+    return arr.length % 2 !== 0 ? nums[mid] : (nums[mid - 1] + nums[mid]) / 2;
+  }
 
   componentDidMount() {
     fetch('/competitions')
@@ -38,7 +52,6 @@ class Data extends Component {
           .then(response => response.json())
           .then(data => {
             let matchData = data.matchData;
-            console.log(matchData);
             let alteredData = [];
             matchData
               .map(match => match.team_num)
@@ -71,7 +84,6 @@ class Data extends Component {
                 };
                 alteredData.push(obj);
               });
-            console.log(alteredData);
             matchData.map(match => {
               let index = alteredData.findIndex(
                 x => x.teamNum === match.team_num
@@ -124,8 +136,18 @@ class Data extends Component {
               alteredData[index].yellowCards += match.negatives[1].value;
               alteredData[index].redCards += match.negatives[2].value;
             });
-            console.log(alteredData);
-            this.setState({ competitionData: alteredData });
+            this.setState({ competitionData: alteredData }, () => {
+              let newData = this.state.competitionData;
+              newData.forEach(team => {
+                team.autoBottomDefault = this.median(team.bottomAutoScore);
+                team.autoBottomMedian = this.median(team.bottomAutoScore);
+                team.autoBottomAverage =
+                  team.bottomAutoScore.reduce((a, b) => a + b, 0) /
+                  team.bottomAutoScore.length;
+                team.autoBottomMax = Math.max(...team.bottomAutoScore);
+              });
+              this.setState({ competitionData: newData });
+            });
           });
       })
       .catch(error => {
@@ -143,7 +165,6 @@ class Data extends Component {
       .then(response => response.json())
       .then(data => {
         let matchData = data.matchData;
-        console.log(matchData);
       })
       .catch(error => {
         console.error('Error:', error);
@@ -160,9 +181,6 @@ class Data extends Component {
         {competition.shortname}
       </Dropdown.Item>
     ));
-    if (this.state.competition === '') {
-      return null;
-    }
 
     let columns = [
       {
@@ -190,8 +208,58 @@ class Data extends Component {
         dataField: 'matchesPlayed',
         text: 'Matches Played'
       },
-      {}
+      {
+        headerStyle: {
+          fontSize: '100%',
+          outline: 'none'
+        },
+        // sortCaret: (order, column) => {
+        //   return '';
+        // },
+        // sort: true,
+        filter: selectFilter({
+          options: scoreTypes,
+          onFilter: filterValue => {
+            console.log(filterValue);
+            //   if (
+            //     data.length !== 0 &&
+            //     'autoBottom' + filterValue in data[0] &&
+            //     filterValue
+            //   ) {
+            //     // let newData = [];
+            //     // data.forEach(team => {
+            //     //   team.teamNum = team.teamNum;
+            //     //   team.autoBottomDefault = team['autoBottom' + filterValue];
+            //     //   newData.push(team);
+            //     // });
+            //     // let arr = [];
+            //     console.log(
+            //       data.map(team => {
+            //         team.autoBottomDefault = team['autoBottom' + filterValue];
+            //         return team;
+            //       })
+            //     );
+            //     return data.map(team => {
+            //       team.autoBottomDefault = team['autoBottom' + filterValue];
+            //       return team;
+            //     });
+            //   }
+            //   return data;
+            if (filterValue !== this.state.autoDataField) {
+            }
+          },
+          withoutEmptyOption: true,
+          defaultValue: this.state.autoDataField
+        }),
+        filterValue: (cell, row) => console.log(row),
+        dataField: 'autoBottom' + this.state.autoDataField,
+        text: 'Bottom Auto'
+      }
     ];
+
+    if (this.state.competition === '') {
+      return null;
+    }
 
     return (
       <div className='div-main' style={{ minHeight: this.state.heightSize }}>
@@ -248,6 +316,18 @@ class Data extends Component {
             </Dropdown>
           </div>
         </div>
+        <BootstrapTable
+          stripped
+          hover
+          keyField='teamNum'
+          //rowStyle={this.state.style}
+          bordered
+          bootstrap4
+          // defaultSorted={defaultSorted}
+          data={this.state.competitionData}
+          columns={columns}
+          filter={filterFactory()}
+        />
       </div>
     );
   }

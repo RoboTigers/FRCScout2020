@@ -20,7 +20,7 @@ class SubjectiveCategory extends Component {
     this.state.inputs.map(input => {
         parent.push(
             <Form.Group style={{ width: '80%', marginLeft: '10%' }} as={Row}>
-            <Col xs='4' style={{ textAlign: 'left' }}>
+            <Col xs='5' style={{ textAlign: 'left' }}>
             <Form.Label
             style={{
                 fontFamily: 'Helvetica, Arial',
@@ -28,7 +28,7 @@ class SubjectiveCategory extends Component {
             }}
             >{input.title}</Form.Label>
             </Col>
-            <Col xs='3'>
+            <Col xs='7'>
             <Form.Control
             style={{
                 background: 'none',

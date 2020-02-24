@@ -12,6 +12,7 @@ import filterFactory, {
   selectFilter,
   textFilter
 } from 'react-bootstrap-table2-filter';
+import DropdownItem from 'react-bootstrap/DropdownItem';
 
 const scoreTypes = [
   { value: 'Average', label: 'Average' },
@@ -27,7 +28,30 @@ class Data extends Component {
     competitions: [],
     competitionData: [],
     teamData: [],
-    autoDataField: 'Median'
+    tableSections: [
+      { id: 1, name: 'Auto Cells' },
+      { id: 2, name: 'Baseline cross' },
+      { id: 3, name: 'Teleop Cells' },
+      { id: 4, name: 'Rotation Control' },
+      { id: 5, name: 'Position Control' },
+      { id: 6, name: 'Park' },
+      { id: 7, name: 'Climb' },
+      { id: 8, name: 'Level' },
+      { id: 9, name: 'Penalties' },
+      { id: 10, name: 'Break/Comm.' }
+    ],
+    tableSection: 'Choose',
+    tableColumnSpecifics: [
+      { id: 1, name: 'Median' },
+      { id: 2, name: 'Average' },
+      { id: 3, name: 'Max' }
+    ],
+    autoBottomDataField: 'Median',
+    autoOuterDataField: 'Median',
+    autoInnerDataField: 'Median',
+    teleBottomDataField: 'Median',
+    teleOuterDataField: 'Median',
+    teleInnerDataField: 'Median'
   };
 
   median(arr) {
@@ -139,13 +163,39 @@ class Data extends Component {
             this.setState({ competitionData: alteredData }, () => {
               let newData = this.state.competitionData;
               newData.forEach(team => {
-                team.autoBottomDefault = this.median(team.bottomAutoScore);
                 team.autoBottomMedian = this.median(team.bottomAutoScore);
                 team.autoBottomAverage =
                   team.bottomAutoScore.reduce((a, b) => a + b, 0) /
                   team.bottomAutoScore.length;
                 team.autoBottomMax = Math.max(...team.bottomAutoScore);
+                team.autoOuterMedian = this.median(team.outerAutoScore);
+                team.autoOuterAverage =
+                  team.outerAutoScore.reduce((a, b) => a + b, 0) /
+                  team.outerAutoScore.length;
+                team.autoOuterMax = Math.max(...team.outerAutoScore);
+                team.autoInnerMedian = this.median(team.innerAutoScore);
+                team.autoInnerAverage =
+                  team.innerAutoScore.reduce((a, b) => a + b, 0) /
+                  team.innerAutoScore.length;
+                team.autoInnerMax = Math.max(...team.innerAutoScore);
+
+                team.teleBottomMedian = this.median(team.bottomTeleScore);
+                team.teleBottomAverage =
+                  team.bottomTeleScore.reduce((a, b) => a + b, 0) /
+                  team.bottomTeleScore.length;
+                team.teleBottomMax = Math.max(...team.bottomTeleScore);
+                team.teleOuterMedian = this.median(team.outerTeleScore);
+                team.teleOuterAverage =
+                  team.outerTeleScore.reduce((a, b) => a + b, 0) /
+                  team.outerTeleScore.length;
+                team.teleOuterMax = Math.max(...team.outerTeleScore);
+                team.teleInnerMedian = this.median(team.innerTeleScore);
+                team.teleInnerAverage =
+                  team.innerTeleScore.reduce((a, b) => a + b, 0) /
+                  team.innerTeleScore.length;
+                team.teleInnerMax = Math.max(...team.innerTeleScore);
               });
+              console.log(newData);
               this.setState({ competitionData: newData });
             });
           });
@@ -161,14 +211,159 @@ class Data extends Component {
 
   getData = competition => {
     this.setState({ competition });
-    fetch(`/api/competitions/${this.state.competition}/matchData`)
+    fetch(`/api/competitions/${competition}/matchData`)
       .then(response => response.json())
       .then(data => {
         let matchData = data.matchData;
+        let alteredData = [];
+        matchData
+          .map(match => match.team_num)
+          .filter((team, index, arr) => arr.indexOf(team) === index)
+          .map(team => {
+            let obj = {
+              teamNum: team,
+              matchesPlayed: 0,
+              bottomAutoScore: [],
+              outerAutoScore: [],
+              innerAutoScore: [],
+              crossLine: 0,
+              bottomTeleScore: [],
+              outerTeleScore: [],
+              innerTeleScore: [],
+              rotationControl: 0,
+              rotationTimer: [],
+              positionControl: 0,
+              positionTimer: [],
+              climb: 0,
+              climbTime: [],
+              buddyClimb: 0,
+              level: 0,
+              park: 0,
+              communication: 0,
+              break: 0,
+              penalties: 0,
+              yellowCards: 0,
+              redCards: 0
+            };
+            alteredData.push(obj);
+          });
+        matchData.map(match => {
+          let index = alteredData.findIndex(x => x.teamNum === match.team_num);
+          alteredData[index].matchesPlayed++;
+          alteredData[index].bottomAutoScore.push(match.auto_scored[0].value);
+          alteredData[index].outerAutoScore.push(match.auto_scored[1].value);
+          alteredData[index].innerAutoScore.push(match.auto_scored[2].value);
+          if (match.cross_line === 'Yes') alteredData[index].crossLine++;
+          alteredData[index].bottomTeleScore.push(match.teleop_scored[0].value);
+          alteredData[index].outerTeleScore.push(match.teleop_scored[1].value);
+          alteredData[index].innerTeleScore.push(match.teleop_scored[2].value);
+          if (match.rotation_control === 'Yes') {
+            alteredData[index].rotationControl++;
+            alteredData[index].rotationTimer.push(match.rotation_timer);
+          }
+          if (match.position_control === 'Yes') {
+            alteredData[index].positionControl++;
+            alteredData[index].positionTimer.push(match.position_timer);
+          }
+          if (match.end_game === 'Hang' && match.climb !== 'Assisted Climb') {
+            alteredData[index].climb++;
+            alteredData[index].climbTime.push(match.end_game_timer);
+            alteredData[index].park++;
+            if (match.climb === 'Buddy Climb') alteredData[index].buddyClimb++;
+            if (match.level !== 'No') alteredData[index].level++;
+          } else if (match.end_game === 'Park') {
+            alteredData[index].park++;
+          }
+          if (match.communication === 'Yes') alteredData[index].communication++;
+          if (match.break === 'Yes') alteredData[index].break++;
+          alteredData[index].penalties += match.negatives[0].value;
+          alteredData[index].yellowCards += match.negatives[1].value;
+          alteredData[index].redCards += match.negatives[2].value;
+        });
+        this.setState({ competitionData: alteredData }, () => {
+          let newData = this.state.competitionData;
+          newData.forEach(team => {
+            team.autoBottomMedian = this.median(team.bottomAutoScore);
+            team.autoBottomAverage =
+              team.bottomAutoScore.reduce((a, b) => a + b, 0) /
+              team.bottomAutoScore.length;
+            team.autoBottomMax = Math.max(...team.bottomAutoScore);
+            team.autoOuterMedian = this.median(team.outerAutoScore);
+            team.autoOuterAverage =
+              team.outerAutoScore.reduce((a, b) => a + b, 0) /
+              team.outerAutoScore.length;
+            team.autoOuterMax = Math.max(...team.outerAutoScore);
+            team.autoInnerMedian = this.median(team.innerAutoScore);
+            team.autoInnerAverage =
+              team.innerAutoScore.reduce((a, b) => a + b, 0) /
+              team.innerAutoScore.length;
+            team.autoInnerMax = Math.max(...team.innerAutoScore);
+
+            team.teleBottomMedian = this.median(team.bottomTeleScore);
+            team.teleBottomAverage =
+              team.bottomTeleScore.reduce((a, b) => a + b, 0) /
+              team.bottomTeleScore.length;
+            team.teleBottomMax = Math.max(...team.bottomTeleScore);
+            team.teleOuterMedian = this.median(team.outerTeleScore);
+            team.teleOuterAverage =
+              team.outerTeleScore.reduce((a, b) => a + b, 0) /
+              team.outerTeleScore.length;
+            team.teleOuterMax = Math.max(...team.outerTeleScore);
+            team.teleInnerMedian = this.median(team.innerTeleScore);
+            team.teleInnerAverage =
+              team.innerTeleScore.reduce((a, b) => a + b, 0) /
+              team.innerTeleScore.length;
+            team.teleInnerMax = Math.max(...team.innerTeleScore);
+          });
+          console.log(newData);
+          this.setState({ competitionData: newData });
+        });
       })
       .catch(error => {
         console.error('Error:', error);
       });
+  };
+
+  changeTable = section => {
+    this.setState({ tableSection: section }, () => {
+      this.forceUpdate();
+    });
+  };
+
+  changeAutoBottomColumn = type => {
+    this.setState({ autoBottomDataField: type }, () => {
+      this.forceUpdate();
+    });
+  };
+
+  changeAutoOuterColumn = type => {
+    this.setState({ autoOuterDataField: type }, () => {
+      this.forceUpdate();
+    });
+  };
+
+  changeAutoInnerColumn = type => {
+    this.setState({ autoInnerDataField: type }, () => {
+      this.forceUpdate();
+    });
+  };
+
+  changeTeleBottomColumn = type => {
+    this.setState({ teleBottomDataField: type }, () => {
+      this.forceUpdate();
+    });
+  };
+
+  changeTeleOuterColumn = type => {
+    this.setState({ teleOuterDataField: type }, () => {
+      this.forceUpdate();
+    });
+  };
+
+  changeTeleInnerColumn = type => {
+    this.setState({ teleInnerDataField: type }, () => {
+      this.forceUpdate();
+    });
   };
 
   render() {
@@ -179,6 +374,26 @@ class Data extends Component {
         style={{ fontFamily: 'Helvetica, Arial' }}
       >
         {competition.shortname}
+      </Dropdown.Item>
+    ));
+
+    const tableSectionItems = this.state.tableSections.map(section => (
+      <Dropdown.Item
+        eventKey={section.name}
+        key={section.id}
+        style={{ fontFamily: 'Helvetica, Arial' }}
+      >
+        {section.name}
+      </Dropdown.Item>
+    ));
+
+    const tableColumnSpecifics = this.state.tableColumnSpecifics.map(type => (
+      <Dropdown.Item
+        eventKey={type.name}
+        key={type.id}
+        style={{ fontFamily: 'Helvetica, Arial' }}
+      >
+        {type.name}
       </Dropdown.Item>
     ));
 
@@ -193,7 +408,7 @@ class Data extends Component {
           return '';
         },
         dataField: 'teamNum',
-        text: 'Team Number',
+        text: 'Team',
         sort: true,
         filter: textFilter({
           className: 'customtextbar'
@@ -210,50 +425,81 @@ class Data extends Component {
       },
       {
         headerStyle: {
-          fontSize: '100%',
+          fontSize: '75%',
           outline: 'none'
         },
-        // sortCaret: (order, column) => {
-        //   return '';
-        // },
-        // sort: true,
-        filter: selectFilter({
-          options: scoreTypes,
-          onFilter: filterValue => {
-            console.log(filterValue);
-            //   if (
-            //     data.length !== 0 &&
-            //     'autoBottom' + filterValue in data[0] &&
-            //     filterValue
-            //   ) {
-            //     // let newData = [];
-            //     // data.forEach(team => {
-            //     //   team.teamNum = team.teamNum;
-            //     //   team.autoBottomDefault = team['autoBottom' + filterValue];
-            //     //   newData.push(team);
-            //     // });
-            //     // let arr = [];
-            //     console.log(
-            //       data.map(team => {
-            //         team.autoBottomDefault = team['autoBottom' + filterValue];
-            //         return team;
-            //       })
-            //     );
-            //     return data.map(team => {
-            //       team.autoBottomDefault = team['autoBottom' + filterValue];
-            //       return team;
-            //     });
-            //   }
-            //   return data;
-            if (filterValue !== this.state.autoDataField) {
-            }
-          },
-          withoutEmptyOption: true,
-          defaultValue: this.state.autoDataField
-        }),
-        filterValue: (cell, row) => console.log(row),
-        dataField: 'autoBottom' + this.state.autoDataField,
-        text: 'Bottom Auto'
+        sortCaret: (order, column) => {
+          return '';
+        },
+        sort: true,
+        hidden: this.state.tableSection !== 'Auto Cells',
+        dataField: 'autoBottom' + this.state.autoBottomDataField,
+        text: 'Bottom (' + this.state.autoBottomDataField + ')'
+      },
+      {
+        headerStyle: {
+          fontSize: '75%',
+          outline: 'none'
+        },
+        sortCaret: (order, column) => {
+          return '';
+        },
+        sort: true,
+        hidden: this.state.tableSection !== 'Auto Cells',
+        dataField: 'autoOuter' + this.state.autoOuterDataField,
+        text: 'Outer (' + this.state.autoOuterDataField + ')'
+      },
+      {
+        headerStyle: {
+          fontSize: '75%',
+          outline: 'none'
+        },
+        sortCaret: (order, column) => {
+          return '';
+        },
+        sort: true,
+        hidden: this.state.tableSection !== 'Auto Cells',
+        dataField: 'autoInner' + this.state.autoInnerDataField,
+        text: 'Inner (' + this.state.autoInnerDataField + ')'
+      },
+      {
+        headerStyle: {
+          fontSize: '75%',
+          outline: 'none'
+        },
+        sortCaret: (order, column) => {
+          return '';
+        },
+        sort: true,
+        hidden: this.state.tableSection !== 'Teleop Cells',
+        dataField: 'teleBottom' + this.state.teleBottomDataField,
+        text: 'Bottom (' + this.state.teleBottomDataField + ')'
+      },
+      {
+        headerStyle: {
+          fontSize: '75%',
+          outline: 'none'
+        },
+        sortCaret: (order, column) => {
+          return '';
+        },
+        sort: true,
+        hidden: this.state.tableSection !== 'Teleop Cells',
+        dataField: 'teleOuter' + this.state.teleOuterDataField,
+        text: 'Outer (' + this.state.teleOuterDataField + ')'
+      },
+      {
+        headerStyle: {
+          fontSize: '75%',
+          outline: 'none'
+        },
+        sortCaret: (order, column) => {
+          return '';
+        },
+        sort: true,
+        hidden: this.state.tableSection !== 'Teleop Cells',
+        dataField: 'teleInner' + this.state.teleInnerDataField,
+        text: 'Inner (' + this.state.teleInnerDataField + ')'
       }
     ];
 
@@ -314,6 +560,139 @@ class Data extends Component {
                 {competitionItems}
               </Dropdown.Menu>
             </Dropdown>
+          </div>
+          <div style={{ textAlign: 'start' }}>
+            <Dropdown
+              style={{ display: 'inline-block' }}
+              focusFirstItemOnShow={false}
+              onSelect={this.changeTable}
+            >
+              <Dropdown.Toggle
+                style={{ fontFamily: 'Helvetica, Arial', textAlign: 'center' }}
+                size='xs'
+                variant='success'
+                id='dropdown-basic'
+              >
+                {this.state.tableSection}
+              </Dropdown.Toggle>
+              <Dropdown.Menu>{tableSectionItems}</Dropdown.Menu>
+            </Dropdown>
+            {this.state.tableSection === 'Auto Cells' ? (
+              <React.Fragment>
+                <Dropdown
+                  style={{ display: 'inline-block' }}
+                  focusFirstItemOnShow={false}
+                  onSelect={this.changeAutoBottomColumn}
+                >
+                  <Dropdown.Toggle
+                    style={{
+                      fontFamily: 'Helvetica, Arial',
+                      textAlign: 'center'
+                    }}
+                    size='xs'
+                    variant='success'
+                    id='dropdown-basic'
+                  >
+                    {this.state.autoBottomDataField}
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu>{tableColumnSpecifics}</Dropdown.Menu>
+                </Dropdown>
+                <Dropdown
+                  style={{ display: 'inline-block' }}
+                  focusFirstItemOnShow={false}
+                  onSelect={this.changeAutoOuterColumn}
+                >
+                  <Dropdown.Toggle
+                    style={{
+                      fontFamily: 'Helvetica, Arial',
+                      textAlign: 'center'
+                    }}
+                    size='xs'
+                    variant='success'
+                    id='dropdown-basic'
+                  >
+                    {this.state.autoOuterDataField}
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu>{tableColumnSpecifics}</Dropdown.Menu>
+                </Dropdown>
+                <Dropdown
+                  style={{ display: 'inline-block' }}
+                  focusFirstItemOnShow={false}
+                  onSelect={this.changeAutoInnerColumn}
+                >
+                  <Dropdown.Toggle
+                    style={{
+                      fontFamily: 'Helvetica, Arial',
+                      textAlign: 'center'
+                    }}
+                    size='xs'
+                    variant='success'
+                    id='dropdown-basic'
+                  >
+                    {this.state.autoInnerDataField}
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu>{tableColumnSpecifics}</Dropdown.Menu>
+                </Dropdown>
+              </React.Fragment>
+            ) : null}
+            {this.state.tableSection === 'Teleop Cells' ? (
+              <React.Fragment>
+                <Dropdown
+                  style={{ display: 'inline-block' }}
+                  focusFirstItemOnShow={false}
+                  onSelect={this.changeTeleBottomColumn}
+                >
+                  <Dropdown.Toggle
+                    style={{
+                      fontFamily: 'Helvetica, Arial',
+                      textAlign: 'center'
+                    }}
+                    size='xs'
+                    variant='success'
+                    id='dropdown-basic'
+                  >
+                    {this.state.teleBottomDataField}
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu>{tableColumnSpecifics}</Dropdown.Menu>
+                </Dropdown>
+                <Dropdown
+                  style={{ display: 'inline-block' }}
+                  focusFirstItemOnShow={false}
+                  onSelect={this.changeTeleOuterColumn}
+                >
+                  <Dropdown.Toggle
+                    style={{
+                      fontFamily: 'Helvetica, Arial',
+                      textAlign: 'center'
+                    }}
+                    size='xs'
+                    variant='success'
+                    id='dropdown-basic'
+                  >
+                    {this.state.teleOuterDataField}
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu>{tableColumnSpecifics}</Dropdown.Menu>
+                </Dropdown>
+                <Dropdown
+                  style={{ display: 'inline-block' }}
+                  focusFirstItemOnShow={false}
+                  onSelect={this.changeTeleInnerColumn}
+                >
+                  <Dropdown.Toggle
+                    style={{
+                      fontFamily: 'Helvetica, Arial',
+                      textAlign: 'center'
+                    }}
+                    size='xs'
+                    variant='success'
+                    id='dropdown-basic'
+                  >
+                    {this.state.teleInnerDataField}
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu>{tableColumnSpecifics}</Dropdown.Menu>
+                </Dropdown>
+              </React.Fragment>
+            ) : null}
           </div>
         </div>
         <BootstrapTable

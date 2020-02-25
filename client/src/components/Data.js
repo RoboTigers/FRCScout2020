@@ -30,7 +30,7 @@ class Data extends Component {
     teamData: [],
     tableSections: [
       { id: 1, name: 'Auto Cells' },
-      { id: 2, name: 'Baseline cross' },
+      { id: 2, name: 'Baseline Cross' },
       { id: 3, name: 'Teleop Cells' },
       { id: 4, name: 'Rotation Control' },
       { id: 5, name: 'Position Control' },
@@ -46,12 +46,20 @@ class Data extends Component {
       { id: 2, name: 'Average' },
       { id: 3, name: 'Max' }
     ],
+    tableColumnSpecificsMin: [
+      { id: 1, name: 'Median' },
+      { id: 2, name: 'Average' },
+      { id: 3, name: 'Min' }
+    ],
     autoBottomDataField: 'Median',
     autoOuterDataField: 'Median',
     autoInnerDataField: 'Median',
     teleBottomDataField: 'Median',
     teleOuterDataField: 'Median',
-    teleInnerDataField: 'Median'
+    teleInnerDataField: 'Median',
+    rotationTimerDataField: 'Median',
+    positionTimerDataField: 'Median',
+    climbTimerDataField: 'Median'
   };
 
   median(arr) {
@@ -96,7 +104,7 @@ class Data extends Component {
                   positionControl: 0,
                   positionTimer: [],
                   climb: 0,
-                  climbTime: [],
+                  climbTimer: [],
                   buddyClimb: 0,
                   level: 0,
                   park: 0,
@@ -134,18 +142,24 @@ class Data extends Component {
               );
               if (match.rotation_control === 'Yes') {
                 alteredData[index].rotationControl++;
-                alteredData[index].rotationTimer.push(match.rotation_timer);
+                alteredData[index].rotationTimer.push(
+                  match.rotation_timer / 1000.0
+                );
               }
               if (match.position_control === 'Yes') {
                 alteredData[index].positionControl++;
-                alteredData[index].positionTimer.push(match.position_timer);
+                alteredData[index].positionTimer.push(
+                  match.position_timer / 1000.0
+                );
               }
               if (
                 match.end_game === 'Hang' &&
                 match.climb !== 'Assisted Climb'
               ) {
                 alteredData[index].climb++;
-                alteredData[index].climbTime.push(match.end_game_timer);
+                alteredData[index].climbTimer.push(
+                  match.end_game_timer / 1000.0
+                );
                 alteredData[index].park++;
                 if (match.climb === 'Buddy Climb')
                   alteredData[index].buddyClimb++;
@@ -194,6 +208,42 @@ class Data extends Component {
                   team.innerTeleScore.reduce((a, b) => a + b, 0) /
                   team.innerTeleScore.length;
                 team.teleInnerMax = Math.max(...team.innerTeleScore);
+
+                if (team.rotationControl !== 0) {
+                  team.rotationTimerMedian = this.median(team.rotationTimer);
+                  team.rotationTimerAverage =
+                    team.rotationTimer.reduce((a, b) => a + b, 0) /
+                    team.rotationTimer.length;
+                  team.rotationTimerMin = Math.min(...team.rotationTimer);
+                } else {
+                  team.rotationTimerMedian = 0;
+                  team.rotationTimerAverage = 0;
+                  team.rotationTimerMin = 0;
+                }
+
+                if (team.positionControl !== 0) {
+                  team.positionTimerMedian = this.median(team.positionTimer);
+                  team.positionTimerAverage =
+                    team.positionTimer.reduce((a, b) => a + b, 0) /
+                    team.positionTimer.length;
+                  team.positionTimerMin = Math.min(...team.positionTimer);
+                } else {
+                  team.positionTimerMedian = 0;
+                  team.positionTimerAverage = 0;
+                  team.positionTimerMin = 0;
+                }
+
+                if (team.climb !== 0) {
+                  team.climbTimerMedian = this.median(team.climbTimer);
+                  team.climbTimerAverage =
+                    team.climbTimer.reduce((a, b) => a + b, 0) /
+                    team.climbTimer.length;
+                  team.climbTimerMin = Math.min(...team.climbTimer);
+                } else {
+                  team.climbTimerMedian = 0;
+                  team.climbTimerAverage = 0;
+                  team.climbTimerMin = 0;
+                }
               });
               console.log(newData);
               this.setState({ competitionData: newData });
@@ -235,7 +285,7 @@ class Data extends Component {
               positionControl: 0,
               positionTimer: [],
               climb: 0,
-              climbTime: [],
+              climbTimer: [],
               buddyClimb: 0,
               level: 0,
               park: 0,
@@ -267,7 +317,7 @@ class Data extends Component {
           }
           if (match.end_game === 'Hang' && match.climb !== 'Assisted Climb') {
             alteredData[index].climb++;
-            alteredData[index].climbTime.push(match.end_game_timer);
+            alteredData[index].climbTimer.push(match.end_game_timer);
             alteredData[index].park++;
             if (match.climb === 'Buddy Climb') alteredData[index].buddyClimb++;
             if (match.level !== 'No') alteredData[index].level++;
@@ -366,6 +416,24 @@ class Data extends Component {
     });
   };
 
+  changeRotationTimerColumn = type => {
+    this.setState({ rotationTimerDataField: type }, () => {
+      this.forceUpdate();
+    });
+  };
+
+  changePositionTimerColumn = type => {
+    this.setState({ positionTimerDataField: type }, () => {
+      this.forceUpdate();
+    });
+  };
+
+  changeClimbTimerColumn = type => {
+    this.setState({ climbTimerDataField: type }, () => {
+      this.forceUpdate();
+    });
+  };
+
   render() {
     const competitionItems = this.state.competitions.map(competition => (
       <Dropdown.Item
@@ -396,6 +464,18 @@ class Data extends Component {
         {type.name}
       </Dropdown.Item>
     ));
+
+    const tableColumnSpecificsMin = this.state.tableColumnSpecificsMin.map(
+      type => (
+        <Dropdown.Item
+          eventKey={type.name}
+          key={type.id}
+          style={{ fontFamily: 'Helvetica, Arial' }}
+        >
+          {type.name}
+        </Dropdown.Item>
+      )
+    );
 
     let columns = [
       {
@@ -464,6 +544,19 @@ class Data extends Component {
       },
       {
         headerStyle: {
+          fontSize: '100%',
+          outline: 'none'
+        },
+        sortCaret: (order, column) => {
+          return '';
+        },
+        sort: true,
+        hidden: this.state.tableSection !== 'Baseline Cross',
+        dataField: 'crossLine',
+        text: 'Baseline Cross'
+      },
+      {
+        headerStyle: {
           fontSize: '75%',
           outline: 'none'
         },
@@ -500,6 +593,189 @@ class Data extends Component {
         hidden: this.state.tableSection !== 'Teleop Cells',
         dataField: 'teleInner' + this.state.teleInnerDataField,
         text: 'Inner (' + this.state.teleInnerDataField + ')'
+      },
+      {
+        headerStyle: {
+          fontSize: '100%',
+          outline: 'none'
+        },
+        sortCaret: (order, column) => {
+          return '';
+        },
+        sort: true,
+        hidden: this.state.tableSection !== 'Rotation Control',
+        dataField: 'rotationControl',
+        text: 'Rotation(s)'
+      },
+      {
+        headerStyle: {
+          fontSize: '75%',
+          outline: 'none'
+        },
+        sortCaret: (order, column) => {
+          return '';
+        },
+        sort: true,
+        hidden: this.state.tableSection !== 'Rotation Control',
+        dataField: 'rotationTimer' + this.state.rotationTimerDataField,
+        text: 'Timer (' + this.state.rotationTimerDataField + ')'
+      },
+      {
+        headerStyle: {
+          fontSize: '100%',
+          outline: 'none'
+        },
+        sortCaret: (order, column) => {
+          return '';
+        },
+        sort: true,
+        hidden: this.state.tableSection !== 'Position Control',
+        dataField: 'positionControl',
+        text: 'Position(s)'
+      },
+      {
+        headerStyle: {
+          fontSize: '75%',
+          outline: 'none'
+        },
+        sortCaret: (order, column) => {
+          return '';
+        },
+        sort: true,
+        hidden: this.state.tableSection !== 'Position Control',
+        dataField: 'positionTimer' + this.state.positionTimerDataField,
+        text: 'Timer (' + this.state.positionTimerDataField + ')'
+      },
+      {
+        headerStyle: {
+          fontSize: '100%',
+          outline: 'none'
+        },
+        sortCaret: (order, column) => {
+          return '';
+        },
+        sort: true,
+        hidden: this.state.tableSection !== 'Park',
+        dataField: 'park',
+        text: 'Park(s)'
+      },
+      {
+        headerStyle: {
+          fontSize: '100%',
+          outline: 'none'
+        },
+        sortCaret: (order, column) => {
+          return '';
+        },
+        sort: true,
+        hidden: this.state.tableSection !== 'Climb',
+        dataField: 'climb',
+        text: 'Climb(s)'
+      },
+      {
+        headerStyle: {
+          fontSize: '75%',
+          outline: 'none'
+        },
+        sortCaret: (order, column) => {
+          return '';
+        },
+        sort: true,
+        hidden: this.state.tableSection !== 'Climb',
+        dataField: 'climbTimer' + this.state.climbTimerDataField,
+        text: 'Timer (' + this.state.climbTimerDataField + ')'
+      },
+      {
+        headerStyle: {
+          fontSize: '100%',
+          outline: 'none'
+        },
+        sortCaret: (order, column) => {
+          return '';
+        },
+        sort: true,
+        hidden: this.state.tableSection !== 'Climb',
+        dataField: 'buddyClimb',
+        text: 'Buddy Climb(s)'
+      },
+      {
+        headerStyle: {
+          fontSize: '100%',
+          outline: 'none'
+        },
+        sortCaret: (order, column) => {
+          return '';
+        },
+        sort: true,
+        hidden: this.state.tableSection !== 'Level',
+        dataField: 'level',
+        text: 'Levels(s)'
+      },
+      {
+        headerStyle: {
+          fontSize: '100%',
+          outline: 'none'
+        },
+        sortCaret: (order, column) => {
+          return '';
+        },
+        sort: true,
+        hidden: this.state.tableSection !== 'Penalties',
+        dataField: 'penalties',
+        text: 'Penalties'
+      },
+      {
+        headerStyle: {
+          fontSize: '100%',
+          outline: 'none'
+        },
+        sortCaret: (order, column) => {
+          return '';
+        },
+        sort: true,
+        hidden: this.state.tableSection !== 'Penalties',
+        dataField: 'yellowCards',
+        text: 'Yellow Cards'
+      },
+      {
+        headerStyle: {
+          fontSize: '100%',
+          outline: 'none'
+        },
+        sortCaret: (order, column) => {
+          return '';
+        },
+        sort: true,
+        hidden: this.state.tableSection !== 'Penalties',
+        dataField: 'redCards',
+        text: 'Red Cards'
+      },
+      {
+        headerStyle: {
+          fontSize: '100%',
+          outline: 'none'
+        },
+        sortCaret: (order, column) => {
+          return '';
+        },
+        sort: true,
+        hidden: this.state.tableSection !== 'Break/Comm.',
+        dataField: 'break',
+        text: 'Break(s)'
+      },
+      {
+        headerStyle: {
+          fontSize: '100%',
+          outline: 'none',
+          wordBreak: 'break-all'
+        },
+        sortCaret: (order, column) => {
+          return '';
+        },
+        sort: true,
+        hidden: this.state.tableSection !== 'Break/Comm.',
+        dataField: 'communication',
+        text: 'Communication'
       }
     ];
 
@@ -589,7 +865,7 @@ class Data extends Component {
                       fontFamily: 'Helvetica, Arial',
                       textAlign: 'center'
                     }}
-                    size='xs'
+                    size='sm'
                     variant='success'
                     id='dropdown-basic'
                   >
@@ -607,7 +883,7 @@ class Data extends Component {
                       fontFamily: 'Helvetica, Arial',
                       textAlign: 'center'
                     }}
-                    size='xs'
+                    size='sm'
                     variant='success'
                     id='dropdown-basic'
                   >
@@ -625,7 +901,7 @@ class Data extends Component {
                       fontFamily: 'Helvetica, Arial',
                       textAlign: 'center'
                     }}
-                    size='xs'
+                    size='sm'
                     variant='success'
                     id='dropdown-basic'
                   >
@@ -647,7 +923,7 @@ class Data extends Component {
                       fontFamily: 'Helvetica, Arial',
                       textAlign: 'center'
                     }}
-                    size='xs'
+                    size='sm'
                     variant='success'
                     id='dropdown-basic'
                   >
@@ -665,7 +941,7 @@ class Data extends Component {
                       fontFamily: 'Helvetica, Arial',
                       textAlign: 'center'
                     }}
-                    size='xs'
+                    size='sm'
                     variant='success'
                     id='dropdown-basic'
                   >
@@ -683,7 +959,7 @@ class Data extends Component {
                       fontFamily: 'Helvetica, Arial',
                       textAlign: 'center'
                     }}
-                    size='xs'
+                    size='sm'
                     variant='success'
                     id='dropdown-basic'
                   >
@@ -692,6 +968,66 @@ class Data extends Component {
                   <Dropdown.Menu>{tableColumnSpecifics}</Dropdown.Menu>
                 </Dropdown>
               </React.Fragment>
+            ) : null}
+            {this.state.tableSection === 'Rotation Control' ? (
+              <Dropdown
+                style={{ display: 'inline-block' }}
+                focusFirstItemOnShow={false}
+                onSelect={this.changeRotationTimerColumn}
+              >
+                <Dropdown.Toggle
+                  style={{
+                    fontFamily: 'Helvetica, Arial',
+                    textAlign: 'center'
+                  }}
+                  size='sm'
+                  variant='success'
+                  id='dropdown-basic'
+                >
+                  {this.state.rotationTimerDataField}
+                </Dropdown.Toggle>
+                <Dropdown.Menu>{tableColumnSpecificsMin}</Dropdown.Menu>
+              </Dropdown>
+            ) : null}
+            {this.state.tableSection === 'Position Control' ? (
+              <Dropdown
+                style={{ display: 'inline-block' }}
+                focusFirstItemOnShow={false}
+                onSelect={this.changePositionTimerColumn}
+              >
+                <Dropdown.Toggle
+                  style={{
+                    fontFamily: 'Helvetica, Arial',
+                    textAlign: 'center'
+                  }}
+                  size='sm'
+                  variant='success'
+                  id='dropdown-basic'
+                >
+                  {this.state.positionTimerDataField}
+                </Dropdown.Toggle>
+                <Dropdown.Menu>{tableColumnSpecificsMin}</Dropdown.Menu>
+              </Dropdown>
+            ) : null}
+            {this.state.tableSection === 'Climb' ? (
+              <Dropdown
+                style={{ display: 'inline-block' }}
+                focusFirstItemOnShow={false}
+                onSelect={this.changeClimbTimerColumn}
+              >
+                <Dropdown.Toggle
+                  style={{
+                    fontFamily: 'Helvetica, Arial',
+                    textAlign: 'center'
+                  }}
+                  size='sm'
+                  variant='success'
+                  id='dropdown-basic'
+                >
+                  {this.state.climbTimerDataField}
+                </Dropdown.Toggle>
+                <Dropdown.Menu>{tableColumnSpecificsMin}</Dropdown.Menu>
+              </Dropdown>
             ) : null}
           </div>
         </div>

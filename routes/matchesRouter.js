@@ -31,18 +31,33 @@ router.get('/competitions/:shortName/matchData', (req, res) => {
     .catch(er => console.error(e.stack));
 });
 
+router.get('/competitions/:shortName/team/:teamNum/matchData', (req, res) => {
+  const getMatchDataQuery =
+    'SELECT m.match_id, t.team_num, m.match_num, m.report_status, m.cross_line, m.auto_scored, m.teleop_scored, m.rotation_control, m.rotation_timer, m.position_control, m.position_timer, m.end_game, m.end_game_timer, m.climb, m.level, m.communication, m.break, m.negatives FROM match m INNER JOIN comp_team_mapping mapping on mapping.mapping_id=m.mapping_id INNER JOIN team t ON t.team_id=mapping.team_id INNER JOIN competition c ON c.competition_id=mapping.competition_id WHERE c.short_name = $1 AND t.team_num = $2';
+  const getMatchDataValues = [req.params.shortName, req.params.teamNum];
+
+  db.query(getMatchDataQuery, getMatchDataValues)
+    .then(data => {
+      console.log(data.rows);
+      res.json({
+        matchData: data.rows
+      });
+    })
+    .catch(e => console.error(e.stack));
+});
+
 router.get(
-  '/competitions/:shortName/team/:teamNum/matchNum/:matchNum/match',
+  '/competitions/:shortName/team/:teamNum/matchNum/:matchNum/matchData',
   (req, res) => {
-    const getPitDataQuery =
+    const getMatchDataQuery =
       'SELECT t.team_num, c.short_name, m.match_num, m.scout_name, m.report_status, m.alliance_station, m.auto_team, m.auto_power_cells, m.starting_position, m.cross_line, m.auto_scored, m.auto_comments, m.teleop_scored, m.rotation_control, m.rotation_timer, m.position_control, m.position_timer, m.end_game, m.end_game_timer, m.climb, m.level, m.level_position, m.communication, m.break, m.negatives, m.reflection_comments FROM match m RIGHT JOIN comp_team_mapping mapping on mapping.mapping_id=m.mapping_id INNER JOIN team t ON t.team_id=mapping.team_id INNER JOIN competition c ON c.competition_id=mapping.competition_id WHERE c.short_name = $1 AND t.team_num = $2 AND m.match_num = $3';
-    const getPitDataValues = [
+    const getMatchDataValues = [
       req.params.shortName,
       req.params.teamNum,
       req.params.matchNum
     ];
 
-    db.query(getPitDataQuery, getPitDataValues)
+    db.query(getMatchDataQuery, getMatchDataValues)
       .then(data => {
         console.log(data.rows);
         res.json({

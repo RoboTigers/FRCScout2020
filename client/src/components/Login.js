@@ -23,30 +23,42 @@ class Login extends Component {
 
   constructor(props) {
     super(props);
-    if (props.location && props.location.state && Array.isArray(props.location.state.messages) && props.location.state.messages.length > 0) {
+    if (
+      props.location &&
+      props.location.state &&
+      Array.isArray(props.location.state.messages) &&
+      props.location.state.messages.length > 0
+    ) {
       this.state.messages = props.location.state.messages;
     }
   }
 
-  handleUsernameChange = (event) => {
-    this.setState({ username: event.target.value })
+  componentDidMount() {
+    window.onbeforeunload = null;
   }
 
-  handlePasswordChange = (event) => {
-    this.setState({ password: event.target.value })
-  }
+  handleUsernameChange = event => {
+    this.setState({ username: event.target.value });
+  };
 
-  handleSubmit = (event) => {
+  handlePasswordChange = event => {
+    this.setState({ password: event.target.value });
+  };
+
+  handleSubmit = event => {
     event.preventDefault();
     fetch('/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ username: this.state.username, password: this.state.password })
-    }).then((response) => {
+      body: JSON.stringify({
+        username: this.state.username,
+        password: this.state.password
+      })
+    }).then(response => {
       if (response.ok) {
-        response.json().then((user) => {
+        response.json().then(user => {
           this.context.logInUser(user);
           this.setState({
             messages: [],
@@ -61,14 +73,14 @@ class Login extends Component {
         });
       }
     });
-  }
+  };
 
   render() {
-    const { from } = this.props.location.state || { from: { pathname: '/' } }
+    const { from } = this.props.location.state || { from: { pathname: '/' } };
     const { redirectToReferrer } = this.state;
 
     if (redirectToReferrer === true) {
-      return <Redirect to={from} />
+      return <Redirect to={from} />;
     }
 
     return (
@@ -77,28 +89,32 @@ class Login extends Component {
           <Col></Col>
           <Col lg={6}>
             <h1>Login</h1>
-            {this.state.messages.map(({ type, message }, index) => (<Alert key={index} variant={type}>{message}</Alert>))}
+            {this.state.messages.map(({ type, message }, index) => (
+              <Alert key={index} variant={type}>
+                {message}
+              </Alert>
+            ))}
             <Form onSubmit={this.handleSubmit}>
               <Form.Group>
                 <Form.Label>Username</Form.Label>
                 <Form.Control
-                  type="text"
-                  placeholder="Enter Username"
-                  value={this.state.username }
+                  type='text'
+                  placeholder='Enter Username'
+                  value={this.state.username}
                   onChange={this.handleUsernameChange}
                 />
               </Form.Group>
 
-              <Form.Group controlId="formBasicPassword">
+              <Form.Group controlId='formBasicPassword'>
                 <Form.Label>Password</Form.Label>
                 <Form.Control
-                  type="password"
-                  placeholder="Enter Password"
+                  type='password'
+                  placeholder='Enter Password'
                   value={this.state.password}
                   onChange={this.handlePasswordChange}
                 />
               </Form.Group>
-              <Button variant="primary" type="submit">
+              <Button variant='primary' type='submit'>
                 Submit
               </Button>
             </Form>
@@ -106,7 +122,7 @@ class Login extends Component {
           <Col></Col>
         </Row>
       </Container>
-    )
+    );
   }
 }
 

@@ -39,12 +39,8 @@ class PitNavigation extends Component {
           fontSize: '100%',
           outline: 'none'
         },
-        sortCaret: (order, column) => {
-          return '';
-        },
         dataField: 'team_num',
         text: 'Team Number',
-        sort: true,
         filter: textFilter({
           className: 'customtextbar'
         })
@@ -55,12 +51,8 @@ class PitNavigation extends Component {
           fontSize: '100%',
           outline: 'none'
         },
-        sortCaret: (order, column) => {
-          return '';
-        },
         dataField: 'team_name',
         text: 'Team Name',
-        sort: true,
         filter: textFilter({
           className: 'customtextbar'
         })
@@ -126,9 +118,11 @@ class PitNavigation extends Component {
       .catch(error => {
         console.error('Error:', error);
       });
+    this.forceUpdate();
   };
 
   componentDidMount() {
+    window.onbeforeunload = null;
     fetch('/competitions')
       .then(response => response.json())
       .then(data => {
@@ -180,6 +174,7 @@ class PitNavigation extends Component {
       widthSize: window.innerWidth <= 760 ? '90%' : '50%'
     });
     this.setState({ heightSize: window.innerHeight + 'px' });
+    this.forceUpdate();
   }
 
   render() {
@@ -260,12 +255,12 @@ class PitNavigation extends Component {
           </div>
         </div>
         <BootstrapTable
-          stripped
+          striped
           hover
           keyField='team_num'
           bordered
           bootstrap4
-          defaultSorted={defaultSorted}
+          // defaultSorted={defaultSorted}
           data={this.state.tableData}
           columns={this.state.column}
           filter={filterFactory()}

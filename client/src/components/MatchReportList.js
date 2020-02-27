@@ -24,13 +24,6 @@ const scoutSelectOptions = {
   Fix: 'FIx'
 };
 
-const defaultSorted = [
-  {
-    dataField: 'matchnum',
-    order: 'asc'
-  }
-];
-
 class MatchReportList extends Component {
   static contextType = AuthContext;
 
@@ -47,12 +40,8 @@ class MatchReportList extends Component {
           fontSize: '100%',
           outline: 'none'
         },
-        sortCaret: (order, column) => {
-          return '';
-        },
         dataField: 'teamnum',
         text: 'Team',
-        sort: true,
         filter: textFilter({
           autoComplete: 'off',
           type: 'number',
@@ -65,12 +54,8 @@ class MatchReportList extends Component {
           fontSize: '100%',
           outline: 'none'
         },
-        sortCaret: (order, column) => {
-          return '';
-        },
         dataField: 'matchnum',
         text: 'Match',
-        sort: true,
         filter: textFilter({
           className: 'customtextbar'
         })
@@ -81,12 +66,8 @@ class MatchReportList extends Component {
           fontSize: '100%',
           outline: 'none'
         },
-        sortCaret: (order, column) => {
-          return '';
-        },
         dataField: 'scoutname',
         text: 'Scouter',
-        sort: true,
         filter: textFilter({
           className: 'customtextbar',
           autoComplete: 'off'
@@ -161,6 +142,7 @@ class MatchReportList extends Component {
   };
 
   componentDidMount() {
+    window.onbeforeunload = null;
     fetch('/competitions')
       .then(response => response.json())
       .then(data => {
@@ -294,32 +276,33 @@ class MatchReportList extends Component {
                 Refresh
               </Button>
             </div>
-            { this.context.isLoggedIn === true && this.context.user.role === 'admin' &&
-              <Link to={'matches/new'}>
-                <Button
-                  variant='success'
-                  type='btn'
-                  className='btn-xs mt-2'
-                  style={{
-                    fontFamily: 'Helvetica, Arial',
-                    boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
-                    border: '1px solid black'
-                  }}
-                >
-                  New Form
-                </Button>
-              </Link>
-            }
+            {this.context.isLoggedIn === true &&
+              this.context.user.role === 'admin' && (
+                <Link to={'matches/new'}>
+                  <Button
+                    variant='success'
+                    type='btn'
+                    className='btn-xs mt-2'
+                    style={{
+                      fontFamily: 'Helvetica, Arial',
+                      boxShadow:
+                        '-3px 3px black, -2px 2px black, -1px 1px black',
+                      border: '1px solid black'
+                    }}
+                  >
+                    New Form
+                  </Button>
+                </Link>
+              )}
           </div>
         </div>
         <BootstrapTable
-          stripped
+          striped
           hover
           keyField='matchid'
           //rowStyle={this.state.style}
           bordered
           bootstrap4
-          defaultSorted={defaultSorted}
           data={this.state.matches}
           columns={this.state.columns}
           filter={filterFactory()}

@@ -110,3 +110,7 @@
   display: inline-block;
   text-align: center;
 }
+
+.recharts-wrapper {
+  margin: 0% 50% 0% 48%;
+}

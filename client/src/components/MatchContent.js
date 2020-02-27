@@ -9,8 +9,12 @@ import GeneratorSwitch from './generatorswitch.png';
 import Counter from './Counter.js';
 import PenaltyCounter from './PenaltyCounter.js';
 import StopWatch from './StopWatch.js';
+import { Prompt } from 'react-router-dom';
+import { AuthContext } from '../contexts/auth_context';
 
 class MatchContent extends Component {
+  static contextType = AuthContext;
+
   state = {
     retrieved: '',
     competition: '',
@@ -28,7 +32,7 @@ class MatchContent extends Component {
     validStage4: false,
     widthSize: '',
     heightSize: '',
-    scout: '',
+    scout: this.context.user.username,
     matchNum: '',
     allianceStation: 'Red Station 1',
     autoTeam: true,
@@ -113,6 +117,9 @@ class MatchContent extends Component {
   };
 
   componentDidMount() {
+    window.onbeforeunload = function() {
+      return '';
+    };
     if (this.props.match.url === '/matches/new') {
       fetch('/competitions')
         .then(response => response.json())
@@ -127,7 +134,7 @@ class MatchContent extends Component {
         });
     } else {
       fetch(
-        `/api/competitions/${this.props.match.params.competition}/team/${this.props.match.params.team}/matchNum/${this.props.match.params.matchNum}/match`
+        `/api/competitions/${this.props.match.params.competition}/team/${this.props.match.params.team}/matchNum/${this.props.match.params.matchNum}/matchData`
       )
         .then(response => response.json())
         .then(data => {
@@ -558,7 +565,6 @@ class MatchContent extends Component {
 
   handleSubmit = event => {
     event.preventDefault();
-    this.setState({ validatedStage4: true });
     if (
       (this.state.validStage0 &&
         this.state.validStage1 &&
@@ -567,55 +573,57 @@ class MatchContent extends Component {
         this.state.validStage4) ||
       (this.state.validStage0 && this.state.markForFollowUp)
     ) {
-      const data = {
-        competition: this.state.competition,
-        teamNum: this.state.teamNum,
-        matchNum: this.state.matchNum,
-        scoutName: this.state.scout,
-        reportStatus: this.state.markForFollowUp ? 'Follow Up' : 'Done',
-        allianceStation: this.state.allianceStation,
-        autoTeam: this.state.autoTeam,
-        autoPowerCells: this.state.autoPowerCells,
-        startingPosition: this.state.startingPosition,
-        crossLine: this.state.crossLine,
-        autoScored: JSON.stringify(this.state.autoScored),
-        autoComments: this.state.autoComments,
-        teleopScored: JSON.stringify(this.state.teleopScored),
-        rotationControl: this.state.rotationControl,
-        rotationTimer:
-          this.state.rotationControl === 'Yes' ? this.state.rotationTimer : 0,
-        positionControl: this.state.positionControl,
-        positionTimer:
-          this.state.positionControl === 'Yes' ? this.state.positionTimer : 0,
-        endGame: this.state.endGame,
-        endGameTimer: this.state.endGameTimer,
-        climb: this.state.endGame === 'Hang' ? this.state.climb : '',
-        level: this.state.endGame === 'Hang' ? this.state.level : '',
-        levelPosition:
-          this.state.endGame === 'Hang' ? this.state.levelPosition : 0,
-        communication: this.state.communication,
-        break: this.state.break,
-        negatives: JSON.stringify(this.state.negatives),
-        reflectionComments: this.state.reflectionComments
-      };
-      fetch('/api/submitMatchForm', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      })
-        .then(response => response.json())
-        .then(data => {
-          if (data.message === 'Submitted') {
-            this.props.history.push('/matches');
-          } else {
-            alert(data.message);
-          }
+      if (window.confirm("Press 'OK' to confirm submit")) {
+        const data = {
+          competition: this.state.competition,
+          teamNum: this.state.teamNum,
+          matchNum: this.state.matchNum,
+          scoutName: this.state.scout,
+          reportStatus: this.state.markForFollowUp ? 'Follow Up' : 'Done',
+          allianceStation: this.state.allianceStation,
+          autoTeam: this.state.autoTeam,
+          autoPowerCells: this.state.autoPowerCells,
+          startingPosition: this.state.startingPosition,
+          crossLine: this.state.crossLine,
+          autoScored: JSON.stringify(this.state.autoScored),
+          autoComments: this.state.autoComments,
+          teleopScored: JSON.stringify(this.state.teleopScored),
+          rotationControl: this.state.rotationControl,
+          rotationTimer:
+            this.state.rotationControl === 'No' ? 0 : this.state.rotationTimer,
+          positionControl: this.state.positionControl,
+          positionTimer:
+            this.state.positionControl === 'No' ? 0 : this.state.positionTimer,
+          endGame: this.state.endGame,
+          endGameTimer: this.state.endGameTimer,
+          climb: this.state.endGame === 'Hang' ? this.state.climb : '',
+          level: this.state.endGame === 'Hang' ? this.state.level : '',
+          levelPosition:
+            this.state.endGame === 'Hang' ? this.state.levelPosition : 0,
+          communication: this.state.communication,
+          break: this.state.break,
+          negatives: JSON.stringify(this.state.negatives),
+          reflectionComments: this.state.reflectionComments
+        };
+        fetch('/api/submitMatchForm', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
         })
-        .catch(error => {
-          console.error('Error:', error);
-        });
+          .then(response => response.json())
+          .then(data => {
+            if (data.message === 'Submitted') {
+              this.props.history.push('/matches');
+            } else {
+              alert(data.message);
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+      }
     }
   };
 
@@ -624,7 +632,7 @@ class MatchContent extends Component {
       return null;
     } else if (this.state.retrieved === 'invalid') {
       return (
-        <div className='div-main'>
+        <div className='div-main' style={{ minHeight: this.state.heightSize }}>
           <h1 className='pt-4'>Invalid match form request</h1>
         </div>
       );
@@ -635,6 +643,7 @@ class MatchContent extends Component {
             className='div-main'
             style={{ minHeight: this.state.heightSize }}
           >
+            <Prompt message='Are you sure you want to leave?' />
             <div className='justify-content-center'>
               <img
                 alt='Logo'
@@ -654,7 +663,7 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 0 ? 'black' : 'transparent',
-                    width: this.state.widthSize === '90%' ? '15%' : '6%',
+                    width: '50px',
                     backgroundColor: this.state.validStage0
                       ? '#57c24f'
                       : '#d4463b'
@@ -668,7 +677,7 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 1 ? 'black' : 'transparent',
-                    width: this.state.widthSize === '90%' ? '15%' : '6%',
+                    width: '50px',
                     backgroundColor: this.state.validStage1
                       ? '#57c24f'
                       : '#d4463b'
@@ -682,7 +691,7 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 2 ? 'black' : 'transparent',
-                    width: this.state.widthSize === '90%' ? '15%' : '6%',
+                    width: '50px',
                     backgroundColor: this.state.validStage2
                       ? '#57c24f'
                       : '#d4463b'
@@ -696,7 +705,7 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 3 ? 'black' : 'transparent',
-                    width: this.state.widthSize === '90%' ? '15%' : '6%',
+                    width: '50px',
                     backgroundColor: this.state.validStage3
                       ? '#57c24f'
                       : '#d4463b'
@@ -710,7 +719,7 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 4 ? 'black' : 'transparent',
-                    width: this.state.widthSize === '90%' ? '15%' : '6%',
+                    width: '50px',
                     backgroundColor: this.state.validStage4
                       ? '#57c24f'
                       : '#d4463b'
@@ -910,6 +919,7 @@ class MatchContent extends Component {
             className='div-main'
             style={{ minHeight: this.state.heightSize }}
           >
+            <Prompt message='Are you sure you want to leave?' />
             <div className='justify-content-center'>
               <img
                 alt='Logo'
@@ -929,7 +939,7 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 0 ? 'black' : 'transparent',
-                    width: this.state.widthSize === '90%' ? '15%' : '6%',
+                    width: '50px',
                     backgroundColor: this.state.validStage0
                       ? '#57c24f'
                       : '#d4463b'
@@ -943,7 +953,7 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 1 ? 'black' : 'transparent',
-                    width: this.state.widthSize === '90%' ? '15%' : '6%',
+                    width: '50px',
                     backgroundColor: this.state.validStage1
                       ? '#57c24f'
                       : '#d4463b'
@@ -957,7 +967,7 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 2 ? 'black' : 'transparent',
-                    width: this.state.widthSize === '90%' ? '15%' : '6%',
+                    width: '50px',
                     backgroundColor: this.state.validStage2
                       ? '#57c24f'
                       : '#d4463b'
@@ -971,7 +981,7 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 3 ? 'black' : 'transparent',
-                    width: this.state.widthSize === '90%' ? '15%' : '6%',
+                    width: '50px',
                     backgroundColor: this.state.validStage3
                       ? '#57c24f'
                       : '#d4463b'
@@ -985,7 +995,7 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 4 ? 'black' : 'transparent',
-                    width: this.state.widthSize === '90%' ? '15%' : '6%',
+                    width: '50px',
                     backgroundColor: this.state.validStage4
                       ? '#57c24f'
                       : '#d4463b'
@@ -1245,6 +1255,7 @@ class MatchContent extends Component {
             className='div-main'
             style={{ minHeight: this.state.heightSize }}
           >
+            <Prompt message='Are you sure you want to leave?' />
             <div className='justify-content-center'>
               <img
                 alt='Logo'
@@ -1264,7 +1275,7 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 0 ? 'black' : 'transparent',
-                    width: this.state.widthSize === '90%' ? '15%' : '6%',
+                    width: '50px',
                     backgroundColor: this.state.validStage0
                       ? '#57c24f'
                       : '#d4463b'
@@ -1278,7 +1289,7 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 1 ? 'black' : 'transparent',
-                    width: this.state.widthSize === '90%' ? '15%' : '6%',
+                    width: '50px',
                     backgroundColor: this.state.validStage1
                       ? '#57c24f'
                       : '#d4463b'
@@ -1292,7 +1303,7 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 2 ? 'black' : 'transparent',
-                    width: this.state.widthSize === '90%' ? '15%' : '6%',
+                    width: '50px',
                     backgroundColor: this.state.validStage2
                       ? '#57c24f'
                       : '#d4463b'
@@ -1306,7 +1317,7 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 3 ? 'black' : 'transparent',
-                    width: this.state.widthSize === '90%' ? '15%' : '6%',
+                    width: '50px',
                     backgroundColor: this.state.validStage3
                       ? '#57c24f'
                       : '#d4463b'
@@ -1320,7 +1331,7 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 4 ? 'black' : 'transparent',
-                    width: this.state.widthSize === '90%' ? '15%' : '6%',
+                    width: '50px',
                     backgroundColor: this.state.validStage4
                       ? '#57c24f'
                       : '#d4463b'
@@ -1549,6 +1560,7 @@ class MatchContent extends Component {
             className='div-main'
             style={{ minHeight: this.state.heightSize }}
           >
+            <Prompt message='Are you sure you want to leave?' />
             <div className='justify-content-center'>
               <img
                 alt='Logo'
@@ -1568,7 +1580,7 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 0 ? 'black' : 'transparent',
-                    width: this.state.widthSize === '90%' ? '15%' : '6%',
+                    width: '50px',
                     backgroundColor: this.state.validStage0
                       ? '#57c24f'
                       : '#d4463b'
@@ -1582,7 +1594,7 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 1 ? 'black' : 'transparent',
-                    width: this.state.widthSize === '90%' ? '15%' : '6%',
+                    width: '50px',
                     backgroundColor: this.state.validStage1
                       ? '#57c24f'
                       : '#d4463b'
@@ -1596,7 +1608,7 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 2 ? 'black' : 'transparent',
-                    width: this.state.widthSize === '90%' ? '15%' : '6%',
+                    width: '50px',
                     backgroundColor: this.state.validStage2
                       ? '#57c24f'
                       : '#d4463b'
@@ -1610,7 +1622,7 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 3 ? 'black' : 'transparent',
-                    width: this.state.widthSize === '90%' ? '15%' : '6%',
+                    width: '50px',
                     backgroundColor: this.state.validStage3
                       ? '#57c24f'
                       : '#d4463b'
@@ -1624,7 +1636,7 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 4 ? 'black' : 'transparent',
-                    width: this.state.widthSize === '90%' ? '15%' : '6%',
+                    width: '50px',
                     backgroundColor: this.state.validStage4
                       ? '#57c24f'
                       : '#d4463b'
@@ -1898,6 +1910,7 @@ class MatchContent extends Component {
             className='div-main'
             style={{ minHeight: this.state.heightSize }}
           >
+            <Prompt message='Are you sure you want to leave?' />
             <div className='justify-content-center'>
               <img
                 alt='Logo'
@@ -1917,7 +1930,7 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 0 ? 'black' : 'transparent',
-                    width: this.state.widthSize === '90%' ? '15%' : '6%',
+                    width: '50px',
                     backgroundColor: this.state.validStage0
                       ? '#57c24f'
                       : '#d4463b'
@@ -1931,7 +1944,7 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 1 ? 'black' : 'transparent',
-                    width: this.state.widthSize === '90%' ? '15%' : '6%',
+                    width: '50px',
                     backgroundColor: this.state.validStage1
                       ? '#57c24f'
                       : '#d4463b'
@@ -1945,7 +1958,7 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 2 ? 'black' : 'transparent',
-                    width: this.state.widthSize === '90%' ? '15%' : '6%',
+                    width: '50px',
                     backgroundColor: this.state.validStage2
                       ? '#57c24f'
                       : '#d4463b'
@@ -1959,7 +1972,7 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 3 ? 'black' : 'transparent',
-                    width: this.state.widthSize === '90%' ? '15%' : '6%',
+                    width: '50px',
                     backgroundColor: this.state.validStage3
                       ? '#57c24f'
                       : '#d4463b'
@@ -1973,7 +1986,7 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 4 ? 'black' : 'transparent',
-                    width: this.state.widthSize === '90%' ? '15%' : '6%',
+                    width: '50px',
                     backgroundColor: this.state.validStage4
                       ? '#57c24f'
                       : '#d4463b'

@@ -196,6 +196,7 @@ class MatchReportList extends Component {
   }
 
   render() {
+    console.log("SHARON ", this.state.competition);
     const competitionItems = this.state.competitions.map(competition => (
       <Dropdown.Item
         eventKey={competition.shortname}
@@ -276,6 +277,7 @@ class MatchReportList extends Component {
                 Refresh
               </Button>
             </div>
+<<<<<<< HEAD
             {this.context.isLoggedIn === true &&
               this.context.user.role === 'admin' && (
                 <Link to={'matches/new'}>
@@ -294,6 +296,40 @@ class MatchReportList extends Component {
                   </Button>
                 </Link>
               )}
+=======
+            { this.context.isLoggedIn === true &&
+              <Link to={'matches/new'}>
+                <Button
+                  variant='success'
+                  type='btn'
+                  className='btn-xs mt-2'
+                  style={{
+                    fontFamily: 'Helvetica, Arial',
+                    boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
+                    border: '1px solid black'
+                  }}
+                >
+                  Scout New Match
+                </Button>
+              </Link>
+            }
+            { this.context.isLoggedIn === true &&
+              <Link to={'supers/' + this.state.competition}>
+                <Button
+                  variant='success'
+                  type='btn'
+                  className='btn-xs mt-2'
+                  style={{
+                    fontFamily: 'Helvetica, Arial',
+                    boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
+                    border: '1px solid black'
+                  }}
+                >
+                  Super Scout
+                </Button>
+              </Link>
+            }
+>>>>>>> aab2e169af8edace210beaeb8366033f7b59e2e3
           </div>
         </div>
         <BootstrapTable

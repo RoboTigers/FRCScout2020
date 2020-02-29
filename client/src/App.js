@@ -3,6 +3,7 @@ import './components/TabNav';
 import TabNav from './components/TabNav';
 import PitContent from './components/PitContent';
 import MatchReportList from './components/MatchReportList';
+import SuperScoutContent from './components/SuperScoutContent';
 import AnalystContent from './components/AnalystContent';
 import Login from './components/Login';
 import Logout from './components/Logout';
@@ -118,6 +119,7 @@ class App extends Component {
               />
               <AdminRoute path='/matches/new' component={MatchContent} />
               <ProtectedRoute path='/matches' component={MatchReportList} />
+              <ProtectedRoute path='/supers/:competition' component={SuperScoutContent} />
               <ProtectedRoute path='/analystHome' component={AnalystContent} />
               <ProtectedRoute
                 path='/pits/:competition/:team'

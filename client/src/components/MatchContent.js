@@ -260,6 +260,13 @@ class MatchContent extends Component {
 
   handleMatchNum = event => {
     this.setState({ matchNum: event.target.value }, () => {
+      fetch(
+        `https://www.thebluealliance.com/api/v3/match/2020isde2_qm${this.state.matchNum}?X-TBA-Auth-Key=VcTpa99nIEsT44AsrzSXFzdlS7efZ1wWCrnkMMFyBWQ3tXbp0KFRHSJTLhx96ukP`
+      )
+        .then(response => response.json())
+        .then(data => {
+          console.log(data.actual_time);
+        });
       this.checkStage0();
     });
   };

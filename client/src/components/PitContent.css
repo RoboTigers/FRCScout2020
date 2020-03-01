@@ -102,8 +102,9 @@
 
 .dot {
   margin: 0 2% 3% 2%;
-  height: 50px;
-  font: 25px/25px Helvetica, Arial;
+  height: 40px;
+  width: 40px;
+  font: 15px/15px Helvetica, Arial;
   padding: 10px 3px 0 3px;
   border-style: solid;
   border-radius: 50%;
@@ -111,6 +112,44 @@
   text-align: center;
 }
 
-.recharts-wrapper {
-  margin: 0% 50% 0% 48%;
+.recharts-responsive-container {
+  margin: 0 auto;
+  /* margin-right: 60px; */
+  display: inline-block;
+  /* margin-bottom: 15px; */
+}
+
+.custom-recharts-responsive {
+  /* margin: 0 auto; */
+  /* margin-right: 60px; */
+  display: inline-block;
+  margin-left: -270px;
+}
+
+.graph-holder {
+  width: 100%;
+  height: 350px;
+  max-height: 350px;
+  overflow: scroll;
+}
+
+.graph-wrap {
+  margin-left: -120px;
+  width: 2300px;
+  height: 350px;
+  white-space: nowrap;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  max-height: 350px;
+}
+
+.table-holder {
+  background-color: rgb(230, 243, 227);
+  /* margin-top: 0%; */
+  width: 100%;
+  overflow: auto;
+}
+
+.table-wrap {
+  width: 2000px;
 }

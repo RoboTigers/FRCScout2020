@@ -66,14 +66,6 @@ class Data extends Component {
       { id: 2, name: 'Average' },
       { id: 3, name: 'Min' }
     ],
-    graphItems: [
-      { id: 1, name: 'Auto Cells (Bottom)', key: 'bottomAutoScore' },
-      { id: 2, name: 'Auto Cells (Outer)', key: 'outerAutoScore' },
-      { id: 3, name: 'Auto Cells (Inner)', key: 'innerAutoScore' },
-      { id: 4, name: 'Tele Cells (Bottom)', key: 'bottomTeleopScore' },
-      { id: 5, name: 'Tele Cells (Outer)', key: 'outerTeleopScore' },
-      { id: 6, name: 'Tele Cells (Inner)', key: 'innerTeleopScore' }
-    ],
     autoBottomDataField: 'Median',
     autoOuterDataField: 'Median',
     autoInnerDataField: 'Median',
@@ -83,8 +75,7 @@ class Data extends Component {
     rotationTimerDataField: 'Median',
     positionTimerDataField: 'Median',
     climbTimerDataField: 'Median',
-    graphDataLabel: 'Tele Cells (Outer)',
-    graphDataField: 'outerTeleopScore'
+    teamDataType: 'match'
   };
 
   median(arr) {
@@ -100,6 +91,7 @@ class Data extends Component {
     let matchData = data;
     let alteredData = [];
     matchData
+      .filter(match => match.report_status === 'Done')
       .map(match => match.team_num)
       .filter((team, index, arr) => arr.indexOf(team) === index)
       .map(team => {
@@ -131,38 +123,41 @@ class Data extends Component {
         alteredData.push(obj);
       });
     matchData.map(match => {
-      let index = alteredData.findIndex(x => x.teamNum === match.team_num);
-      alteredData[index].matchesPlayed++;
-      alteredData[index].bottomAutoScore.push(match.auto_scored[0].value);
-      alteredData[index].outerAutoScore.push(match.auto_scored[1].value);
-      alteredData[index].innerAutoScore.push(match.auto_scored[2].value);
-      if (match.cross_line === 'Yes') alteredData[index].crossLine++;
-      alteredData[index].bottomTeleScore.push(match.teleop_scored[0].value);
-      alteredData[index].outerTeleScore.push(match.teleop_scored[1].value);
-      alteredData[index].innerTeleScore.push(match.teleop_scored[2].value);
-      if (match.rotation_control === 'Yes') {
-        alteredData[index].rotationControl++;
-        alteredData[index].rotationTimer.push(match.rotation_timer / 1000.0);
+      if (match.report_status === 'Done') {
+        let index = alteredData.findIndex(x => x.teamNum === match.team_num);
+        alteredData[index].matchesPlayed++;
+        alteredData[index].bottomAutoScore.push(match.auto_scored[0].value);
+        alteredData[index].outerAutoScore.push(match.auto_scored[1].value);
+        alteredData[index].innerAutoScore.push(match.auto_scored[2].value);
+        if (match.cross_line === 'Yes') alteredData[index].crossLine++;
+        alteredData[index].bottomTeleScore.push(match.teleop_scored[0].value);
+        alteredData[index].outerTeleScore.push(match.teleop_scored[1].value);
+        alteredData[index].innerTeleScore.push(match.teleop_scored[2].value);
+        if (match.rotation_control === 'Yes') {
+          alteredData[index].rotationControl++;
+          alteredData[index].rotationTimer.push(match.rotation_timer / 1000.0);
+        }
+        if (match.position_control === 'Yes') {
+          alteredData[index].positionControl++;
+          alteredData[index].positionTimer.push(match.position_timer / 1000.0);
+        }
+        if (match.end_game === 'Hang' && match.climb !== 'Assisted Climb') {
+          alteredData[index].climb++;
+          alteredData[index].climbTimer.push(match.end_game_timer / 1000.0);
+          alteredData[index].park++;
+          if (match.climb === 'Buddy Climb') alteredData[index].buddyClimb++;
+          if (match.level !== 'No') alteredData[index].level++;
+        } else if (match.end_game === 'Park') {
+          alteredData[index].park++;
+        }
+        if (match.communication === 'Yes') alteredData[index].communication++;
+        if (match.break === 'Yes') alteredData[index].break++;
+        alteredData[index].penalties += match.negatives[0].value;
+        alteredData[index].yellowCards += match.negatives[1].value;
+        alteredData[index].redCards += match.negatives[2].value;
       }
-      if (match.position_control === 'Yes') {
-        alteredData[index].positionControl++;
-        alteredData[index].positionTimer.push(match.position_timer / 1000.0);
-      }
-      if (match.end_game === 'Hang' && match.climb !== 'Assisted Climb') {
-        alteredData[index].climb++;
-        alteredData[index].climbTimer.push(match.end_game_timer / 1000.0);
-        alteredData[index].park++;
-        if (match.climb === 'Buddy Climb') alteredData[index].buddyClimb++;
-        if (match.level !== 'No') alteredData[index].level++;
-      } else if (match.end_game === 'Park') {
-        alteredData[index].park++;
-      }
-      if (match.communication === 'Yes') alteredData[index].communication++;
-      if (match.break === 'Yes') alteredData[index].break++;
-      alteredData[index].penalties += match.negatives[0].value;
-      alteredData[index].yellowCards += match.negatives[1].value;
-      alteredData[index].redCards += match.negatives[2].value;
     });
+    alteredData.sort((a, b) => a.teamNum - b.teamNum);
     this.setState({ competitionData: alteredData }, () => {
       let newData = this.state.competitionData;
       newData.forEach(team => {
@@ -259,150 +254,309 @@ class Data extends Component {
     });
   };
 
-  extractTeamData = data => {
+  extractTeamMatchData = data => {
     let matchData = data;
     console.log(matchData);
-    let alteredData = [];
-    let total = {
-      matchNum: 'Averages',
-      matchesPlayed: 0,
-      crossLine: 0,
-      bottomAutoScored: [],
-      outerAutoScored: [],
-      innerAutoScored: [],
-      bottomTeleopScored: [],
-      outerTeleopScored: [],
-      innerTeleopScored: [],
-      rotationControl: 0,
-      rotationTimes: [],
-      positionControl: 0,
-      positionTimes: [],
-      park: 0,
-      climb: 0,
-      level: 0,
-      communication: 0,
-      break: 0,
-      penalties: 0,
-      yellowCards: 0,
-      redCards: 0
-    };
-    matchData.forEach(match => {
-      let obj = {};
-      total.matchesPlayed++;
-      obj.matchNum = match.match_num;
-      obj.crossLine = match.cross_line;
-      if (match.cross_line === 'Yes') total.crossLine++;
+    matchData = matchData.filter(match => match.report_status === 'Done');
+    if (matchData.length !== 0) {
+      let alteredData = [];
+      let total = {
+        matchNum: 'Averages',
+        matchesPlayed: 0,
+        crossLine: 0,
+        bottomAutoScored: [],
+        outerAutoScored: [],
+        innerAutoScored: [],
+        bottomTeleopScored: [],
+        outerTeleopScored: [],
+        innerTeleopScored: [],
+        rotationControl: 0,
+        rotationTimes: [],
+        positionControl: 0,
+        positionTimes: [],
+        park: 0,
+        climb: 0,
+        endGameTimes: [],
+        level: 0,
+        communication: 0,
+        break: 0,
+        penalties: 0,
+        yellowCards: 0,
+        redCards: 0
+      };
+      matchData.forEach(match => {
+        let obj = {};
+        total.matchesPlayed++;
+        obj.matchNum = match.match_num;
+        obj.crossLine = match.cross_line;
+        if (match.cross_line === 'Yes') total.crossLine++;
 
-      obj.bottomAutoScore = match.auto_scored[0].value;
-      total.bottomAutoScored.push(match.auto_scored[0].value);
-      obj.outerAutoScore = match.auto_scored[1].value;
-      total.outerAutoScored.push(match.auto_scored[1].value);
-      obj.innerAutoScore = match.auto_scored[2].value;
-      total.innerAutoScored.push(match.auto_scored[2].value);
+        obj.bottomAutoScore = match.auto_scored[0].value;
+        total.bottomAutoScored.push(match.auto_scored[0].value);
+        obj.outerAutoScore = match.auto_scored[1].value;
+        total.outerAutoScored.push(match.auto_scored[1].value);
+        obj.innerAutoScore = match.auto_scored[2].value;
+        total.innerAutoScored.push(match.auto_scored[2].value);
 
-      obj.bottomTeleopScore = match.teleop_scored[0].value;
-      total.bottomTeleopScored.push(match.teleop_scored[0].value);
-      obj.outerTeleopScore = match.teleop_scored[1].value;
-      total.outerTeleopScored.push(match.teleop_scored[1].value);
-      obj.innerTeleopScore = match.teleop_scored[2].value;
-      total.innerTeleopScored.push(match.teleop_scored[2].value);
+        obj.bottomTeleopScore = match.teleop_scored[0].value;
+        total.bottomTeleopScored.push(match.teleop_scored[0].value);
+        obj.outerTeleopScore = match.teleop_scored[1].value;
+        total.outerTeleopScored.push(match.teleop_scored[1].value);
+        obj.innerTeleopScore = match.teleop_scored[2].value;
+        total.innerTeleopScored.push(match.teleop_scored[2].value);
 
-      obj.rotationControl = match.rotation_control;
-      if (match.rotation_control === 'Yes') {
-        total.rotationControl++;
-        total.rotationTimes.push(match.rotation_timer / 1000.0);
-      }
-      obj.rotationTimer = match.rotation_timer / 1000.0;
-
-      obj.positionControl = match.position_control;
-      if (match.position_control === 'Yes') {
-        total.positionControl++;
-        total.positionTimes.push(match.position_timer / 1000.0);
-      }
-      obj.positionTimer = match.position_timer / 1000.0;
-
-      if (match.end_game === 'Hang') {
-        obj.climb = match.climb + '(Hang)';
-        obj.park = 'Yes';
-        if (obj.level !== ' No') {
-          obj.level = match.level;
-          total.level++;
+        if (match.rotation_control === 'Unsuccessful attempt') {
+          obj.rotationControl = 'Attempt';
         } else {
-          obj.level = 'No';
+          obj.rotationControl = match.rotation_control;
         }
-        total.climb++;
-        total.park++;
-      } else if (match.end_game === 'Park') {
-        obj.climb = 'No';
-        obj.park = 'Yes';
-        obj.level = '-';
-        total.park++;
+
+        if (match.rotation_control === 'Yes') {
+          total.rotationControl++;
+          total.rotationTimes.push(match.rotation_timer / 1000.0);
+          obj.rotationTimer = match.rotation_timer / 1000.0;
+        } else if (match.rotation_control === 'Unsuccessful attempt') {
+          total.rotationTimes.push(match.rotation_timer / 1000.0);
+          obj.rotationTimer = match.rotation_timer / 1000.0;
+        } else {
+          obj.rotationTimer = '-';
+        }
+
+        if (match.position_control === 'Unsuccessful attempt') {
+          obj.positionControl = 'Attempt';
+        } else {
+          obj.positionControl = match.position_control;
+        }
+        if (match.position_control === 'Yes') {
+          total.positionControl++;
+          total.positionTimes.push(match.position_timer / 1000.0);
+          obj.positionTimer = match.position_timer / 1000.0;
+        } else if (match.position_control === 'Unsuccessful attempt') {
+          total.rotationTimes.push(match.rotation_timer / 1000.0);
+          obj.rotationTimer = match.rotation_timer / 1000.0;
+        } else {
+          obj.positionTimer = '-';
+        }
+
+        if (match.end_game === 'Hang') {
+          obj.climb = match.climb + '(Hang)';
+          obj.park = 'Yes';
+          obj.endGameTimer = match.end_game_timer;
+          if (obj.level !== ' No') {
+            obj.level = match.level;
+            total.level++;
+          } else {
+            obj.level = 'No';
+          }
+          total.climb++;
+          total.park++;
+          total.endGameTimes.push(match.end_game_timer / 1000.0);
+        } else if (match.end_game === 'Park') {
+          obj.climb = 'No';
+          obj.park = 'Yes';
+          obj.level = '-';
+          obj.endGameTimer = '-';
+          total.park++;
+        } else {
+          obj.climb = 'None';
+          obj.park = 'None';
+          obj.level = '-';
+          obj.endGameTimer = '-';
+        }
+
+        if (match.communication === 'Yes') total.communication++;
+        if (match.break === 'Yes') total.break++;
+        total.penalties += match.negatives[0].value;
+        total.yellowCards += match.negatives[1].value;
+        total.redCards += match.negatives[2].value;
+
+        alteredData.push(obj);
+      });
+
+      total.crossLine =
+        ((total.crossLine / total.matchesPlayed) * 100.0).toFixed(2) + '%';
+
+      total.bottomAutoScore = (
+        total.bottomAutoScored.reduce((a, b) => a + b, 0) / total.matchesPlayed
+      ).toFixed(2);
+      total.outerAutoScore = (
+        total.outerAutoScored.reduce((a, b) => a + b, 0) / total.matchesPlayed
+      ).toFixed(2);
+      total.innerAutoScore = (
+        total.innerAutoScored.reduce((a, b) => a + b, 0) / total.matchesPlayed
+      ).toFixed(2);
+
+      total.bottomTeleopScore = (
+        total.bottomTeleopScored.reduce((a, b) => a + b, 0) /
+        total.matchesPlayed
+      ).toFixed(2);
+      total.outerTeleopScore = (
+        total.outerTeleopScored.reduce((a, b) => a + b, 0) / total.matchesPlayed
+      ).toFixed(2);
+      total.innerTeleopScore = (
+        total.innerTeleopScored.reduce((a, b) => a + b, 0) / total.matchesPlayed
+      ).toFixed(2);
+
+      total.rotationControl =
+        ((total.rotationControl / total.matchesPlayed) * 100.0).toFixed(2) +
+        '%';
+      if (total.rotationTimes.length !== 0) {
+        total.rotationTimer = (
+          total.rotationTimes.reduce((a, b) => a + b, 0) /
+          total.rotationTimes.length
+        ).toFixed(2);
       } else {
-        obj.climb = 'None';
-        obj.park = 'None';
-        obj.level = '-';
+        total.rotationTimer = '-';
       }
 
-      if (match.communication === 'Yes') total.communication++;
-      if (match.break === 'Yes') total.break++;
-      total.penalties += match.negatives[0].value;
-      total.yellowCards += match.negatives[1].value;
-      total.redCards += match.negatives[2].value;
+      total.positionControl =
+        ((total.positionControl / total.matchesPlayed) * 100.0).toFixed(2) +
+        '%';
+      if (total.positionTimes.length !== 0) {
+        total.positionTimer = (
+          total.positionTimes.reduce((a, b) => a + b, 0) /
+          total.positionTimes.length
+        ).toFixed(2);
+      } else {
+        total.positionTimer = '-';
+      }
 
-      alteredData.push(obj);
-    });
+      total.park =
+        ((total.park / total.matchesPlayed) * 100.0).toFixed(2) + '%';
+      total.climb =
+        ((total.climb / total.matchesPlayed) * 100.0).toFixed(2) + '%';
+      total.level =
+        ((total.level / total.matchesPlayed) * 100.0).toFixed(2) + '%';
 
-    total.crossLine =
-      ((total.crossLine / total.matchesPlayed) * 100.0).toFixed(2) + '%';
+      if (total.endGameTimes.length !== 0) {
+        total.endGameTimer = (
+          total.endGameTimes.reduce((a, b) => a + b, 0) /
+          total.endGameTimes.length
+        ).toFixed(2);
+      } else {
+        total.endGameTimer = '-';
+      }
 
-    total.bottomAutoScore = (
-      total.bottomAutoScored.reduce((a, b) => a + b, 0) / total.matchesPlayed
-    ).toFixed(2);
-    total.outerAutoScore = (
-      total.outerAutoScored.reduce((a, b) => a + b, 0) / total.matchesPlayed
-    ).toFixed(2);
-    total.innerAutoScore = (
-      total.innerAutoScored.reduce((a, b) => a + b, 0) / total.matchesPlayed
-    ).toFixed(2);
-
-    total.bottomTeleopScore = (
-      total.bottomTeleopScored.reduce((a, b) => a + b, 0) / total.matchesPlayed
-    ).toFixed(2);
-    total.outerTeleopScore = (
-      total.outerTeleopScored.reduce((a, b) => a + b, 0) / total.matchesPlayed
-    ).toFixed(2);
-    total.innerTeleopScore = (
-      total.innerTeleopScored.reduce((a, b) => a + b, 0) / total.matchesPlayed
-    ).toFixed(2);
-
-    total.rotationControl =
-      ((total.rotationControl / total.matchesPlayed) * 100.0).toFixed(2) + '%';
-    total.rotationTimer = (
-      total.rotationTimes.reduce((a, b) => a + b, 0) /
-      total.rotationTimes.length
-    ).toFixed(2);
-
-    total.positionControl =
-      ((total.positionControl / total.matchesPlayed) * 100.0).toFixed(2) + '%';
-    total.positionTimer = (
-      total.positionTimes.reduce((a, b) => a + b, 0) /
-      total.positionTimes.length
-    ).toFixed(2);
-
-    total.park = ((total.park / total.matchesPlayed) * 100.0).toFixed(2) + '%';
-    total.climb =
-      ((total.climb / total.matchesPlayed) * 100.0).toFixed(2) + '%';
-    total.level =
-      ((total.level / total.matchesPlayed) * 100.0).toFixed(2) + '%';
-
-    let newgraphData = [].concat(alteredData);
-    this.setState({ graphData: newgraphData });
-    alteredData.unshift(total);
-    this.setState({ competitionData: alteredData }, () => {
-      this.setState({ retrieved: 'teamValid' });
-    });
-
+      alteredData.sort((a, b) => {
+        if (a.matchNum.split('_')[0] === 'qm') {
+          if (b.matchNum.split('_')[0] === 'qm') {
+            return a.matchNum.split('_')[1] - b.matchNum.split('_')[1];
+          } else {
+            return -1;
+          }
+        } else if (a.matchNum.split('_')[0] === 'qf') {
+          if (b.matchNum.split('_')[0] === 'qf') {
+            return (
+              a.matchNum.split('_')[1] +
+              a.matchNum.split('_')[2] -
+              (b.matchNum.split('_')[1] + b.matchNum.split('_')[2])
+            );
+          } else {
+            if (b.matchNum.split('_')[0] === 'qm') {
+              return 1;
+            } else {
+              return -1;
+            }
+          }
+        } else if (a.matchNum.split('_')[0] === 'sf') {
+          if (b.matchNum.split('_')[0] === 'sf') {
+            return (
+              a.matchNum.split('_')[1] +
+              a.matchNum.split('_')[2] -
+              (b.matchNum.split('_')[1] + b.matchNum.split('_')[2])
+            );
+          } else {
+            if (
+              b.matchNum.split('_')[0] === 'qm' ||
+              b.matchNum.split('_')[0] === 'qf'
+            ) {
+              return 1;
+            } else {
+              return -1;
+            }
+          }
+        } else if (a.matchNum.split('_')[0] === 'f') {
+          if (b.matchNum.split('_')[0] === 'f') {
+            return (
+              a.matchNum.split('_')[1] +
+              a.matchNum.split('_')[2] -
+              (b.matchNum.split('_')[1] + b.matchNum.split('_')[2])
+            );
+          } else {
+            if (
+              b.matchNum.split('_')[0] === 'qm' ||
+              b.matchNum.split('_')[0] === 'qf' ||
+              b.matchNum.split('_')[0] === 'sf'
+            ) {
+              return 1;
+            } else {
+              return -1;
+            }
+          }
+        }
+      });
+      let newgraphData = [].concat(alteredData);
+      this.setState({ graphData: newgraphData });
+      alteredData.unshift(total);
+      this.setState({ competitionData: alteredData }, () => {
+        this.setState({ retrieved: 'teamMatchValid' });
+      });
+    } else {
+      this.setState({ retrieved: 'teamMatchInvalid' });
+    }
     // console.log(alteredData);
+  };
+
+  extractTeamPitData = pitData => {
+    console.log(pitData);
+    let obj = {};
+    obj.groupName = pitData.group_name;
+    obj.weight = pitData.weight;
+    obj.height = pitData.height;
+    obj.driveTrain = pitData.drive_train;
+    let tempMotors = '';
+    pitData.motors.forEach(motor => {
+      if (motor.value > 0) {
+        if (motor.label === 'Other') {
+          tempMotors = tempMotors.concat(
+            motor.value + 'x ' + motor.motorName + ', '
+          );
+        } else {
+          tempMotors = tempMotors.concat(
+            motor.value + 'x ' + motor.label + ', '
+          );
+        }
+      }
+    });
+    tempMotors = tempMotors.substring(0, tempMotors.length - 2);
+    obj.motors = tempMotors;
+    let tempWheels = '';
+    pitData.wheels.forEach(wheel => {
+      if (wheel.value) {
+        if (wheel.label === 'Other') {
+          tempWheels = tempWheels.concat(
+            wheel.count + 'x ' + wheel.wheelName + '(' + wheel.size + ' in.), '
+          );
+        } else {
+          tempWheels = tempWheels.concat(
+            wheel.count + 'x ' + wheel.label + '(' + wheel.size + ' in.), '
+          );
+        }
+      }
+    });
+    tempWheels = tempWheels.substring(0, tempWheels.length - 2);
+    obj.wheels = tempWheels;
+    obj.driveComments = pitData.drive_comments;
+    obj.codeLanguage = pitData.code_language;
+    obj.startingPosition = pitData.starting_position;
+    obj.autoComments = pitData.auto_comments;
+    obj.abilities = pitData.abilities;
+    obj.workingOnComments = pitData.working_comments;
+    obj.closingComments = pitData.closing_comments;
+    obj.image = pitData.image;
+    this.setState({ retrieved: 'teamPitValid' }, () => {
+      this.setState({ competitionData: obj });
+    });
   };
 
   componentDidMount() {
@@ -449,22 +603,35 @@ class Data extends Component {
           console.error('Error:', error);
         });
     } else {
-      fetch(
-        `/api/competitions/${competition}/team/${this.state.teamNum}/matchData`
-      )
-        .then(response => response.json())
-        .then(data => {
-          if (data.matchData.length === 0) {
-            this.setState({ retrieved: 'invalid' });
-          } else {
-            this.setState({ retrieved: 'teamValid' });
+      if (this.state.teamDataType === 'match') {
+        fetch(
+          `/api/competitions/${competition}/team/${this.state.teamNum}/matchData`
+        )
+          .then(response => response.json())
+          .then(data => {
             let matchData = data.matchData;
-            this.extractTeamData(matchData);
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-        });
+            this.extractTeamMatchData(matchData);
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+      } else {
+        fetch(`/api/competitions/${competition}/team/${this.state.teamNum}/pit`)
+          .then(response => response.json())
+          .then(data => {
+            if (data.pitFormData.length === 0) {
+              this.setState({ retrieved: 'teamPitInvalid' });
+            } else if (data.pitFormData[0].status !== 'Done') {
+              this.setState({ retrieved: 'teamPitInvalid' });
+            } else {
+              let pitData = data.pitFormData[0];
+              this.extractTeamPitData(pitData);
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+      }
     }
   };
 
@@ -539,23 +706,7 @@ class Data extends Component {
   };
 
   handleTeamGo = () => {
-    if (this.state.teamNum !== '') {
-      fetch(
-        `/api/competitions/${this.state.competition}/team/${this.state.teamNum}/matchData`
-      )
-        .then(response => response.json())
-        .then(data => {
-          if (data.matchData.length === 0) {
-            this.setState({ retrieved: 'invalid' });
-          } else {
-            let matchData = data.matchData;
-            this.extractTeamData(matchData);
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-        });
-    } else {
+    if (this.state.teamNum === '') {
       fetch(`/api/competitions/${this.state.competition}/matchData`)
         .then(response => response.json())
         .then(data => {
@@ -566,12 +717,83 @@ class Data extends Component {
         .catch(error => {
           console.error('Error:', error);
         });
+    } else {
+      if (this.state.teamDataType === 'match') {
+        fetch(
+          `/api/competitions/${this.state.competition}/team/${this.state.teamNum}/matchData`
+        )
+          .then(response => response.json())
+          .then(data => {
+            let matchData = data.matchData;
+            this.extractTeamMatchData(matchData);
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+      } else {
+        fetch(
+          `/api/competitions/${this.state.competition}/team/${this.state.teamNum}/pit`
+        )
+          .then(response => response.json())
+          .then(data => {
+            if (data.pitFormData.length === 0) {
+              this.setState({ retrieved: 'teamPitInvalid' });
+            } else if (data.pitFormData[0].status !== 'Done') {
+              this.setState({ retrieved: 'teamPitInvalid' });
+            } else {
+              let pitData = data.pitFormData[0];
+              this.extractTeamPitData(pitData);
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+      }
     }
   };
 
-  changeGraph = (key, event) => {
-    this.setState({ graphDataField: key });
-    this.setState({ graphDataLabel: event.target.innerHTML });
+  changeToMatchData = () => {
+    if (this.state.teamNum !== '') {
+      fetch(
+        `/api/competitions/${this.state.competition}/team/${this.state.teamNum}/matchData`
+      )
+        .then(response => response.json())
+        .then(data => {
+          let matchData = data.matchData;
+          this.extractTeamMatchData(matchData);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+    } else {
+      this.setState({ retrieved: 'teamMatchInvalid' });
+    }
+    this.setState({ teamDataType: 'match' });
+  };
+
+  changeToPitData = () => {
+    if (this.state.teamNum !== '') {
+      fetch(
+        `/api/competitions/${this.state.competition}/team/${this.state.teamNum}/pit`
+      )
+        .then(response => response.json())
+        .then(data => {
+          if (data.pitFormData.length === 0) {
+            this.setState({ retrieved: 'teamPitInvalid' });
+          } else if (data.pitFormData[0].status !== 'Done') {
+            this.setState({ retrieved: 'teamPitInvalid' });
+          } else {
+            let pitData = data.pitFormData[0];
+            this.extractTeamPitData(pitData);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+    } else {
+      this.setState({ retrieved: 'teamPitInvalid' });
+    }
+    this.setState({ teamDataType: 'pit' });
   };
 
   render() {
@@ -616,16 +838,6 @@ class Data extends Component {
         </Dropdown.Item>
       )
     );
-
-    const graphFields = this.state.graphItems.map(field => (
-      <Dropdown.Item
-        eventKey={field.key}
-        key={field.id}
-        style={{ fontFamily: 'Helvetica, Arial' }}
-      >
-        {field.name}
-      </Dropdown.Item>
-    ));
 
     let compColumns = [
       {
@@ -1047,6 +1259,14 @@ class Data extends Component {
           fontSize: '100%',
           outline: 'none'
         },
+        dataField: 'endGameTimer',
+        text: 'End Game Timer'
+      },
+      {
+        headerStyle: {
+          fontSize: '100%',
+          outline: 'none'
+        },
         dataField: 'level',
         text: 'Level'
       }
@@ -1058,7 +1278,7 @@ class Data extends Component {
 
     if (this.state.retrieved === '') {
       return null;
-    } else if (this.state.retrieved === 'invalid') {
+    } else if (this.state.retrieved === 'teamMatchInvalid') {
       return (
         <div className='div-main' style={{ minHeight: this.state.heightSize }}>
           <div className='justify-content-center'>
@@ -1148,7 +1368,153 @@ class Data extends Component {
                 Go
               </Button>
             </div>
-            <h1 className='pt-4'>No data available</h1>
+            <div>
+              <Button
+                size='xs'
+                onClick={this.changeToMatchData}
+                variant={
+                  this.state.teamDataType === 'match'
+                    ? 'success'
+                    : 'outline-success'
+                }
+                style={{ display: 'inline-block', marginRight: '2%' }}
+              >
+                Match Data
+              </Button>
+              <Button
+                size='xs'
+                onClick={this.changeToPitData}
+                variant={
+                  this.state.teamDataType === 'pit'
+                    ? 'success'
+                    : 'outline-success'
+                }
+                style={{ display: 'inline-block', marginLeft: '2%' }}
+              >
+                Pit Data
+              </Button>
+            </div>
+            <h1 className='pt-4'>No match data available</h1>
+          </div>
+        </div>
+      );
+    } else if (this.state.retrieved === 'teamPitInvalid') {
+      return (
+        <div className='div-main' style={{ minHeight: this.state.heightSize }}>
+          <div className='justify-content-center'>
+            <img
+              alt='Logo'
+              src={Logo}
+              style={{
+                width: this.state.widthSize === '90%' ? '70%' : '30%',
+                marginTop: '20px',
+                marginLeft: '10px'
+              }}
+            />
+          </div>
+          <div style={{ width: this.state.widthSize }} className='div-second'>
+            <div className='div-form'>
+              <Form.Group
+                style={{
+                  width: '100%',
+                  margin: '0 auto',
+                  marginBottom: '10px'
+                }}
+                as={Row}
+              >
+                <Form.Label
+                  className='mb-1'
+                  style={{
+                    fontFamily: 'Helvetica, Arial',
+                    fontSize: '110%',
+                    margin: '0 auto'
+                  }}
+                >
+                  Competition:
+                </Form.Label>
+              </Form.Group>
+              <Dropdown
+                style={{
+                  marginBottom: '10px'
+                }}
+                focusFirstItemOnShow={false}
+                onSelect={this.getData}
+              >
+                <Dropdown.Toggle
+                  style={{
+                    fontFamily: 'Helvetica, Arial',
+                    textAlign: 'center'
+                  }}
+                  size='lg'
+                  variant='success'
+                  id='dropdown-basic'
+                >
+                  {this.state.competition}
+                </Dropdown.Toggle>
+                <Dropdown.Menu style={{ minWidth: '3%' }}>
+                  {competitionItems}
+                </Dropdown.Menu>
+              </Dropdown>
+              <Form.Control
+                value={this.state.teamNum}
+                autoComplete='off'
+                type='number'
+                max={9999}
+                min={1}
+                placeholder='Team Number'
+                onChange={this.handleTeamNum}
+                className='mb-1'
+                style={{
+                  background: 'none',
+                  fontFamily: 'Helvetica, Arial',
+                  display: 'inline-block',
+                  width: '50%'
+                }}
+                onKeyDown={this.checkKeyTeamGo}
+              />
+              <Button
+                variant='success'
+                type='btn'
+                style={{
+                  fontFamily: 'Helvetica, Arial',
+                  boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
+                  border: '1px solid black',
+                  marginLeft: '4%',
+                  display: 'inline-block'
+                }}
+                onClick={this.handleTeamGo}
+                className='btn-xs'
+              >
+                Go
+              </Button>
+            </div>
+            <div>
+              <Button
+                size='xs'
+                onClick={this.changeToMatchData}
+                variant={
+                  this.state.teamDataType === 'match'
+                    ? 'success'
+                    : 'outline-success'
+                }
+                style={{ display: 'inline-block', marginRight: '2%' }}
+              >
+                Match Data
+              </Button>
+              <Button
+                size='xs'
+                onClick={this.changeToPitData}
+                variant={
+                  this.state.teamDataType === 'pit'
+                    ? 'success'
+                    : 'outline-success'
+                }
+                style={{ display: 'inline-block', marginLeft: '2%' }}
+              >
+                Pit Data
+              </Button>
+            </div>
+            <h1 className='pt-4'>No pit data available</h1>
           </div>
         </div>
       );
@@ -1461,9 +1827,426 @@ class Data extends Component {
           />
         </div>
       );
-    } else if (this.state.retrieved === 'teamValid') {
+    } else if (this.state.retrieved === 'teamMatchValid') {
       return (
-        <div className='div-main' style={{ minHeight: this.state.heightSize }}>
+        <React.Fragment>
+          <div className='div-main'>
+            <div className='justify-content-center'>
+              <img
+                alt='Logo'
+                src={Logo}
+                style={{
+                  width: this.state.widthSize === '90%' ? '70%' : '30%',
+                  marginTop: '20px',
+                  marginLeft: '10px'
+                }}
+              />
+            </div>
+            <div style={{ width: this.state.widthSize }} className='div-second'>
+              <div className='div-form'>
+                <Form.Group
+                  style={{
+                    width: '100%',
+                    margin: '0 auto',
+                    marginBottom: '10px'
+                  }}
+                  as={Row}
+                >
+                  <Form.Label
+                    className='mb-1'
+                    style={{
+                      fontFamily: 'Helvetica, Arial',
+                      fontSize: '110%',
+                      margin: '0 auto'
+                    }}
+                  >
+                    Competition:
+                  </Form.Label>
+                </Form.Group>
+                <Dropdown
+                  style={{
+                    marginBottom: '10px'
+                  }}
+                  focusFirstItemOnShow={false}
+                  onSelect={this.getData}
+                >
+                  <Dropdown.Toggle
+                    style={{
+                      fontFamily: 'Helvetica, Arial',
+                      textAlign: 'center'
+                    }}
+                    size='lg'
+                    variant='success'
+                    id='dropdown-basic'
+                  >
+                    {this.state.competition}
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu style={{ minWidth: '3%' }}>
+                    {competitionItems}
+                  </Dropdown.Menu>
+                </Dropdown>
+                <Form.Control
+                  value={this.state.teamNum}
+                  autoComplete='off'
+                  type='number'
+                  max={9999}
+                  min={1}
+                  placeholder='Team Number'
+                  onChange={this.handleTeamNum}
+                  className='mb-1'
+                  style={{
+                    background: 'none',
+                    fontFamily: 'Helvetica, Arial',
+                    display: 'inline-block',
+                    width: '50%'
+                  }}
+                  onKeyDown={this.checkKeyTeamGo}
+                />
+                <Button
+                  variant='success'
+                  type='btn'
+                  style={{
+                    fontFamily: 'Helvetica, Arial',
+                    boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
+                    border: '1px solid black',
+                    marginLeft: '4%',
+                    display: 'inline-block'
+                  }}
+                  onClick={this.handleTeamGo}
+                  className='btn-xs'
+                >
+                  Go
+                </Button>
+              </div>
+              <div>
+                <Button
+                  size='xs'
+                  onClick={this.changeToMatchData}
+                  variant={
+                    this.state.teamDataType === 'match'
+                      ? 'success'
+                      : 'outline-success'
+                  }
+                  style={{ display: 'inline-block', marginRight: '2%' }}
+                >
+                  Match Data
+                </Button>
+                <Button
+                  size='xs'
+                  onClick={this.changeToPitData}
+                  variant={
+                    this.state.teamDataType === 'pit'
+                      ? 'success'
+                      : 'outline-success'
+                  }
+                  style={{ display: 'inline-block', marginLeft: '2%' }}
+                >
+                  Pit Data
+                </Button>
+              </div>
+            </div>
+            {this.state.widthSize === '90%' ? (
+              <div className='graph-holder'>
+                <div className='graph-wrap'>
+                  <ResponsiveContainer
+                    width={this.state.widthSize === '90%' ? '15%' : '50%'}
+                    height={300}
+                  >
+                    <BarChart data={this.state.graphData}>
+                      <CartesianGrid strokeDasharray='3 3' />
+                      <XAxis dataKey='matchNum'></XAxis>
+                      <YAxis padding={{ top: 25 }} />
+                      <Legend verticalAlign='top' height={36} iconSize={0} />
+                      <Bar
+                        name='Auto - Bottom Cells'
+                        dataKey={'bottomAutoScore'}
+                        fill='#8884d8'
+                      >
+                        <LabelList
+                          dataKey={'bottomAutoScore'}
+                          position='insideTop'
+                          offset={-20}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                  <ResponsiveContainer
+                    width={this.state.widthSize === '90%' ? '15%' : '50%'}
+                    height={300}
+                  >
+                    <BarChart data={this.state.graphData}>
+                      <CartesianGrid strokeDasharray='3 3' />
+                      <XAxis dataKey='matchNum'></XAxis>
+                      <YAxis padding={{ top: 25 }} />
+                      <Legend verticalAlign='top' height={36} iconSize={0} />
+                      <Bar
+                        name='Teleop - Bottom Cells'
+                        dataKey={'bottomTeleopScore'}
+                        fill='#8884d8'
+                      >
+                        <LabelList
+                          dataKey={'bottomTeleopScore'}
+                          position='insideTop'
+                          offset={-20}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+
+                  <ResponsiveContainer
+                    width={this.state.widthSize === '90%' ? '15%' : '50%'}
+                    height={300}
+                  >
+                    <BarChart data={this.state.graphData}>
+                      <CartesianGrid strokeDasharray='3 3' />
+                      <XAxis dataKey='matchNum'></XAxis>
+                      <YAxis padding={{ top: 25 }} />
+                      <Legend verticalAlign='top' height={36} iconSize={0} />
+                      <Bar
+                        name='Auto - Outer Cells'
+                        dataKey={'outerAutoScore'}
+                        fill='#8884d8'
+                      >
+                        <LabelList
+                          dataKey={'outerAutoScore'}
+                          position='insideTop'
+                          offset={-20}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                  <ResponsiveContainer
+                    width={this.state.widthSize === '90%' ? '15%' : '50%'}
+                    height={300}
+                  >
+                    <BarChart data={this.state.graphData}>
+                      <CartesianGrid strokeDasharray='3 3' />
+                      <XAxis dataKey='matchNum'></XAxis>
+                      <YAxis padding={{ top: 25 }} />
+                      <Legend verticalAlign='top' height={36} iconSize={0} />
+                      <Bar
+                        name='Teleop - Outer Cells'
+                        dataKey={'outerTeleopScore'}
+                        fill='#8884d8'
+                      >
+                        <LabelList
+                          dataKey={'outerTeleopScore'}
+                          position='insideTop'
+                          offset={-20}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+
+                  <ResponsiveContainer
+                    width={this.state.widthSize === '90%' ? '15%' : '50%'}
+                    height={300}
+                  >
+                    <BarChart data={this.state.graphData}>
+                      <CartesianGrid strokeDasharray='3 3' />
+                      <XAxis dataKey='matchNum'></XAxis>
+                      <YAxis padding={{ top: 25 }} />
+                      <Legend verticalAlign='top' height={36} iconSize={0} />
+                      <Bar
+                        name='Auto - Inner Cells'
+                        dataKey={'innerAutoScore'}
+                        fill='#8884d8'
+                      >
+                        <LabelList
+                          dataKey={'innerAutoScore'}
+                          position='insideTop'
+                          offset={-20}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                  <ResponsiveContainer
+                    width={this.state.widthSize === '90%' ? '15%' : '50%'}
+                    height={300}
+                  >
+                    <BarChart data={this.state.graphData}>
+                      <CartesianGrid strokeDasharray='3 3' />
+                      <XAxis dataKey='matchNum'></XAxis>
+                      <YAxis padding={{ top: 25 }} />
+                      <Legend verticalAlign='top' height={36} iconSize={0} />
+                      <Bar
+                        name='Teleop - Inner Cells'
+                        dataKey={'innerTeleopScore'}
+                        fill='#8884d8'
+                      >
+                        <LabelList
+                          dataKey={'innerTeleopScore'}
+                          position='insideTop'
+                          offset={-20}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            ) : (
+              <React.Fragment>
+                <div>
+                  <ResponsiveContainer
+                    width={this.state.widthSize === '90%' ? '90%' : '50%'}
+                    height={300}
+                  >
+                    <BarChart data={this.state.graphData}>
+                      <CartesianGrid strokeDasharray='3 3' />
+                      <XAxis dataKey='matchNum'></XAxis>
+                      <YAxis padding={{ top: 25 }} />
+                      <Legend verticalAlign='top' height={36} iconSize={0} />
+                      <Bar
+                        name='Auto - Bottom Cells'
+                        dataKey={'bottomAutoScore'}
+                        fill='#8884d8'
+                      >
+                        <LabelList
+                          dataKey={'bottomAutoScore'}
+                          position='insideTop'
+                          offset={-20}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                  <ResponsiveContainer
+                    width={this.state.widthSize === '90%' ? '90%' : '50%'}
+                    height={300}
+                  >
+                    <BarChart data={this.state.graphData}>
+                      <CartesianGrid strokeDasharray='3 3' />
+                      <XAxis dataKey='matchNum'></XAxis>
+                      <YAxis padding={{ top: 25 }} />
+                      <Legend verticalAlign='top' height={36} iconSize={0} />
+                      <Bar
+                        name='Teleop - Bottom Cells'
+                        dataKey={'bottomTeleopScore'}
+                        fill='#8884d8'
+                      >
+                        <LabelList
+                          dataKey={'bottomTeleopScore'}
+                          position='insideTop'
+                          offset={-20}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div>
+                  <ResponsiveContainer
+                    width={this.state.widthSize === '90%' ? '90%' : '50%'}
+                    height={300}
+                  >
+                    <BarChart data={this.state.graphData}>
+                      <CartesianGrid strokeDasharray='3 3' />
+                      <XAxis dataKey='matchNum'></XAxis>
+                      <YAxis padding={{ top: 25 }} />
+                      <Legend verticalAlign='top' height={36} iconSize={0} />
+                      <Bar
+                        name='Auto - Outer Cells'
+                        dataKey={'outerAutoScore'}
+                        fill='#8884d8'
+                      >
+                        <LabelList
+                          dataKey={'outerAutoScore'}
+                          position='insideTop'
+                          offset={-20}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                  <ResponsiveContainer
+                    width={this.state.widthSize === '90%' ? '90%' : '50%'}
+                    height={300}
+                  >
+                    <BarChart data={this.state.graphData}>
+                      <CartesianGrid strokeDasharray='3 3' />
+                      <XAxis dataKey='matchNum'></XAxis>
+                      <YAxis padding={{ top: 25 }} />
+                      <Legend verticalAlign='top' height={36} iconSize={0} />
+                      <Bar
+                        name='Teleop - Outer Cells'
+                        dataKey={'outerTeleopScore'}
+                        fill='#8884d8'
+                      >
+                        <LabelList
+                          dataKey={'outerTeleopScore'}
+                          position='insideTop'
+                          offset={-20}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div>
+                  <ResponsiveContainer
+                    width={this.state.widthSize === '90%' ? '90%' : '50%'}
+                    height={300}
+                  >
+                    <BarChart data={this.state.graphData}>
+                      <CartesianGrid strokeDasharray='3 3' />
+                      <XAxis dataKey='matchNum'></XAxis>
+                      <YAxis padding={{ top: 25 }} />
+                      <Legend verticalAlign='top' height={36} iconSize={0} />
+                      <Bar
+                        name='Auto - Inner Cells'
+                        dataKey={'innerAutoScore'}
+                        fill='#8884d8'
+                      >
+                        <LabelList
+                          dataKey={'innerAutoScore'}
+                          position='insideTop'
+                          offset={-20}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                  <ResponsiveContainer
+                    width={this.state.widthSize === '90%' ? '90%' : '50%'}
+                    height={300}
+                  >
+                    <BarChart data={this.state.graphData}>
+                      <CartesianGrid strokeDasharray='3 3' />
+                      <XAxis dataKey='matchNum'></XAxis>
+                      <YAxis padding={{ top: 25 }} />
+                      <Legend verticalAlign='top' height={36} iconSize={0} />
+                      <Bar
+                        name='Teleop - Inner Cells'
+                        dataKey={'innerTeleopScore'}
+                        fill='#8884d8'
+                      >
+                        <LabelList
+                          dataKey={'innerTeleopScore'}
+                          position='insideTop'
+                          offset={-20}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </React.Fragment>
+            )}
+          </div>
+          <div className='table-holder'>
+            <div className='table-wrap'>
+              <BootstrapTable
+                striped
+                hover
+                keyField='matchNum'
+                //rowStyle={this.state.style}
+                bordered
+                bootstrap4
+                // defaultSorted={defaultSorted}
+                data={this.state.competitionData}
+                columns={teamColumns}
+              />
+            </div>
+          </div>
+        </React.Fragment>
+      );
+    } else if (this.state.retrieved === 'teamPitValid') {
+      return (
+        <div className='div-main'>
           <div className='justify-content-center'>
             <img
               alt='Logo'
@@ -1551,52 +2334,33 @@ class Data extends Component {
                 Go
               </Button>
             </div>
-            <Dropdown
-              style={{
-                marginBottom: '10px'
-              }}
-              focusFirstItemOnShow={false}
-              onSelect={this.changeGraph}
-            >
-              <Dropdown.Toggle
-                style={{
-                  fontFamily: 'Helvetica, Arial',
-                  textAlign: 'center'
-                }}
-                size='lg'
-                variant='success'
-                id='dropdown-basic'
+            <div>
+              <Button
+                size='xs'
+                onClick={this.changeToMatchData}
+                variant={
+                  this.state.teamDataType === 'match'
+                    ? 'success'
+                    : 'outline-success'
+                }
+                style={{ display: 'inline-block', marginRight: '2%' }}
               >
-                {this.state.graphDataLabel}
-              </Dropdown.Toggle>
-              <Dropdown.Menu style={{ minWidth: '3%' }}>
-                {graphFields}
-              </Dropdown.Menu>
-            </Dropdown>
+                Match Data
+              </Button>
+              <Button
+                size='xs'
+                onClick={this.changeToPitData}
+                variant={
+                  this.state.teamDataType === 'pit'
+                    ? 'success'
+                    : 'outline-success'
+                }
+                style={{ display: 'inline-block', marginLeft: '2%' }}
+              >
+                Pit Data
+              </Button>
+            </div>
           </div>
-          <ResponsiveContainer width='50%' height={300}>
-            <BarChart data={this.state.graphData}>
-              <CartesianGrid strokeDasharray='3 3' />
-              <XAxis dataKey='matchNum'>
-                <Label value='Match #' offset={0} position='insideBottom' />
-              </XAxis>
-              <YAxis padding={{ top: 25 }} />
-              <Bar dataKey={this.state.graphDataField} fill='#8884d8'>
-                <LabelList dataKey={this.state.graphDataField} position='top' />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-          <BootstrapTable
-            striped
-            hover
-            keyField='matchNum'
-            //rowStyle={this.state.style}
-            bordered
-            bootstrap4
-            // defaultSorted={defaultSorted}
-            data={this.state.competitionData}
-            columns={teamColumns}
-          />
         </div>
       );
     }

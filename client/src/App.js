@@ -113,13 +113,16 @@ class App extends Component {
             <Switch>
               <ProtectedRoute path='/' exact component={Home} />
               <ProtectedRoute path='/pits' exact component={PitNavigation} />
-              <ProtectedRoute
+              <AdminRoute
                 path='/matches/:competition/:team/:matchNum/'
                 component={MatchContent}
               />
-              <AdminRoute path='/matches/new' component={MatchContent} />
+              <ProtectedRoute path='/matches/new' component={MatchContent} />
               <ProtectedRoute path='/matches' component={MatchReportList} />
-              <ProtectedRoute path='/supers/:competition' component={SuperScoutContent} />
+              <ProtectedRoute
+                path='/supers/:competition'
+                component={SuperScoutContent}
+              />
               <ProtectedRoute path='/analystHome' component={AnalystContent} />
               <ProtectedRoute
                 path='/pits/:competition/:team'

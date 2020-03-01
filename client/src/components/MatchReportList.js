@@ -50,11 +50,11 @@ class MatchReportList extends Component {
       },
       {
         headerStyle: {
-          width: '20%',
+          width: '25%',
           fontSize: '100%',
           outline: 'none'
         },
-        dataField: 'matchnum',
+        dataField: 'alteredMatchNum',
         text: 'Match',
         filter: textFilter({
           className: 'customtextbar'
@@ -110,8 +110,90 @@ class MatchReportList extends Component {
       .then(response => response.json())
       .then(data => {
         let matchList = data.matchList;
+        matchList.sort((a, b) => {
+          if (a.matchnum.split('_')[0] === 'qm') {
+            if (b.matchnum.split('_')[0] === 'qm') {
+              return a.matchnum.split('_')[1] - b.matchnum.split('_')[1];
+            } else {
+              return -1;
+            }
+          } else if (a.matchnum.split('_')[0] === 'qf') {
+            if (b.matchnum.split('_')[0] === 'qf') {
+              return (
+                a.matchnum.split('_')[1] +
+                a.matchnum.split('_')[2] -
+                (b.matchnum.split('_')[1] + b.matchnum.split('_')[2])
+              );
+            } else {
+              if (b.matchnum.split('_')[0] === 'qm') {
+                return 1;
+              } else {
+                return -1;
+              }
+            }
+          } else if (a.matchnum.split('_')[0] === 'sf') {
+            if (b.matchnum.split('_')[0] === 'sf') {
+              return (
+                a.matchnum.split('_')[1] +
+                a.matchnum.split('_')[2] -
+                (b.matchnum.split('_')[1] + b.matchnum.split('_')[2])
+              );
+            } else {
+              if (
+                b.matchnum.split('_')[0] === 'qm' ||
+                b.matchnum.split('_')[0] === 'qf'
+              ) {
+                return 1;
+              } else {
+                return -1;
+              }
+            }
+          } else if (a.matchnum.split('_')[0] === 'f') {
+            if (b.matchnum.split('_')[0] === 'f') {
+              return (
+                a.matchnum.split('_')[1] +
+                a.matchnum.split('_')[2] -
+                (b.matchnum.split('_')[1] + b.matchnum.split('_')[2])
+              );
+            } else {
+              if (
+                b.matchnum.split('_')[0] === 'qm' ||
+                b.matchnum.split('_')[0] === 'qf' ||
+                b.matchnum.split('_')[0] === 'sf'
+              ) {
+                return 1;
+              } else {
+                return -1;
+              }
+            }
+          }
+        });
+        matchList.sort((a, b) => a.teamnum - b.teamnum);
         matchList.map(row => {
           let buttonLabel;
+          let newMatchNum;
+          if (row.matchnum.split('_')[0] === 'qm') {
+            newMatchNum = 'Qual ' + row.matchnum.split('_')[1];
+          } else if (row.matchnum.split('_')[0] === 'qf') {
+            newMatchNum =
+              'Quarter-Final ' +
+              row.matchnum.split('_')[1] +
+              '-' +
+              row.matchnum.split('_')[2];
+          } else if (row.matchnum.split('_')[0] === 'sf') {
+            newMatchNum =
+              'Semi-Final ' +
+              row.matchnum.split('_')[1] +
+              '-' +
+              row.matchnum.split('_')[2];
+          } else if (row.matchnum.split('_')[0] === 'f') {
+            newMatchNum =
+              'Final ' +
+              row.matchnum.split('_')[1] +
+              '-' +
+              row.matchnum.split('_')[2];
+          }
+          row.alteredMatchNum = newMatchNum;
           if (row.reportstatus === 'Follow Up') {
             buttonLabel = 'Fix';
           } else if (row.reportstatus === 'Done') {
@@ -158,8 +240,90 @@ class MatchReportList extends Component {
           .then(response => response.json())
           .then(data => {
             let matchList = data.matchList;
+            matchList.sort((a, b) => {
+              if (a.matchnum.split('_')[0] === 'qm') {
+                if (b.matchnum.split('_')[0] === 'qm') {
+                  return a.matchnum.split('_')[1] - b.matchnum.split('_')[1];
+                } else {
+                  return -1;
+                }
+              } else if (a.matchnum.split('_')[0] === 'qf') {
+                if (b.matchnum.split('_')[0] === 'qf') {
+                  return (
+                    a.matchnum.split('_')[1] +
+                    a.matchnum.split('_')[2] -
+                    (b.matchnum.split('_')[1] + b.matchnum.split('_')[2])
+                  );
+                } else {
+                  if (b.matchnum.split('_')[0] === 'qm') {
+                    return 1;
+                  } else {
+                    return -1;
+                  }
+                }
+              } else if (a.matchnum.split('_')[0] === 'sf') {
+                if (b.matchnum.split('_')[0] === 'sf') {
+                  return (
+                    a.matchnum.split('_')[1] +
+                    a.matchnum.split('_')[2] -
+                    (b.matchnum.split('_')[1] + b.matchnum.split('_')[2])
+                  );
+                } else {
+                  if (
+                    b.matchnum.split('_')[0] === 'qm' ||
+                    b.matchnum.split('_')[0] === 'qf'
+                  ) {
+                    return 1;
+                  } else {
+                    return -1;
+                  }
+                }
+              } else if (a.matchnum.split('_')[0] === 'f') {
+                if (b.matchnum.split('_')[0] === 'f') {
+                  return (
+                    a.matchnum.split('_')[1] +
+                    a.matchnum.split('_')[2] -
+                    (b.matchnum.split('_')[1] + b.matchnum.split('_')[2])
+                  );
+                } else {
+                  if (
+                    b.matchnum.split('_')[0] === 'qm' ||
+                    b.matchnum.split('_')[0] === 'qf' ||
+                    b.matchnum.split('_')[0] === 'sf'
+                  ) {
+                    return 1;
+                  } else {
+                    return -1;
+                  }
+                }
+              }
+            });
+            matchList.sort((a, b) => a.teamnum - b.teamnum);
             matchList.map(row => {
               let buttonLabel;
+              let newMatchNum;
+              if (row.matchnum.split('_')[0] === 'qm') {
+                newMatchNum = 'Qual ' + row.matchnum.split('_')[1];
+              } else if (row.matchnum.split('_')[0] === 'qf') {
+                newMatchNum =
+                  'Quarter-Final ' +
+                  row.matchnum.split('_')[1] +
+                  '-' +
+                  row.matchnum.split('_')[2];
+              } else if (row.matchnum.split('_')[0] === 'sf') {
+                newMatchNum =
+                  'Semi-Final ' +
+                  row.matchnum.split('_')[1] +
+                  '-' +
+                  row.matchnum.split('_')[2];
+              } else if (row.matchnum.split('_')[0] === 'f') {
+                newMatchNum =
+                  'Final ' +
+                  row.matchnum.split('_')[1] +
+                  '-' +
+                  row.matchnum.split('_')[2];
+              }
+              row.alteredMatchNum = newMatchNum;
               if (row.reportstatus === 'Follow Up') {
                 buttonLabel = 'Fix';
               } else if (row.reportstatus === 'Done') {
@@ -196,7 +360,6 @@ class MatchReportList extends Component {
   }
 
   render() {
-    console.log("SHARON ", this.state.competition);
     const competitionItems = this.state.competitions.map(competition => (
       <Dropdown.Item
         eventKey={competition.shortname}
@@ -277,27 +440,7 @@ class MatchReportList extends Component {
                 Refresh
               </Button>
             </div>
-<<<<<<< HEAD
-            {this.context.isLoggedIn === true &&
-              this.context.user.role === 'admin' && (
-                <Link to={'matches/new'}>
-                  <Button
-                    variant='success'
-                    type='btn'
-                    className='btn-xs mt-2'
-                    style={{
-                      fontFamily: 'Helvetica, Arial',
-                      boxShadow:
-                        '-3px 3px black, -2px 2px black, -1px 1px black',
-                      border: '1px solid black'
-                    }}
-                  >
-                    New Form
-                  </Button>
-                </Link>
-              )}
-=======
-            { this.context.isLoggedIn === true &&
+            {this.context.isLoggedIn === true && (
               <Link to={'matches/new'}>
                 <Button
                   variant='success'
@@ -312,8 +455,8 @@ class MatchReportList extends Component {
                   Scout New Match
                 </Button>
               </Link>
-            }
-            { this.context.isLoggedIn === true &&
+            )}
+            {this.context.isLoggedIn === true && (
               <Link to={'supers/' + this.state.competition}>
                 <Button
                   variant='success'
@@ -328,8 +471,7 @@ class MatchReportList extends Component {
                   Super Scout
                 </Button>
               </Link>
-            }
->>>>>>> aab2e169af8edace210beaeb8366033f7b59e2e3
+            )}
           </div>
         </div>
         <BootstrapTable

@@ -9,6 +9,10 @@ class Stopwatch extends Component {
     minWidth: ''
   };
 
+  componentDidMount() {
+    this.setState({ timerTime: this.props.value });
+  }
+
   startTimer = () => {
     if (this.state.timerOn === false) {
       this.setState({
@@ -19,7 +23,7 @@ class Stopwatch extends Component {
       this.timer = setInterval(() => {
         this.props.parentCallback(Date.now() - this.state.timerStart);
         this.setState({
-          timerTime: Date.now() - this.state.timerStart
+          timerTime: this.props.value
         });
       }, 10);
     } else {

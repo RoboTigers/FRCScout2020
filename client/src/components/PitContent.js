@@ -12,43 +12,6 @@ import 'react-html5-camera-photo/build/css/index.css';
 import ImagePreview from './ImagePreview';
 import { Prompt } from 'react-router-dom';
 
-function getBase64Image(img) {
-  // Create an empty canvas element
-  var canvas = document.createElement('canvas');
-  canvas.width = img.width;
-  canvas.height = img.height;
-
-  // Copy the image contents to the canvas
-  var ctx = canvas.getContext('2d');
-  ctx.drawImage(img, 0, 0);
-
-  // Get the data-URL formatted image
-  // Firefox supports PNG and JPEG. You could check img.src to
-  // guess the original format, but be aware the using "image/jpg"
-  // will re-encode the image.
-  var dataURL = canvas.toDataURL('image/png');
-
-  return dataURL.replace(/^data:image\/(png|jpg);base64,/, '');
-}
-
-function base64toHEX(base64) {
-  let newBase64 = base64.slice(22);
-  var raw = atob(base64.slice(22));
-  console.log(base64.slice(22));
-
-  var HEX = '';
-  let i = 0;
-
-  for (i = 0; i < raw.length; i++) {
-    var _hex = raw.charCodeAt(i).toString(16);
-
-    HEX += _hex.length == 2 ? _hex : '0' + _hex;
-  }
-  let finalHex = "'" + HEX + "'";
-  console.log(finalHex);
-  return finalHex.toUpperCase();
-}
-
 class PitContent extends Component {
   state = {
     retrieved: '',
@@ -120,7 +83,8 @@ class PitContent extends Component {
     workingOnComments: '',
     closingComments: '',
     cameraActivated: false,
-    dataUri: ''
+    dataUri: '',
+    submitting: false
   };
 
   componentDidMount() {
@@ -510,6 +474,7 @@ class PitContent extends Component {
           .then(response => response.json())
           .then(data => {
             if (data.message === 'Submitted') {
+              this.setState({ submitting: true });
               this.props.history.push('/pits');
             } else {
               alert(data.message);
@@ -536,7 +501,10 @@ class PitContent extends Component {
       if (this.state.cameraActivated) {
         return (
           <div>
-            <Prompt message='Are you sure you want to leave?' />
+            <Prompt
+              when={!this.state.submitting}
+              message='Are you sure you want to leave?'
+            />
             <Camera
               idealResolution={{
                 width: 1600,
@@ -558,7 +526,10 @@ class PitContent extends Component {
       } else {
         return (
           <div className='div-main'>
-            <Prompt message='Are you sure you want to leave?' />
+            <Prompt
+              when={!this.state.submitting}
+              message='Are you sure you want to leave?'
+            />
             <div className='justify-content-center'>
               <img
                 alt='Logo'

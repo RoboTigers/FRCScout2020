@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Logo from './1796NumberswithScratch.png';
+import { Form, Dropdown } from 'react-bootstrap';
 import AllianceStation from './AllianceStationGuide.png';
 import GeneratorSwitch from './generatorswitch.png';
 import Counter from './Counter.js';
@@ -18,6 +18,7 @@ class MatchContent extends Component {
   state = {
     retrieved: '',
     competition: '',
+    competitionKey: '',
     markForFollowUp: false,
     formStage: 0,
     validatedStage0: true,
@@ -32,8 +33,17 @@ class MatchContent extends Component {
     validStage4: false,
     widthSize: '',
     heightSize: '',
+    matchTypes: [
+      { id: 1, name: 'Quals', key: 'qm' },
+      { id: 2, name: 'Quarters', key: 'qf' },
+      { id: 3, name: 'Semis', key: 'sf' },
+      { id: 4, name: 'Finals', key: 'f' }
+    ],
+    matchTypeLabel: 'Quals',
+    matchTypeKey: 'qm',
     scout: this.context.user.username,
-    matchNum: '',
+    matchNum1: '',
+    matchNum2: '',
     allianceStation: 'Red Station 1',
     autoTeam: true,
     teamNum: '',
@@ -113,7 +123,8 @@ class MatchContent extends Component {
       { id: 2, label: 'Yellow Card', value: 0, min: 0, max: 1 },
       { id: 3, label: 'Red Card', value: 0, min: 0, max: 1 }
     ],
-    reflectionComments: ''
+    reflectionComments: '',
+    submitting: false
   };
 
   componentDidMount() {
@@ -125,10 +136,10 @@ class MatchContent extends Component {
         .then(response => response.json())
         .then(data => {
           this.setState({ retrieved: 'valid' });
-          this.setState({ competitions: data.competitions });
           data.competitions.map(c => {
             if (c.iscurrent) {
               this.setState({ competition: c.shortname });
+              this.setState({ competitionKey: c.bluekey });
             }
           });
         });
@@ -149,9 +160,30 @@ class MatchContent extends Component {
                 existingData.report_status === 'Done' ? false : true
             });
             this.setState({ scout: existingData.scout_name });
-            this.setState({ matchNum: existingData.match_num });
+            this.setState({ competitionKey: existingData.blue_key });
+            let matchNum = existingData.match_num.split('_');
+            if (matchNum[0] === 'qm') {
+              this.setState({ matchTypeKey: 'qm' });
+              this.setState({ matchTypeLabel: 'Quals' });
+              this.setState({ matchNum1: matchNum[1] });
+            } else if (matchNum[0] === 'qf') {
+              this.setState({ matchTypeKey: 'qf' });
+              this.setState({ matchTypeLabel: 'Quarters' });
+              this.setState({ matchNum1: matchNum[1] });
+              this.setState({ matchNum2: matchNum[2] });
+            } else if (matchNum[0] === 'sf') {
+              this.setState({ matchTypeKey: 'qf' });
+              this.setState({ matchTypeLabel: 'Semis' });
+              this.setState({ matchNum1: matchNum[1] });
+              this.setState({ matchNum2: matchNum[2] });
+            } else if (matchNum[0] === 'f') {
+              this.setState({ matchTypeKey: 'f' });
+              this.setState({ matchTypeLabel: 'Finals' });
+              this.setState({ matchNum1: matchNum[1] });
+              this.setState({ matchNum2: matchNum[2] });
+            }
             this.setState({ allianceStation: existingData.alliance_station });
-            this.setState({ autoTeam: true });
+            this.setState({ autoTeam: existingData.auto_team });
             this.setState({ teamNum: existingData.team_num });
             this.setState({ autoPowerCells: existingData.auto_power_cells });
             this.setState({ startingPosition: existingData.starting_position });
@@ -251,32 +283,134 @@ class MatchContent extends Component {
   };
 
   checkStage0() {
-    if (this.state.matchNum !== '' && this.state.teamNum !== '') {
-      this.setState({ validStage0: true });
+    if (this.state.matchNum1 !== '' && this.state.teamNum !== '') {
+      if (this.state.matchTypeKey !== 'qm') {
+        if (this.state.matchNum2 !== '') {
+          this.setState({ validStage0: true });
+        } else {
+          this.setState({ validStage0: false });
+        }
+      } else {
+        this.setState({ validStage0: true });
+      }
     } else {
       this.setState({ validStage0: false });
     }
   }
 
-  handleMatchNum = event => {
-    this.setState({ matchNum: event.target.value }, () => {
-      fetch(
-        `https://www.thebluealliance.com/api/v3/match/2020isde2_qm${this.state.matchNum}?X-TBA-Auth-Key=VcTpa99nIEsT44AsrzSXFzdlS7efZ1wWCrnkMMFyBWQ3tXbp0KFRHSJTLhx96ukP`
-      )
-        .then(response => response.json())
-        .then(data => {
-          console.log(data.actual_time);
-        });
+  changeMatchType = (key, event) => {
+    this.setState({ matchTypeKey: key });
+    this.setState({ matchTypeLabel: event.target.innerHTML });
+    this.checkStage0();
+  };
+
+  handleMatchNum1 = event => {
+    this.setState({ matchNum1: event.target.value }, () => {
+      if (this.state.autoTeam) {
+        this.getTeamNumber();
+      }
       this.checkStage0();
     });
   };
 
+  handleMatchNum2 = event => {
+    this.setState({ matchNum2: event.target.value }, () => {
+      if (this.state.autoTeam) {
+        this.getTeamNumber();
+      }
+      this.checkStage0();
+    });
+  };
+
+  getTeamNumber = () => {
+    fetch(
+      `https://www.thebluealliance.com/api/v3/match/2020${
+        this.state.competitionKey
+      }_${this.state.matchTypeKey}${
+        this.state.matchTypeKey === 'qm'
+          ? this.state.matchNum1
+          : this.state.matchNum1 + 'm' + this.state.matchNum2
+      }?X-TBA-Auth-Key=VcTpa99nIEsT44AsrzSXFzdlS7efZ1wWCrnkMMFyBWQ3tXbp0KFRHSJTLhx96ukP`
+    )
+      .then(response => response.json())
+      .then(data => {
+        console.log(data);
+        if (this.state.allianceStation === 'Red Station 1') {
+          this.setState(
+            {
+              teamNum: data.alliances.red.team_keys[0].substring(3)
+            },
+            () => {
+              this.checkStage0();
+            }
+          );
+        } else if (this.state.allianceStation === 'Red Station 2') {
+          this.setState(
+            {
+              teamNum: data.alliances.red.team_keys[1].substring(3)
+            },
+            () => {
+              this.checkStage0();
+            }
+          );
+        } else if (this.state.allianceStation === 'Red Station 3') {
+          this.setState(
+            {
+              teamNum: data.alliances.red.team_keys[2].substring(3)
+            },
+            () => {
+              this.checkStage0();
+            }
+          );
+        } else if (this.state.allianceStation === 'Blue Station 1') {
+          this.setState(
+            {
+              teamNum: data.alliances.blue.team_keys[0].substring(3)
+            },
+            () => {
+              this.checkStage0();
+            }
+          );
+        } else if (this.state.allianceStation === 'Blue Station 2') {
+          this.setState(
+            {
+              teamNum: data.alliances.blue.team_keys[1].substring(3)
+            },
+            () => {
+              this.checkStage0();
+            }
+          );
+        } else if (this.state.allianceStation === 'Blue Station 3') {
+          this.setState(
+            {
+              teamNum: data.alliances.blue.team_keys[2].substring(3)
+            },
+            () => {
+              this.checkStage0();
+            }
+          );
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        this.setState({ teamNum: '' }, () => {
+          this.checkStage0();
+        });
+      });
+  };
+
   handleStationChange = event => {
-    this.setState({ allianceStation: event.target.value });
+    this.setState({ allianceStation: event.target.value }, () => {
+      this.getTeamNumber();
+    });
   };
 
   handleModeSwitch = event => {
-    this.setState({ autoTeam: !this.state.autoTeam });
+    this.setState({ autoTeam: !this.state.autoTeam }, () => {
+      if (this.state.autoTeam) {
+        this.getTeamNumber();
+      }
+    });
   };
 
   handleTeamNum = event => {
@@ -584,7 +718,14 @@ class MatchContent extends Component {
         const data = {
           competition: this.state.competition,
           teamNum: this.state.teamNum,
-          matchNum: this.state.matchNum,
+          matchNum:
+            this.state.matchTypeKey === 'qm'
+              ? this.state.matchTypeKey + '_' + this.state.matchNum1
+              : this.state.matchTypeKey +
+                '_' +
+                this.state.matchNum1 +
+                '_' +
+                this.state.matchNum2,
           scoutName: this.state.scout,
           reportStatus: this.state.markForFollowUp ? 'Follow Up' : 'Done',
           allianceStation: this.state.allianceStation,
@@ -602,7 +743,8 @@ class MatchContent extends Component {
           positionTimer:
             this.state.positionControl === 'No' ? 0 : this.state.positionTimer,
           endGame: this.state.endGame,
-          endGameTimer: this.state.endGameTimer,
+          endGameTimer:
+            this.state.endGame === 'Hang' ? this.state.endGameTimer : 0,
           climb: this.state.endGame === 'Hang' ? this.state.climb : '',
           level: this.state.endGame === 'Hang' ? this.state.level : '',
           levelPosition:
@@ -622,6 +764,7 @@ class MatchContent extends Component {
           .then(response => response.json())
           .then(data => {
             if (data.message === 'Submitted') {
+              this.setState({ submitting: true });
               this.props.history.push('/matches');
             } else {
               alert(data.message);
@@ -635,6 +778,16 @@ class MatchContent extends Component {
   };
 
   render() {
+    const matchTypes = this.state.matchTypes.map(type => (
+      <Dropdown.Item
+        eventKey={type.key}
+        key={type.id}
+        style={{ fontFamily: 'Helvetica, Arial' }}
+      >
+        {type.name}
+      </Dropdown.Item>
+    ));
+
     if (this.state.retrieved === '') {
       return null;
     } else if (this.state.retrieved === 'invalid') {
@@ -650,7 +803,10 @@ class MatchContent extends Component {
             className='div-main'
             style={{ minHeight: this.state.heightSize }}
           >
-            <Prompt message='Are you sure you want to leave?' />
+            <Prompt
+              when={!this.state.submitting}
+              message='Are you sure you want to leave?'
+            />
             <div className='justify-content-center'>
               <img
                 alt='Logo'
@@ -670,7 +826,6 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 0 ? 'black' : 'transparent',
-                    width: '50px',
                     backgroundColor: this.state.validStage0
                       ? '#57c24f'
                       : '#d4463b'
@@ -684,7 +839,6 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 1 ? 'black' : 'transparent',
-                    width: '50px',
                     backgroundColor: this.state.validStage1
                       ? '#57c24f'
                       : '#d4463b'
@@ -698,7 +852,6 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 2 ? 'black' : 'transparent',
-                    width: '50px',
                     backgroundColor: this.state.validStage2
                       ? '#57c24f'
                       : '#d4463b'
@@ -712,7 +865,6 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 3 ? 'black' : 'transparent',
-                    width: '50px',
                     backgroundColor: this.state.validStage3
                       ? '#57c24f'
                       : '#d4463b'
@@ -726,7 +878,6 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 4 ? 'black' : 'transparent',
-                    width: '50px',
                     backgroundColor: this.state.validStage4
                       ? '#57c24f'
                       : '#d4463b'
@@ -769,28 +920,85 @@ class MatchContent extends Component {
                     Match Number:
                   </Form.Label>
                 </Form.Group>
-                <Form.Group style={{ width: '80%', marginLeft: '2%' }} as={Row}>
+                <div style={{ marginLeft: '-6%' }}>
+                  <Dropdown
+                    style={{
+                      marginBottom: '10px',
+                      display: 'inline-block'
+                    }}
+                    focusFirstItemOnShow={false}
+                    onSelect={this.changeMatchType}
+                  >
+                    <Dropdown.Toggle
+                      style={{
+                        fontFamily: 'Helvetica, Arial',
+                        textAlign: 'center'
+                      }}
+                      size='xs'
+                      variant='success'
+                      id='dropdown-basic'
+                    >
+                      {this.state.matchTypeLabel}
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu style={{ minWidth: '3%' }}>
+                      {matchTypes}
+                    </Dropdown.Menu>
+                  </Dropdown>
                   <Form.Control
-                    value={this.state.matchNum}
+                    value={this.state.matchNum1}
                     autoComplete='off'
                     type='number'
                     max={200}
                     min={1}
                     placeholder='Match Number'
-                    onChange={this.handleMatchNum}
+                    onChange={this.handleMatchNum1}
                     isValid={
-                      this.state.validatedStage0 && this.state.matchNum !== ''
+                      this.state.validatedStage0 && this.state.matchNum1 !== ''
                     }
                     isInvalid={
-                      this.state.validatedStage0 && this.state.matchNum === ''
+                      this.state.validatedStage0 && this.state.matchNum1 === ''
                     }
                     className='mb-1'
                     style={{
                       background: 'none',
-                      fontFamily: 'Helvetica, Arial'
+                      fontFamily: 'Helvetica, Arial',
+                      marginLeft: '2%',
+                      display: 'inline-block',
+                      width: this.state.matchTypeKey === 'qm' ? '50%' : '25%'
                     }}
                   />
-                </Form.Group>
+                  {this.state.matchTypeKey !== 'qm' ? (
+                    <React.Fragment>
+                      <span>-</span>
+                      <Form.Control
+                        value={this.state.matchNum2}
+                        autoComplete='off'
+                        type='number'
+                        max={200}
+                        min={1}
+                        placeholder='Match Number'
+                        onChange={this.handleMatchNum2}
+                        isValid={
+                          this.state.validatedStage0 &&
+                          this.state.matchTypeKey !== 'qm' &&
+                          this.state.matchNum2 !== ''
+                        }
+                        isInvalid={
+                          this.state.validatedStage0 &&
+                          this.state.matchTypeKey !== 'qm' &&
+                          this.state.matchNum2 === ''
+                        }
+                        className='mb-1'
+                        style={{
+                          background: 'none',
+                          fontFamily: 'Helvetica, Arial',
+                          display: 'inline-block',
+                          width: '25%'
+                        }}
+                      />
+                    </React.Fragment>
+                  ) : null}
+                </div>
                 <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
                   <Form.Label
                     className='mb-1'
@@ -834,7 +1042,7 @@ class MatchContent extends Component {
                 </Form.Group>
                 <Form.Group style={{ width: '80%', marginLeft: '2%' }} as={Row}>
                   <Form.Check
-                    value={this.state.autoTeam}
+                    checked={!this.state.autoTeam}
                     onChange={this.handleModeSwitch}
                     type='switch'
                     label={this.state.autoTeam ? 'Automatic' : 'Manual'}
@@ -850,6 +1058,7 @@ class MatchContent extends Component {
                         fontFamily: 'Helvetica, Arial',
                         fontSize: '110%'
                       }}
+                      onChange={this.checkStage0}
                     >
                       {this.state.teamNum}
                     </Form.Label>
@@ -926,7 +1135,10 @@ class MatchContent extends Component {
             className='div-main'
             style={{ minHeight: this.state.heightSize }}
           >
-            <Prompt message='Are you sure you want to leave?' />
+            <Prompt
+              when={!this.state.submitting}
+              message='Are you sure you want to leave?'
+            />
             <div className='justify-content-center'>
               <img
                 alt='Logo'
@@ -946,7 +1158,6 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 0 ? 'black' : 'transparent',
-                    width: '50px',
                     backgroundColor: this.state.validStage0
                       ? '#57c24f'
                       : '#d4463b'
@@ -960,7 +1171,6 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 1 ? 'black' : 'transparent',
-                    width: '50px',
                     backgroundColor: this.state.validStage1
                       ? '#57c24f'
                       : '#d4463b'
@@ -974,7 +1184,6 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 2 ? 'black' : 'transparent',
-                    width: '50px',
                     backgroundColor: this.state.validStage2
                       ? '#57c24f'
                       : '#d4463b'
@@ -988,7 +1197,6 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 3 ? 'black' : 'transparent',
-                    width: '50px',
                     backgroundColor: this.state.validStage3
                       ? '#57c24f'
                       : '#d4463b'
@@ -1002,7 +1210,6 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 4 ? 'black' : 'transparent',
-                    width: '50px',
                     backgroundColor: this.state.validStage4
                       ? '#57c24f'
                       : '#d4463b'
@@ -1262,7 +1469,10 @@ class MatchContent extends Component {
             className='div-main'
             style={{ minHeight: this.state.heightSize }}
           >
-            <Prompt message='Are you sure you want to leave?' />
+            <Prompt
+              when={!this.state.submitting}
+              message='Are you sure you want to leave?'
+            />
             <div className='justify-content-center'>
               <img
                 alt='Logo'
@@ -1282,7 +1492,6 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 0 ? 'black' : 'transparent',
-                    width: '50px',
                     backgroundColor: this.state.validStage0
                       ? '#57c24f'
                       : '#d4463b'
@@ -1296,7 +1505,6 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 1 ? 'black' : 'transparent',
-                    width: '50px',
                     backgroundColor: this.state.validStage1
                       ? '#57c24f'
                       : '#d4463b'
@@ -1310,7 +1518,6 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 2 ? 'black' : 'transparent',
-                    width: '50px',
                     backgroundColor: this.state.validStage2
                       ? '#57c24f'
                       : '#d4463b'
@@ -1324,7 +1531,6 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 3 ? 'black' : 'transparent',
-                    width: '50px',
                     backgroundColor: this.state.validStage3
                       ? '#57c24f'
                       : '#d4463b'
@@ -1338,7 +1544,6 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 4 ? 'black' : 'transparent',
-                    width: '50px',
                     backgroundColor: this.state.validStage4
                       ? '#57c24f'
                       : '#d4463b'
@@ -1411,7 +1616,10 @@ class MatchContent extends Component {
                     Last Rotation Time: {this.state.oldRotationTimer}
                   </Form.Label>
                 </Form.Group>
-                <StopWatch parentCallback={this.handleRotationControlTimer} />
+                <StopWatch
+                  value={this.state.rotationTimer}
+                  parentCallback={this.handleRotationControlTimer}
+                />
                 <Form.Group
                   style={{ width: '100%', marginLeft: '2%' }}
                   className='mb-3'
@@ -1470,7 +1678,10 @@ class MatchContent extends Component {
                     Last Position Time: {this.state.oldPositionTimer}
                   </Form.Label>
                 </Form.Group>
-                <StopWatch parentCallback={this.handlePositionControlTimer} />
+                <StopWatch
+                  value={this.state.positionTimer}
+                  parentCallback={this.handlePositionControlTimer}
+                />
                 <Form.Group
                   style={{ width: '100%', marginLeft: '2%' }}
                   className='mb-3'
@@ -1567,7 +1778,10 @@ class MatchContent extends Component {
             className='div-main'
             style={{ minHeight: this.state.heightSize }}
           >
-            <Prompt message='Are you sure you want to leave?' />
+            <Prompt
+              when={!this.state.submitting}
+              message='Are you sure you want to leave?'
+            />
             <div className='justify-content-center'>
               <img
                 alt='Logo'
@@ -1587,7 +1801,6 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 0 ? 'black' : 'transparent',
-                    width: '50px',
                     backgroundColor: this.state.validStage0
                       ? '#57c24f'
                       : '#d4463b'
@@ -1601,7 +1814,6 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 1 ? 'black' : 'transparent',
-                    width: '50px',
                     backgroundColor: this.state.validStage1
                       ? '#57c24f'
                       : '#d4463b'
@@ -1615,7 +1827,6 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 2 ? 'black' : 'transparent',
-                    width: '50px',
                     backgroundColor: this.state.validStage2
                       ? '#57c24f'
                       : '#d4463b'
@@ -1629,7 +1840,6 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 3 ? 'black' : 'transparent',
-                    width: '50px',
                     backgroundColor: this.state.validStage3
                       ? '#57c24f'
                       : '#d4463b'
@@ -1643,7 +1853,6 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 4 ? 'black' : 'transparent',
-                    width: '50px',
                     backgroundColor: this.state.validStage4
                       ? '#57c24f'
                       : '#d4463b'
@@ -1678,7 +1887,10 @@ class MatchContent extends Component {
                     Last End Game Time: {this.state.oldEndGameTimer}
                   </Form.Label>
                 </Form.Group>
-                <StopWatch parentCallback={this.handleEndGameTimer} />
+                <StopWatch
+                  value={this.state.endGameTimer}
+                  parentCallback={this.handleEndGameTimer}
+                />
                 <Form.Group
                   style={{ width: '100%', marginLeft: '2%' }}
                   className='mb-3'
@@ -1917,7 +2129,10 @@ class MatchContent extends Component {
             className='div-main'
             style={{ minHeight: this.state.heightSize }}
           >
-            <Prompt message='Are you sure you want to leave?' />
+            <Prompt
+              when={!this.state.submitting}
+              message='Are you sure you want to leave?'
+            />
             <div className='justify-content-center'>
               <img
                 alt='Logo'
@@ -1937,7 +2152,6 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 0 ? 'black' : 'transparent',
-                    width: '50px',
                     backgroundColor: this.state.validStage0
                       ? '#57c24f'
                       : '#d4463b'
@@ -1951,7 +2165,6 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 1 ? 'black' : 'transparent',
-                    width: '50px',
                     backgroundColor: this.state.validStage1
                       ? '#57c24f'
                       : '#d4463b'
@@ -1965,7 +2178,6 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 2 ? 'black' : 'transparent',
-                    width: '50px',
                     backgroundColor: this.state.validStage2
                       ? '#57c24f'
                       : '#d4463b'
@@ -1979,7 +2191,6 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 3 ? 'black' : 'transparent',
-                    width: '50px',
                     backgroundColor: this.state.validStage3
                       ? '#57c24f'
                       : '#d4463b'
@@ -1993,7 +2204,6 @@ class MatchContent extends Component {
                   style={{
                     borderColor:
                       this.state.formStage === 4 ? 'black' : 'transparent',
-                    width: '50px',
                     backgroundColor: this.state.validStage4
                       ? '#57c24f'
                       : '#d4463b'

@@ -89,6 +89,7 @@ class PitNavigation extends Component {
       .then(response => response.json())
       .then(data => {
         let pitData = data.pitData;
+        pitData.sort((a, b) => a.team_num - b.team_num);
         pitData.map(row => {
           let buttonLabel;
           if (row.coalesce === 'Not Started') {
@@ -138,6 +139,7 @@ class PitNavigation extends Component {
           .then(response => response.json())
           .then(data => {
             let pitData = data.pitData;
+            pitData.sort((a, b) => a.team_num - b.team_num);
             pitData.map(row => {
               let buttonLabel;
               if (row.coalesce === 'Not Started') {

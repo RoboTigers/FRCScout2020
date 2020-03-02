@@ -68,7 +68,7 @@ router.get(
   }
 );
 
-router.post('/submitMatchForm', ensureAdmin, (req, res) => {
+router.post('/submitMatchForm', (req, res) => {
   let params = req.body;
 
   const addMatchQuery =

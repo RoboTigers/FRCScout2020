@@ -24,13 +24,6 @@ const scoutSelectOptions = {
   Fix: 'FIx'
 };
 
-const defaultSorted = [
-  {
-    dataField: 'matchnum',
-    order: 'asc'
-  }
-];
-
 class MatchReportList extends Component {
   static contextType = AuthContext;
 
@@ -47,12 +40,8 @@ class MatchReportList extends Component {
           fontSize: '100%',
           outline: 'none'
         },
-        sortCaret: (order, column) => {
-          return '';
-        },
         dataField: 'teamnum',
         text: 'Team',
-        sort: true,
         filter: textFilter({
           autoComplete: 'off',
           type: 'number',
@@ -61,16 +50,12 @@ class MatchReportList extends Component {
       },
       {
         headerStyle: {
-          width: '20%',
+          width: '25%',
           fontSize: '100%',
           outline: 'none'
         },
-        sortCaret: (order, column) => {
-          return '';
-        },
-        dataField: 'matchnum',
+        dataField: 'alteredMatchNum',
         text: 'Match',
-        sort: true,
         filter: textFilter({
           className: 'customtextbar'
         })
@@ -81,12 +66,8 @@ class MatchReportList extends Component {
           fontSize: '100%',
           outline: 'none'
         },
-        sortCaret: (order, column) => {
-          return '';
-        },
         dataField: 'scoutname',
         text: 'Scouter',
-        sort: true,
         filter: textFilter({
           className: 'customtextbar',
           autoComplete: 'off'
@@ -129,8 +110,90 @@ class MatchReportList extends Component {
       .then(response => response.json())
       .then(data => {
         let matchList = data.matchList;
+        matchList.sort((a, b) => {
+          if (a.matchnum.split('_')[0] === 'qm') {
+            if (b.matchnum.split('_')[0] === 'qm') {
+              return a.matchnum.split('_')[1] - b.matchnum.split('_')[1];
+            } else {
+              return -1;
+            }
+          } else if (a.matchnum.split('_')[0] === 'qf') {
+            if (b.matchnum.split('_')[0] === 'qf') {
+              return (
+                a.matchnum.split('_')[1] +
+                a.matchnum.split('_')[2] -
+                (b.matchnum.split('_')[1] + b.matchnum.split('_')[2])
+              );
+            } else {
+              if (b.matchnum.split('_')[0] === 'qm') {
+                return 1;
+              } else {
+                return -1;
+              }
+            }
+          } else if (a.matchnum.split('_')[0] === 'sf') {
+            if (b.matchnum.split('_')[0] === 'sf') {
+              return (
+                a.matchnum.split('_')[1] +
+                a.matchnum.split('_')[2] -
+                (b.matchnum.split('_')[1] + b.matchnum.split('_')[2])
+              );
+            } else {
+              if (
+                b.matchnum.split('_')[0] === 'qm' ||
+                b.matchnum.split('_')[0] === 'qf'
+              ) {
+                return 1;
+              } else {
+                return -1;
+              }
+            }
+          } else if (a.matchnum.split('_')[0] === 'f') {
+            if (b.matchnum.split('_')[0] === 'f') {
+              return (
+                a.matchnum.split('_')[1] +
+                a.matchnum.split('_')[2] -
+                (b.matchnum.split('_')[1] + b.matchnum.split('_')[2])
+              );
+            } else {
+              if (
+                b.matchnum.split('_')[0] === 'qm' ||
+                b.matchnum.split('_')[0] === 'qf' ||
+                b.matchnum.split('_')[0] === 'sf'
+              ) {
+                return 1;
+              } else {
+                return -1;
+              }
+            }
+          }
+        });
+        matchList.sort((a, b) => a.teamnum - b.teamnum);
         matchList.map(row => {
           let buttonLabel;
+          let newMatchNum;
+          if (row.matchnum.split('_')[0] === 'qm') {
+            newMatchNum = 'Qual ' + row.matchnum.split('_')[1];
+          } else if (row.matchnum.split('_')[0] === 'qf') {
+            newMatchNum =
+              'Quarter-Final ' +
+              row.matchnum.split('_')[1] +
+              '-' +
+              row.matchnum.split('_')[2];
+          } else if (row.matchnum.split('_')[0] === 'sf') {
+            newMatchNum =
+              'Semi-Final ' +
+              row.matchnum.split('_')[1] +
+              '-' +
+              row.matchnum.split('_')[2];
+          } else if (row.matchnum.split('_')[0] === 'f') {
+            newMatchNum =
+              'Final ' +
+              row.matchnum.split('_')[1] +
+              '-' +
+              row.matchnum.split('_')[2];
+          }
+          row.alteredMatchNum = newMatchNum;
           if (row.reportstatus === 'Follow Up') {
             buttonLabel = 'Fix';
           } else if (row.reportstatus === 'Done') {
@@ -161,6 +224,7 @@ class MatchReportList extends Component {
   };
 
   componentDidMount() {
+    window.onbeforeunload = null;
     fetch('/competitions')
       .then(response => response.json())
       .then(data => {
@@ -176,8 +240,90 @@ class MatchReportList extends Component {
           .then(response => response.json())
           .then(data => {
             let matchList = data.matchList;
+            matchList.sort((a, b) => {
+              if (a.matchnum.split('_')[0] === 'qm') {
+                if (b.matchnum.split('_')[0] === 'qm') {
+                  return a.matchnum.split('_')[1] - b.matchnum.split('_')[1];
+                } else {
+                  return -1;
+                }
+              } else if (a.matchnum.split('_')[0] === 'qf') {
+                if (b.matchnum.split('_')[0] === 'qf') {
+                  return (
+                    a.matchnum.split('_')[1] +
+                    a.matchnum.split('_')[2] -
+                    (b.matchnum.split('_')[1] + b.matchnum.split('_')[2])
+                  );
+                } else {
+                  if (b.matchnum.split('_')[0] === 'qm') {
+                    return 1;
+                  } else {
+                    return -1;
+                  }
+                }
+              } else if (a.matchnum.split('_')[0] === 'sf') {
+                if (b.matchnum.split('_')[0] === 'sf') {
+                  return (
+                    a.matchnum.split('_')[1] +
+                    a.matchnum.split('_')[2] -
+                    (b.matchnum.split('_')[1] + b.matchnum.split('_')[2])
+                  );
+                } else {
+                  if (
+                    b.matchnum.split('_')[0] === 'qm' ||
+                    b.matchnum.split('_')[0] === 'qf'
+                  ) {
+                    return 1;
+                  } else {
+                    return -1;
+                  }
+                }
+              } else if (a.matchnum.split('_')[0] === 'f') {
+                if (b.matchnum.split('_')[0] === 'f') {
+                  return (
+                    a.matchnum.split('_')[1] +
+                    a.matchnum.split('_')[2] -
+                    (b.matchnum.split('_')[1] + b.matchnum.split('_')[2])
+                  );
+                } else {
+                  if (
+                    b.matchnum.split('_')[0] === 'qm' ||
+                    b.matchnum.split('_')[0] === 'qf' ||
+                    b.matchnum.split('_')[0] === 'sf'
+                  ) {
+                    return 1;
+                  } else {
+                    return -1;
+                  }
+                }
+              }
+            });
+            matchList.sort((a, b) => a.teamnum - b.teamnum);
             matchList.map(row => {
               let buttonLabel;
+              let newMatchNum;
+              if (row.matchnum.split('_')[0] === 'qm') {
+                newMatchNum = 'Qual ' + row.matchnum.split('_')[1];
+              } else if (row.matchnum.split('_')[0] === 'qf') {
+                newMatchNum =
+                  'Quarter-Final ' +
+                  row.matchnum.split('_')[1] +
+                  '-' +
+                  row.matchnum.split('_')[2];
+              } else if (row.matchnum.split('_')[0] === 'sf') {
+                newMatchNum =
+                  'Semi-Final ' +
+                  row.matchnum.split('_')[1] +
+                  '-' +
+                  row.matchnum.split('_')[2];
+              } else if (row.matchnum.split('_')[0] === 'f') {
+                newMatchNum =
+                  'Final ' +
+                  row.matchnum.split('_')[1] +
+                  '-' +
+                  row.matchnum.split('_')[2];
+              }
+              row.alteredMatchNum = newMatchNum;
               if (row.reportstatus === 'Follow Up') {
                 buttonLabel = 'Fix';
               } else if (row.reportstatus === 'Done') {
@@ -214,7 +360,6 @@ class MatchReportList extends Component {
   }
 
   render() {
-    console.log("SHARON ", this.state.competition);
     const competitionItems = this.state.competitions.map(competition => (
       <Dropdown.Item
         eventKey={competition.shortname}
@@ -295,7 +440,7 @@ class MatchReportList extends Component {
                 Refresh
               </Button>
             </div>
-            { this.context.isLoggedIn === true &&
+            {this.context.isLoggedIn === true && (
               <Link to={'matches/new'}>
                 <Button
                   variant='success'
@@ -310,8 +455,8 @@ class MatchReportList extends Component {
                   Scout New Match
                 </Button>
               </Link>
-            }
-            { this.context.isLoggedIn === true &&
+            )}
+            {this.context.isLoggedIn === true && (
               <Link to={'supers/' + this.state.competition}>
                 <Button
                   variant='success'
@@ -326,17 +471,16 @@ class MatchReportList extends Component {
                   Super Scout
                 </Button>
               </Link>
-            }
+            )}
           </div>
         </div>
         <BootstrapTable
-          stripped
+          striped
           hover
           keyField='matchid'
           //rowStyle={this.state.style}
           bordered
           bootstrap4
-          defaultSorted={defaultSorted}
           data={this.state.matches}
           columns={this.state.columns}
           filter={filterFactory()}

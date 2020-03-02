@@ -1,31 +1,49 @@
 import React, { Component } from 'react';
-import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Logo from './1796NumberswithScratch.png';
+import { Form, Dropdown } from 'react-bootstrap';
 import AllianceStation from './AllianceStationGuide.png';
 import GeneratorSwitch from './generatorswitch.png';
 import Counter from './Counter.js';
 import PenaltyCounter from './PenaltyCounter.js';
 import StopWatch from './StopWatch.js';
-import { useHistory } from 'react-router-dom';
+import { Prompt } from 'react-router-dom';
+import { AuthContext } from '../contexts/auth_context';
 
 class MatchContent extends Component {
+  static contextType = AuthContext;
+
   state = {
     retrieved: '',
     competition: '',
+    competitionKey: '',
     markForFollowUp: false,
     formStage: 0,
-    validatedStage0: false,
-    validatedStage1: false,
-    validatedStage2: false,
-    validatedStage3: false,
-    validatedStage4: false,
+    validatedStage0: true,
+    validatedStage1: true,
+    validatedStage2: true,
+    validatedStage3: true,
+    validatedStage4: true,
+    validStage0: false,
+    validStage1: false,
+    validStage2: false,
+    validStage3: false,
+    validStage4: false,
     widthSize: '',
     heightSize: '',
-    scout: '',
-    matchNum: '',
+    matchTypes: [
+      { id: 1, name: 'Quals', key: 'qm' },
+      { id: 2, name: 'Quarters', key: 'qf' },
+      { id: 3, name: 'Semis', key: 'sf' },
+      { id: 4, name: 'Finals', key: 'f' }
+    ],
+    matchTypeLabel: 'Quals',
+    matchTypeKey: 'qm',
+    scout: this.context.user.username,
+    matchNum1: '',
+    matchNum2: '',
     allianceStation: 'Red Station 1',
     autoTeam: true,
     teamNum: '',
@@ -70,10 +88,8 @@ class MatchContent extends Component {
     oldPositionTimer: '',
     endGameOptions: [
       { id: 1, label: 'Hang' },
-      { id: 2, label: 'Unsuccessful hang' },
-      { id: 3, label: 'Unsuccessful park' },
-      { id: 4, label: 'Park' },
-      { id: 5, label: 'None' }
+      { id: 2, label: 'Park' },
+      { id: 3, label: 'None' }
     ],
     endGame: '',
     endGameTimer: 0,
@@ -107,25 +123,29 @@ class MatchContent extends Component {
       { id: 2, label: 'Yellow Card', value: 0, min: 0, max: 1 },
       { id: 3, label: 'Red Card', value: 0, min: 0, max: 1 }
     ],
-    reflectionComments: ''
+    reflectionComments: '',
+    submitting: false
   };
 
   componentDidMount() {
+    window.onbeforeunload = function() {
+      return '';
+    };
     if (this.props.match.url === '/matches/new') {
       fetch('/competitions')
         .then(response => response.json())
         .then(data => {
           this.setState({ retrieved: 'valid' });
-          this.setState({ competitions: data.competitions });
           data.competitions.map(c => {
             if (c.iscurrent) {
               this.setState({ competition: c.shortname });
+              this.setState({ competitionKey: c.bluekey });
             }
           });
         });
     } else {
       fetch(
-        `/api/competitions/${this.props.match.params.competition}/team/${this.props.match.params.team}/matchNum/${this.props.match.params.matchNum}/match`
+        `/api/competitions/${this.props.match.params.competition}/team/${this.props.match.params.team}/matchNum/${this.props.match.params.matchNum}/matchData`
       )
         .then(response => response.json())
         .then(data => {
@@ -140,9 +160,30 @@ class MatchContent extends Component {
                 existingData.report_status === 'Done' ? false : true
             });
             this.setState({ scout: existingData.scout_name });
-            this.setState({ matchNum: existingData.match_num });
+            this.setState({ competitionKey: existingData.blue_key });
+            let matchNum = existingData.match_num.split('_');
+            if (matchNum[0] === 'qm') {
+              this.setState({ matchTypeKey: 'qm' });
+              this.setState({ matchTypeLabel: 'Quals' });
+              this.setState({ matchNum1: matchNum[1] });
+            } else if (matchNum[0] === 'qf') {
+              this.setState({ matchTypeKey: 'qf' });
+              this.setState({ matchTypeLabel: 'Quarters' });
+              this.setState({ matchNum1: matchNum[1] });
+              this.setState({ matchNum2: matchNum[2] });
+            } else if (matchNum[0] === 'sf') {
+              this.setState({ matchTypeKey: 'qf' });
+              this.setState({ matchTypeLabel: 'Semis' });
+              this.setState({ matchNum1: matchNum[1] });
+              this.setState({ matchNum2: matchNum[2] });
+            } else if (matchNum[0] === 'f') {
+              this.setState({ matchTypeKey: 'f' });
+              this.setState({ matchTypeLabel: 'Finals' });
+              this.setState({ matchNum1: matchNum[1] });
+              this.setState({ matchNum2: matchNum[2] });
+            }
             this.setState({ allianceStation: existingData.alliance_station });
-            this.setState({ autoTeam: true });
+            this.setState({ autoTeam: existingData.auto_team });
             this.setState({ teamNum: existingData.team_num });
             this.setState({ autoPowerCells: existingData.auto_power_cells });
             this.setState({ startingPosition: existingData.starting_position });
@@ -218,6 +259,13 @@ class MatchContent extends Component {
             });
           }
         })
+        .then(() => {
+          this.checkStage0();
+          this.checkStage1();
+          this.checkStage2();
+          this.checkStage3();
+          this.checkStage4();
+        })
         .catch(error => {
           console.log('Error:', error);
         });
@@ -228,41 +276,182 @@ class MatchContent extends Component {
     this.setState({ heightSize: window.innerHeight + 'px' });
   }
 
-  handleMatchNum = event => {
-    this.setState({ matchNum: event.target.value });
+  changeStage = stage => {
+    this.setState({ formStage: stage }, () => {
+      window.scrollTo(0, 0);
+    });
+  };
+
+  checkStage0() {
+    if (this.state.matchNum1 !== '' && this.state.teamNum !== '') {
+      if (this.state.matchTypeKey !== 'qm') {
+        if (this.state.matchNum2 !== '') {
+          this.setState({ validStage0: true });
+        } else {
+          this.setState({ validStage0: false });
+        }
+      } else {
+        this.setState({ validStage0: true });
+      }
+    } else {
+      this.setState({ validStage0: false });
+    }
+  }
+
+  changeMatchType = (key, event) => {
+    this.setState({ matchTypeKey: key }, () => {
+      if (this.state.matchTypeKey === 'qm') {
+        this.setState({ matchNum2: '' });
+      }
+      this.getTeamNumber();
+    });
+    this.setState({ matchTypeLabel: event.target.innerHTML });
+    this.checkStage0();
+  };
+
+  handleMatchNum1 = event => {
+    this.setState({ matchNum1: event.target.value }, () => {
+      if (this.state.autoTeam) {
+        this.getTeamNumber();
+      }
+      this.checkStage0();
+    });
+  };
+
+  handleMatchNum2 = event => {
+    this.setState({ matchNum2: event.target.value }, () => {
+      if (this.state.autoTeam) {
+        this.getTeamNumber();
+      }
+      this.checkStage0();
+    });
+  };
+
+  getTeamNumber = () => {
+    fetch(
+      `https://www.thebluealliance.com/api/v3/match/2020${
+        this.state.competitionKey
+      }_${this.state.matchTypeKey}${
+        this.state.matchTypeKey === 'qm'
+          ? this.state.matchNum1
+          : this.state.matchNum1 + 'm' + this.state.matchNum2
+      }?X-TBA-Auth-Key=VcTpa99nIEsT44AsrzSXFzdlS7efZ1wWCrnkMMFyBWQ3tXbp0KFRHSJTLhx96ukP`
+    )
+      .then(response => response.json())
+      .then(data => {
+        console.log(data);
+        if (this.state.allianceStation === 'Red Station 1') {
+          this.setState(
+            {
+              teamNum: data.alliances.red.team_keys[0].substring(3)
+            },
+            () => {
+              this.checkStage0();
+            }
+          );
+        } else if (this.state.allianceStation === 'Red Station 2') {
+          this.setState(
+            {
+              teamNum: data.alliances.red.team_keys[1].substring(3)
+            },
+            () => {
+              this.checkStage0();
+            }
+          );
+        } else if (this.state.allianceStation === 'Red Station 3') {
+          this.setState(
+            {
+              teamNum: data.alliances.red.team_keys[2].substring(3)
+            },
+            () => {
+              this.checkStage0();
+            }
+          );
+        } else if (this.state.allianceStation === 'Blue Station 1') {
+          this.setState(
+            {
+              teamNum: data.alliances.blue.team_keys[0].substring(3)
+            },
+            () => {
+              this.checkStage0();
+            }
+          );
+        } else if (this.state.allianceStation === 'Blue Station 2') {
+          this.setState(
+            {
+              teamNum: data.alliances.blue.team_keys[1].substring(3)
+            },
+            () => {
+              this.checkStage0();
+            }
+          );
+        } else if (this.state.allianceStation === 'Blue Station 3') {
+          this.setState(
+            {
+              teamNum: data.alliances.blue.team_keys[2].substring(3)
+            },
+            () => {
+              this.checkStage0();
+            }
+          );
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        this.setState({ teamNum: '' }, () => {
+          this.checkStage0();
+        });
+      });
   };
 
   handleStationChange = event => {
-    this.setState({ allianceStation: event.target.value });
+    this.setState({ allianceStation: event.target.value }, () => {
+      this.getTeamNumber();
+    });
   };
 
   handleModeSwitch = event => {
-    this.setState({ autoTeam: !this.state.autoTeam });
+    this.setState({ autoTeam: !this.state.autoTeam }, () => {
+      if (this.state.autoTeam) {
+        this.getTeamNumber();
+      }
+    });
   };
 
   handleTeamNum = event => {
-    this.setState({ teamNum: event.target.value });
+    this.setState({ teamNum: event.target.value }, () => {
+      this.checkStage0();
+    });
   };
 
   handleStage0Increment = event => {
-    this.setState({ validatedStage0: true });
-    if (this.state.matchNum !== '' && this.state.teamNum !== '') {
-      this.setState({ formStage: 1 }, () => {
-        window.scrollTo(0, 0);
-      });
-    }
+    this.setState({ formStage: 1 }, () => {
+      window.scrollTo(0, 0);
+    });
   };
+
+  checkStage1() {
+    if (this.state.startingPosition !== '' && this.state.crossLine !== '') {
+      this.setState({ validStage1: true });
+    } else {
+      this.setState({ validStage1: false });
+    }
+  }
 
   handleSliderAutoCells = event => {
     this.setState({ autoPowerCells: event.target.value });
   };
 
   handlePositionChange = position => {
-    this.setState({ startingPosition: position.label });
+    this.setState({ startingPosition: position.label }, () => {
+      this.checkStage1();
+    });
   };
 
   handleCrossLineChange = option => {
-    this.setState({ crossLine: option.label });
+    this.setState({ crossLine: option.label }, () => {
+      this.checkStage1();
+    });
   };
 
   handleAutoGoalIncrement = goal => {
@@ -292,12 +481,9 @@ class MatchContent extends Component {
   };
 
   handleStage1Increment = event => {
-    this.setState({ validatedStage1: true });
-    if (this.state.startingPosition !== '' && this.state.crossLine !== '') {
-      this.setState({ formStage: 2 }, () => {
-        window.scrollTo(0, 0);
-      });
-    }
+    this.setState({ formStage: 2 }, () => {
+      window.scrollTo(0, 0);
+    });
   };
 
   handleStage1Decrement = event => {
@@ -305,6 +491,17 @@ class MatchContent extends Component {
       window.scrollTo(0, 0);
     });
   };
+
+  checkStage2() {
+    if (
+      this.state.rotationControl !== '' &&
+      this.state.positionControl !== ''
+    ) {
+      this.setState({ validStage2: true });
+    } else {
+      this.setState({ validStage2: false });
+    }
+  }
 
   handleTeleopGoalIncrement = goal => {
     const teleopGoals = [...this.state.teleopScored];
@@ -333,7 +530,9 @@ class MatchContent extends Component {
   };
 
   handleRotationControl = option => {
-    this.setState({ rotationControl: option.label });
+    this.setState({ rotationControl: option.label }, () => {
+      this.checkStage2();
+    });
   };
 
   handlePositionControlTimer = time => {
@@ -341,19 +540,15 @@ class MatchContent extends Component {
   };
 
   handlePositionControl = option => {
-    this.setState({ positionControl: option.label });
+    this.setState({ positionControl: option.label }, () => {
+      this.checkStage2();
+    });
   };
 
   handleStage2Increment = event => {
-    this.setState({ validatedStage2: true });
-    if (
-      this.state.rotationControl !== '' &&
-      this.state.positionControl !== ''
-    ) {
-      this.setState({ formStage: 3 }, () => {
-        window.scrollTo(0, 0);
-      });
-    }
+    this.setState({ formStage: 3 }, () => {
+      window.scrollTo(0, 0);
+    });
   };
 
   handleStage2Decrement = event => {
@@ -362,20 +557,42 @@ class MatchContent extends Component {
     });
   };
 
+  checkStage3() {
+    if (this.state.endGame !== '') {
+      if (this.state.endGame === 'Hang') {
+        if (this.state.climb !== '' && this.state.level !== '') {
+          this.setState({ validStage3: true });
+        } else {
+          this.setState({ validStage3: false });
+        }
+      } else {
+        this.setState({ validStage3: true });
+      }
+    } else {
+      this.setState({ validStage3: false });
+    }
+  }
+
   handleEndGameTimer = time => {
     this.setState({ endGameTimer: time });
   };
 
   handleEndGame = option => {
-    this.setState({ endGame: option.label });
+    this.setState({ endGame: option.label }, () => {
+      this.checkStage3();
+    });
   };
 
   handleClimb = option => {
-    this.setState({ climb: option.label });
+    this.setState({ climb: option.label }, () => {
+      this.checkStage3();
+    });
   };
 
   handleLevel = option => {
-    this.setState({ level: option.label });
+    this.setState({ level: option.label }, () => {
+      this.checkStage3();
+    });
   };
 
   handleLevelChange = event => {
@@ -383,20 +600,9 @@ class MatchContent extends Component {
   };
 
   handleStage3Increment = event => {
-    this.setState({ validatedStage3: true });
-    if (this.state.endGame !== '') {
-      if (this.state.endGame === 'Hang') {
-        if (this.state.climb !== '' && this.state.level !== '') {
-          this.setState({ formStage: 4 }, () => {
-            window.scrollTo(0, 0);
-          });
-        }
-      } else {
-        this.setState({ formStage: 4 }, () => {
-          window.scrollTo(0, 0);
-        });
-      }
-    }
+    this.setState({ formStage: 4 }, () => {
+      window.scrollTo(0, 0);
+    });
   };
 
   handleStage3Decrement = event => {
@@ -405,12 +611,24 @@ class MatchContent extends Component {
     });
   };
 
+  checkStage4() {
+    if (this.state.communication !== '' && this.state.break !== '') {
+      this.setState({ validStage4: true });
+    } else {
+      this.setState({ validStage4: false });
+    }
+  }
+
   handleCommunication = option => {
-    this.setState({ communication: option.label });
+    this.setState({ communication: option.label }, () => {
+      this.checkStage4();
+    });
   };
 
   handleBreak = option => {
-    this.setState({ break: option.label });
+    this.setState({ break: option.label }, () => {
+      this.checkStage4();
+    });
   };
 
   handleNegativeIncrement = negative => {
@@ -493,60 +711,93 @@ class MatchContent extends Component {
 
   handleSubmit = event => {
     event.preventDefault();
-    this.setState({ validatedStage4: true });
-    if (this.state.communication !== '' && this.state.break !== '') {
-      const data = {
-        competition: this.state.competition,
-        teamNum: this.state.teamNum,
-        matchNum: this.state.matchNum,
-        scoutName: this.state.scout,
-        reportStatus: this.state.markForFollowUp ? 'Follow Up' : 'Done',
-        allianceStation: this.state.allianceStation,
-        autoTeam: this.state.autoTeam,
-        autoPowerCells: this.state.autoPowerCells,
-        startingPosition: this.state.startingPosition,
-        crossLine: this.state.crossLine,
-        autoScored: JSON.stringify(this.state.autoScored),
-        autoComments: this.state.autoComments,
-        teleopScored: JSON.stringify(this.state.teleopScored),
-        rotationControl: this.state.rotationControl,
-        rotationTimer: this.state.rotationTimer,
-        positionControl: this.state.positionControl,
-        positionTimer: this.state.positionTimer,
-        endGame: this.state.endGame,
-        endGameTimer: this.state.endGameTimer,
-        climb: this.state.endGame === 'Hang' ? this.state.climb : null,
-        level: this.state.endGame === 'Hang' ? this.state.level : null,
-        levelPosition:
-          this.state.endGame === 'Hang' ? this.state.levelPosition : null,
-        communication: this.state.communication,
-        break: this.state.break,
-        negatives: JSON.stringify(this.state.negatives),
-        reflectionComments: this.state.reflectionComments
-      };
-      fetch('/api/submitMatchForm', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      })
-        .then(response => response.json())
-        .then(data => {
-          console.log(data);
+    if (
+      (this.state.validStage0 &&
+        this.state.validStage1 &&
+        this.state.validStage2 &&
+        this.state.validStage3 &&
+        this.state.validStage4) ||
+      (this.state.validStage0 && this.state.markForFollowUp)
+    ) {
+      if (window.confirm("Press 'OK' to confirm submit")) {
+        const data = {
+          competition: this.state.competition,
+          teamNum: this.state.teamNum,
+          matchNum:
+            this.state.matchTypeKey === 'qm'
+              ? this.state.matchTypeKey + '_' + this.state.matchNum1
+              : this.state.matchTypeKey +
+                '_' +
+                this.state.matchNum1 +
+                '_' +
+                this.state.matchNum2,
+          scoutName: this.state.scout,
+          reportStatus: this.state.markForFollowUp ? 'Follow Up' : 'Done',
+          allianceStation: this.state.allianceStation,
+          autoTeam: this.state.autoTeam,
+          autoPowerCells: this.state.autoPowerCells,
+          startingPosition: this.state.startingPosition,
+          crossLine: this.state.crossLine,
+          autoScored: JSON.stringify(this.state.autoScored),
+          autoComments: this.state.autoComments,
+          teleopScored: JSON.stringify(this.state.teleopScored),
+          rotationControl: this.state.rotationControl,
+          rotationTimer:
+            this.state.rotationControl === 'No' ? 0 : this.state.rotationTimer,
+          positionControl: this.state.positionControl,
+          positionTimer:
+            this.state.positionControl === 'No' ? 0 : this.state.positionTimer,
+          endGame: this.state.endGame,
+          endGameTimer:
+            this.state.endGame === 'Hang' ? this.state.endGameTimer : 0,
+          climb: this.state.endGame === 'Hang' ? this.state.climb : '',
+          level: this.state.endGame === 'Hang' ? this.state.level : '',
+          levelPosition:
+            this.state.endGame === 'Hang' ? this.state.levelPosition : 0,
+          communication: this.state.communication,
+          break: this.state.break,
+          negatives: JSON.stringify(this.state.negatives),
+          reflectionComments: this.state.reflectionComments
+        };
+        fetch('/api/submitMatchForm', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
         })
-        .catch(error => {
-          console.error('Error:', error);
-        });
+          .then(response => response.json())
+          .then(data => {
+            if (data.message === 'Submitted') {
+              this.setState({ submitting: true });
+              this.props.history.push('/matches');
+            } else {
+              alert(data.message);
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+      }
     }
   };
 
   render() {
+    const matchTypes = this.state.matchTypes.map(type => (
+      <Dropdown.Item
+        eventKey={type.key}
+        key={type.id}
+        style={{ fontFamily: 'Helvetica, Arial' }}
+      >
+        {type.name}
+      </Dropdown.Item>
+    ));
+
     if (this.state.retrieved === '') {
       return null;
     } else if (this.state.retrieved === 'invalid') {
       return (
-        <div className='div-main'>
+        <div className='div-main' style={{ minHeight: this.state.heightSize }}>
           <h1 className='pt-4'>Invalid match form request</h1>
         </div>
       );
@@ -557,6 +808,10 @@ class MatchContent extends Component {
             className='div-main'
             style={{ minHeight: this.state.heightSize }}
           >
+            <Prompt
+              when={!this.state.submitting}
+              message='Are you sure you want to leave?'
+            />
             <div className='justify-content-center'>
               <img
                 alt='Logo'
@@ -569,6 +824,73 @@ class MatchContent extends Component {
               />
             </div>
             <div style={{ width: this.state.widthSize }} className='div-second'>
+              <div>
+                <span
+                  onClick={() => this.changeStage(0)}
+                  className='dot'
+                  style={{
+                    borderColor:
+                      this.state.formStage === 0 ? 'black' : 'transparent',
+                    backgroundColor: this.state.validStage0
+                      ? '#57c24f'
+                      : '#d4463b'
+                  }}
+                >
+                  1
+                </span>
+                <span
+                  onClick={() => this.changeStage(1)}
+                  className='dot'
+                  style={{
+                    borderColor:
+                      this.state.formStage === 1 ? 'black' : 'transparent',
+                    backgroundColor: this.state.validStage1
+                      ? '#57c24f'
+                      : '#d4463b'
+                  }}
+                >
+                  2
+                </span>
+                <span
+                  onClick={() => this.changeStage(2)}
+                  className='dot'
+                  style={{
+                    borderColor:
+                      this.state.formStage === 2 ? 'black' : 'transparent',
+                    backgroundColor: this.state.validStage2
+                      ? '#57c24f'
+                      : '#d4463b'
+                  }}
+                >
+                  3
+                </span>
+                <span
+                  onClick={() => this.changeStage(3)}
+                  className='dot'
+                  style={{
+                    borderColor:
+                      this.state.formStage === 3 ? 'black' : 'transparent',
+                    backgroundColor: this.state.validStage3
+                      ? '#57c24f'
+                      : '#d4463b'
+                  }}
+                >
+                  4
+                </span>
+                <span
+                  onClick={() => this.changeStage(4)}
+                  className='dot'
+                  style={{
+                    borderColor:
+                      this.state.formStage === 4 ? 'black' : 'transparent',
+                    backgroundColor: this.state.validStage4
+                      ? '#57c24f'
+                      : '#d4463b'
+                  }}
+                >
+                  5
+                </span>
+              </div>
               <div className='div-form'>
                 <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
                   <Form.Label
@@ -603,28 +925,85 @@ class MatchContent extends Component {
                     Match Number:
                   </Form.Label>
                 </Form.Group>
-                <Form.Group style={{ width: '80%', marginLeft: '2%' }} as={Row}>
+                <div style={{ marginLeft: '-6%' }}>
+                  <Dropdown
+                    style={{
+                      marginBottom: '10px',
+                      display: 'inline-block'
+                    }}
+                    focusFirstItemOnShow={false}
+                    onSelect={this.changeMatchType}
+                  >
+                    <Dropdown.Toggle
+                      style={{
+                        fontFamily: 'Helvetica, Arial',
+                        textAlign: 'center'
+                      }}
+                      size='xs'
+                      variant='success'
+                      id='dropdown-basic'
+                    >
+                      {this.state.matchTypeLabel}
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu style={{ minWidth: '3%' }}>
+                      {matchTypes}
+                    </Dropdown.Menu>
+                  </Dropdown>
                   <Form.Control
-                    value={this.state.matchNum}
+                    value={this.state.matchNum1}
                     autoComplete='off'
                     type='number'
                     max={200}
                     min={1}
                     placeholder='Match Number'
-                    onChange={this.handleMatchNum}
+                    onChange={this.handleMatchNum1}
                     isValid={
-                      this.state.validatedStage0 && this.state.matchNum !== ''
+                      this.state.validatedStage0 && this.state.matchNum1 !== ''
                     }
                     isInvalid={
-                      this.state.validatedStage0 && this.state.matchNum === ''
+                      this.state.validatedStage0 && this.state.matchNum1 === ''
                     }
                     className='mb-1'
                     style={{
                       background: 'none',
-                      fontFamily: 'Helvetica, Arial'
+                      fontFamily: 'Helvetica, Arial',
+                      marginLeft: '2%',
+                      display: 'inline-block',
+                      width: this.state.matchTypeKey === 'qm' ? '50%' : '25%'
                     }}
                   />
-                </Form.Group>
+                  {this.state.matchTypeKey !== 'qm' ? (
+                    <React.Fragment>
+                      <span>-</span>
+                      <Form.Control
+                        value={this.state.matchNum2}
+                        autoComplete='off'
+                        type='number'
+                        max={200}
+                        min={1}
+                        placeholder='Match Number'
+                        onChange={this.handleMatchNum2}
+                        isValid={
+                          this.state.validatedStage0 &&
+                          this.state.matchTypeKey !== 'qm' &&
+                          this.state.matchNum2 !== ''
+                        }
+                        isInvalid={
+                          this.state.validatedStage0 &&
+                          this.state.matchTypeKey !== 'qm' &&
+                          this.state.matchNum2 === ''
+                        }
+                        className='mb-1'
+                        style={{
+                          background: 'none',
+                          fontFamily: 'Helvetica, Arial',
+                          display: 'inline-block',
+                          width: '25%'
+                        }}
+                      />
+                    </React.Fragment>
+                  ) : null}
+                </div>
                 <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
                   <Form.Label
                     className='mb-1'
@@ -668,7 +1047,7 @@ class MatchContent extends Component {
                 </Form.Group>
                 <Form.Group style={{ width: '80%', marginLeft: '2%' }} as={Row}>
                   <Form.Check
-                    value={this.state.autoTeam}
+                    checked={!this.state.autoTeam}
                     onChange={this.handleModeSwitch}
                     type='switch'
                     label={this.state.autoTeam ? 'Automatic' : 'Manual'}
@@ -684,6 +1063,7 @@ class MatchContent extends Component {
                         fontFamily: 'Helvetica, Arial',
                         fontSize: '110%'
                       }}
+                      onChange={this.checkStage0}
                     >
                       {this.state.teamNum}
                     </Form.Label>
@@ -710,6 +1090,18 @@ class MatchContent extends Component {
                     />
                   )}
                 </Form.Group>
+                <Form.Check
+                  onChange={this.handleFollowUp}
+                  checked={this.state.markForFollowUp}
+                  custom
+                  style={{
+                    fontSize: '100%',
+                    fontFamily: 'Helvetica, Arial'
+                  }}
+                  type='checkbox'
+                  label='Mark for follow up'
+                  id='followUp'
+                />
               </div>
               <Button
                 variant='success'
@@ -717,12 +1109,27 @@ class MatchContent extends Component {
                 style={{
                   fontFamily: 'Helvetica, Arial',
                   boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
-                  border: '1px solid black'
+                  border: '1px solid black',
+                  marginRight: '8%'
                 }}
                 onClick={this.handleStage0Increment}
                 className='btn-lg'
               >
                 Next
+              </Button>
+              <Button
+                variant='success'
+                type='btn'
+                style={{
+                  fontFamily: 'Helvetica, Arial',
+                  boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
+                  border: '1px solid black',
+                  marginLeft: '8%'
+                }}
+                onClick={this.handleSubmit}
+                className='btn-lg'
+              >
+                Submit
               </Button>
             </div>
           </div>
@@ -733,6 +1140,10 @@ class MatchContent extends Component {
             className='div-main'
             style={{ minHeight: this.state.heightSize }}
           >
+            <Prompt
+              when={!this.state.submitting}
+              message='Are you sure you want to leave?'
+            />
             <div className='justify-content-center'>
               <img
                 alt='Logo'
@@ -745,6 +1156,73 @@ class MatchContent extends Component {
               />
             </div>
             <div style={{ width: this.state.widthSize }} className='div-second'>
+              <div>
+                <span
+                  onClick={() => this.changeStage(0)}
+                  className='dot'
+                  style={{
+                    borderColor:
+                      this.state.formStage === 0 ? 'black' : 'transparent',
+                    backgroundColor: this.state.validStage0
+                      ? '#57c24f'
+                      : '#d4463b'
+                  }}
+                >
+                  1
+                </span>
+                <span
+                  onClick={() => this.changeStage(1)}
+                  className='dot'
+                  style={{
+                    borderColor:
+                      this.state.formStage === 1 ? 'black' : 'transparent',
+                    backgroundColor: this.state.validStage1
+                      ? '#57c24f'
+                      : '#d4463b'
+                  }}
+                >
+                  2
+                </span>
+                <span
+                  onClick={() => this.changeStage(2)}
+                  className='dot'
+                  style={{
+                    borderColor:
+                      this.state.formStage === 2 ? 'black' : 'transparent',
+                    backgroundColor: this.state.validStage2
+                      ? '#57c24f'
+                      : '#d4463b'
+                  }}
+                >
+                  3
+                </span>
+                <span
+                  onClick={() => this.changeStage(3)}
+                  className='dot'
+                  style={{
+                    borderColor:
+                      this.state.formStage === 3 ? 'black' : 'transparent',
+                    backgroundColor: this.state.validStage3
+                      ? '#57c24f'
+                      : '#d4463b'
+                  }}
+                >
+                  4
+                </span>
+                <span
+                  onClick={() => this.changeStage(4)}
+                  className='dot'
+                  style={{
+                    borderColor:
+                      this.state.formStage === 4 ? 'black' : 'transparent',
+                    backgroundColor: this.state.validStage4
+                      ? '#57c24f'
+                      : '#d4463b'
+                  }}
+                >
+                  5
+                </span>
+              </div>
               <div className='div-form'>
                 <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
                   <Form.Label
@@ -931,6 +1409,18 @@ class MatchContent extends Component {
                     />
                   </Form.Group>
                 </div>
+                <Form.Check
+                  onChange={this.handleFollowUp}
+                  checked={this.state.markForFollowUp}
+                  custom
+                  style={{
+                    fontSize: '100%',
+                    fontFamily: 'Helvetica, Arial'
+                  }}
+                  type='checkbox'
+                  label='Mark for follow up'
+                  id='followUp'
+                />
               </div>
               <Button
                 variant='success'
@@ -939,7 +1429,7 @@ class MatchContent extends Component {
                   fontFamily: 'Helvetica, Arial',
                   boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
                   border: '1px solid black',
-                  marginRight: '15%'
+                  marginRight: '4%'
                 }}
                 onClick={this.handleStage1Decrement}
                 className='btn-lg'
@@ -952,12 +1442,28 @@ class MatchContent extends Component {
                 style={{
                   fontFamily: 'Helvetica, Arial',
                   boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
-                  border: '1px solid black'
+                  border: '1px solid black',
+                  marginLeft: '4%',
+                  marginRight: '4%'
                 }}
                 onClick={this.handleStage1Increment}
                 className='btn-lg'
               >
                 Next
+              </Button>
+              <Button
+                variant='success'
+                type='btn'
+                style={{
+                  fontFamily: 'Helvetica, Arial',
+                  boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
+                  border: '1px solid black',
+                  marginLeft: '4%'
+                }}
+                onClick={this.handleSubmit}
+                className='btn-lg'
+              >
+                Submit
               </Button>
             </div>
           </div>
@@ -968,6 +1474,10 @@ class MatchContent extends Component {
             className='div-main'
             style={{ minHeight: this.state.heightSize }}
           >
+            <Prompt
+              when={!this.state.submitting}
+              message='Are you sure you want to leave?'
+            />
             <div className='justify-content-center'>
               <img
                 alt='Logo'
@@ -980,6 +1490,73 @@ class MatchContent extends Component {
               />
             </div>
             <div style={{ width: this.state.widthSize }} className='div-second'>
+              <div>
+                <span
+                  onClick={() => this.changeStage(0)}
+                  className='dot'
+                  style={{
+                    borderColor:
+                      this.state.formStage === 0 ? 'black' : 'transparent',
+                    backgroundColor: this.state.validStage0
+                      ? '#57c24f'
+                      : '#d4463b'
+                  }}
+                >
+                  1
+                </span>
+                <span
+                  onClick={() => this.changeStage(1)}
+                  className='dot'
+                  style={{
+                    borderColor:
+                      this.state.formStage === 1 ? 'black' : 'transparent',
+                    backgroundColor: this.state.validStage1
+                      ? '#57c24f'
+                      : '#d4463b'
+                  }}
+                >
+                  2
+                </span>
+                <span
+                  onClick={() => this.changeStage(2)}
+                  className='dot'
+                  style={{
+                    borderColor:
+                      this.state.formStage === 2 ? 'black' : 'transparent',
+                    backgroundColor: this.state.validStage2
+                      ? '#57c24f'
+                      : '#d4463b'
+                  }}
+                >
+                  3
+                </span>
+                <span
+                  onClick={() => this.changeStage(3)}
+                  className='dot'
+                  style={{
+                    borderColor:
+                      this.state.formStage === 3 ? 'black' : 'transparent',
+                    backgroundColor: this.state.validStage3
+                      ? '#57c24f'
+                      : '#d4463b'
+                  }}
+                >
+                  4
+                </span>
+                <span
+                  onClick={() => this.changeStage(4)}
+                  className='dot'
+                  style={{
+                    borderColor:
+                      this.state.formStage === 4 ? 'black' : 'transparent',
+                    backgroundColor: this.state.validStage4
+                      ? '#57c24f'
+                      : '#d4463b'
+                  }}
+                >
+                  5
+                </span>
+              </div>
               <div className='div-form'>
                 <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
                   <Form.Label
@@ -1044,7 +1621,10 @@ class MatchContent extends Component {
                     Last Rotation Time: {this.state.oldRotationTimer}
                   </Form.Label>
                 </Form.Group>
-                <StopWatch parentCallback={this.handleRotationControlTimer} />
+                <StopWatch
+                  value={this.state.rotationTimer}
+                  parentCallback={this.handleRotationControlTimer}
+                />
                 <Form.Group
                   style={{ width: '100%', marginLeft: '2%' }}
                   className='mb-3'
@@ -1103,7 +1683,10 @@ class MatchContent extends Component {
                     Last Position Time: {this.state.oldPositionTimer}
                   </Form.Label>
                 </Form.Group>
-                <StopWatch parentCallback={this.handlePositionControlTimer} />
+                <StopWatch
+                  value={this.state.positionTimer}
+                  parentCallback={this.handlePositionControlTimer}
+                />
                 <Form.Group
                   style={{ width: '100%', marginLeft: '2%' }}
                   className='mb-3'
@@ -1135,6 +1718,18 @@ class MatchContent extends Component {
                     </Form.Row>
                   ))}
                 </Form.Group>
+                <Form.Check
+                  onChange={this.handleFollowUp}
+                  checked={this.state.markForFollowUp}
+                  custom
+                  style={{
+                    fontSize: '100%',
+                    fontFamily: 'Helvetica, Arial'
+                  }}
+                  type='checkbox'
+                  label='Mark for follow up'
+                  id='followUp'
+                />
               </div>
               <Button
                 variant='success'
@@ -1143,7 +1738,7 @@ class MatchContent extends Component {
                   fontFamily: 'Helvetica, Arial',
                   boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
                   border: '1px solid black',
-                  marginRight: '15%'
+                  marginRight: '4%'
                 }}
                 onClick={this.handleStage2Decrement}
                 className='btn-lg'
@@ -1156,12 +1751,28 @@ class MatchContent extends Component {
                 style={{
                   fontFamily: 'Helvetica, Arial',
                   boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
-                  border: '1px solid black'
+                  border: '1px solid black',
+                  marginLeft: '4%',
+                  marginRight: '4%'
                 }}
                 onClick={this.handleStage2Increment}
                 className='btn-lg'
               >
                 Next
+              </Button>
+              <Button
+                variant='success'
+                type='btn'
+                style={{
+                  fontFamily: 'Helvetica, Arial',
+                  boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
+                  border: '1px solid black',
+                  marginLeft: '4%'
+                }}
+                onClick={this.handleSubmit}
+                className='btn-lg'
+              >
+                Submit
               </Button>
             </div>
           </div>
@@ -1172,6 +1783,10 @@ class MatchContent extends Component {
             className='div-main'
             style={{ minHeight: this.state.heightSize }}
           >
+            <Prompt
+              when={!this.state.submitting}
+              message='Are you sure you want to leave?'
+            />
             <div className='justify-content-center'>
               <img
                 alt='Logo'
@@ -1184,6 +1799,73 @@ class MatchContent extends Component {
               />
             </div>
             <div style={{ width: this.state.widthSize }} className='div-second'>
+              <div>
+                <span
+                  onClick={() => this.changeStage(0)}
+                  className='dot'
+                  style={{
+                    borderColor:
+                      this.state.formStage === 0 ? 'black' : 'transparent',
+                    backgroundColor: this.state.validStage0
+                      ? '#57c24f'
+                      : '#d4463b'
+                  }}
+                >
+                  1
+                </span>
+                <span
+                  onClick={() => this.changeStage(1)}
+                  className='dot'
+                  style={{
+                    borderColor:
+                      this.state.formStage === 1 ? 'black' : 'transparent',
+                    backgroundColor: this.state.validStage1
+                      ? '#57c24f'
+                      : '#d4463b'
+                  }}
+                >
+                  2
+                </span>
+                <span
+                  onClick={() => this.changeStage(2)}
+                  className='dot'
+                  style={{
+                    borderColor:
+                      this.state.formStage === 2 ? 'black' : 'transparent',
+                    backgroundColor: this.state.validStage2
+                      ? '#57c24f'
+                      : '#d4463b'
+                  }}
+                >
+                  3
+                </span>
+                <span
+                  onClick={() => this.changeStage(3)}
+                  className='dot'
+                  style={{
+                    borderColor:
+                      this.state.formStage === 3 ? 'black' : 'transparent',
+                    backgroundColor: this.state.validStage3
+                      ? '#57c24f'
+                      : '#d4463b'
+                  }}
+                >
+                  4
+                </span>
+                <span
+                  onClick={() => this.changeStage(4)}
+                  className='dot'
+                  style={{
+                    borderColor:
+                      this.state.formStage === 4 ? 'black' : 'transparent',
+                    backgroundColor: this.state.validStage4
+                      ? '#57c24f'
+                      : '#d4463b'
+                  }}
+                >
+                  5
+                </span>
+              </div>
               <div className='div-form'>
                 <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
                   <Form.Label
@@ -1210,7 +1892,10 @@ class MatchContent extends Component {
                     Last End Game Time: {this.state.oldEndGameTimer}
                   </Form.Label>
                 </Form.Group>
-                <StopWatch parentCallback={this.handleEndGameTimer} />
+                <StopWatch
+                  value={this.state.endGameTimer}
+                  parentCallback={this.handleEndGameTimer}
+                />
                 <Form.Group
                   style={{ width: '100%', marginLeft: '2%' }}
                   className='mb-3'
@@ -1242,6 +1927,20 @@ class MatchContent extends Component {
                     </Form.Row>
                   ))}
                 </Form.Group>
+                {this.state.endGame !== 'Hang' ? (
+                  <Form.Check
+                    onChange={this.handleFollowUp}
+                    checked={this.state.markForFollowUp}
+                    custom
+                    style={{
+                      fontSize: '100%',
+                      fontFamily: 'Helvetica, Arial'
+                    }}
+                    type='checkbox'
+                    label='Mark for follow up'
+                    id='followUp'
+                  />
+                ) : null}
               </div>
               {this.state.endGame === 'Hang' ? (
                 <React.Fragment>
@@ -1368,6 +2067,18 @@ class MatchContent extends Component {
                         </Form.Row>
                       ))}
                     </Form.Group>
+                    <Form.Check
+                      onChange={this.handleFollowUp}
+                      checked={this.state.markForFollowUp}
+                      custom
+                      style={{
+                        fontSize: '100%',
+                        fontFamily: 'Helvetica, Arial'
+                      }}
+                      type='checkbox'
+                      label='Mark for follow up'
+                      id='followUp'
+                    />
                   </div>
                 </React.Fragment>
               ) : null}
@@ -1378,7 +2089,7 @@ class MatchContent extends Component {
                   fontFamily: 'Helvetica, Arial',
                   boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
                   border: '1px solid black',
-                  marginRight: '15%'
+                  marginRight: '4%'
                 }}
                 onClick={this.handleStage3Decrement}
                 className='btn-lg'
@@ -1391,12 +2102,28 @@ class MatchContent extends Component {
                 style={{
                   fontFamily: 'Helvetica, Arial',
                   boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
-                  border: '1px solid black'
+                  border: '1px solid black',
+                  marginLeft: '4%',
+                  marginRight: '4%'
                 }}
                 onClick={this.handleStage3Increment}
                 className='btn-lg'
               >
                 Next
+              </Button>
+              <Button
+                variant='success'
+                type='btn'
+                style={{
+                  fontFamily: 'Helvetica, Arial',
+                  boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
+                  border: '1px solid black',
+                  marginLeft: '4%'
+                }}
+                onClick={this.handleSubmit}
+                className='btn-lg'
+              >
+                Submit
               </Button>
             </div>
           </div>
@@ -1407,6 +2134,10 @@ class MatchContent extends Component {
             className='div-main'
             style={{ minHeight: this.state.heightSize }}
           >
+            <Prompt
+              when={!this.state.submitting}
+              message='Are you sure you want to leave?'
+            />
             <div className='justify-content-center'>
               <img
                 alt='Logo'
@@ -1419,6 +2150,73 @@ class MatchContent extends Component {
               />
             </div>
             <div style={{ width: this.state.widthSize }} className='div-second'>
+              <div>
+                <span
+                  onClick={() => this.changeStage(0)}
+                  className='dot'
+                  style={{
+                    borderColor:
+                      this.state.formStage === 0 ? 'black' : 'transparent',
+                    backgroundColor: this.state.validStage0
+                      ? '#57c24f'
+                      : '#d4463b'
+                  }}
+                >
+                  1
+                </span>
+                <span
+                  onClick={() => this.changeStage(1)}
+                  className='dot'
+                  style={{
+                    borderColor:
+                      this.state.formStage === 1 ? 'black' : 'transparent',
+                    backgroundColor: this.state.validStage1
+                      ? '#57c24f'
+                      : '#d4463b'
+                  }}
+                >
+                  2
+                </span>
+                <span
+                  onClick={() => this.changeStage(2)}
+                  className='dot'
+                  style={{
+                    borderColor:
+                      this.state.formStage === 2 ? 'black' : 'transparent',
+                    backgroundColor: this.state.validStage2
+                      ? '#57c24f'
+                      : '#d4463b'
+                  }}
+                >
+                  3
+                </span>
+                <span
+                  onClick={() => this.changeStage(3)}
+                  className='dot'
+                  style={{
+                    borderColor:
+                      this.state.formStage === 3 ? 'black' : 'transparent',
+                    backgroundColor: this.state.validStage3
+                      ? '#57c24f'
+                      : '#d4463b'
+                  }}
+                >
+                  4
+                </span>
+                <span
+                  onClick={() => this.changeStage(4)}
+                  className='dot'
+                  style={{
+                    borderColor:
+                      this.state.formStage === 4 ? 'black' : 'transparent',
+                    backgroundColor: this.state.validStage4
+                      ? '#57c24f'
+                      : '#d4463b'
+                  }}
+                >
+                  5
+                </span>
+              </div>
               <div className='div-form'>
                 <Form.Group style={{ width: '80%', marginLeft: '1%' }} as={Row}>
                   <Form.Label
@@ -1625,7 +2423,7 @@ class MatchContent extends Component {
                   fontFamily: 'Helvetica, Arial',
                   boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
                   border: '1px solid black',
-                  marginRight: '15%'
+                  marginRight: '8%'
                 }}
                 onClick={this.handleStage4Decrement}
                 className='btn-lg'
@@ -1638,7 +2436,8 @@ class MatchContent extends Component {
                 style={{
                   fontFamily: 'Helvetica, Arial',
                   boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
-                  border: '1px solid black'
+                  border: '1px solid black',
+                  marginLeft: '8%'
                 }}
                 onClick={this.handleSubmit}
                 className='btn-lg'

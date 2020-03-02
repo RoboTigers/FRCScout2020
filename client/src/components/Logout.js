@@ -6,18 +6,17 @@ class Logout extends Component {
   static contextType = AuthContext;
 
   componentDidMount() {
+    window.onbeforeunload = null;
     fetch('/logout', {
       method: 'DELETE'
-    }).then((response) => {
+    }).then(response => {
       this.context.logOutUser();
     });
   }
 
   render() {
     if (this.context.isLoggedIn === false) {
-      return (
-        <Redirect to='/login' />
-      )
+      return <Redirect to='/login' />;
     }
     return null;
   }

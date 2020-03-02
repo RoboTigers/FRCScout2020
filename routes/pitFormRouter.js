@@ -57,8 +57,16 @@ router.post('/submitPitForm', (req, res) => {
   db.query(addPitQuery, addPitValues)
     .then(data => {
       console.log(data);
+      res.json({
+        message: 'Submitted'
+      });
     })
-    .catch(e => console.error(e.stack));
+    .catch(e => {
+      console.error(e.stack);
+      res.json({
+        message: 'Submitted'
+      });
+    });
 });
 
 module.exports = router;

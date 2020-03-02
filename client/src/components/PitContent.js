@@ -10,43 +10,7 @@ import Logo from './1796NumberswithScratch.png';
 import Camera, { FACING_MODES, IMAGE_TYPES } from 'react-html5-camera-photo';
 import 'react-html5-camera-photo/build/css/index.css';
 import ImagePreview from './ImagePreview';
-
-function getBase64Image(img) {
-  // Create an empty canvas element
-  var canvas = document.createElement('canvas');
-  canvas.width = img.width;
-  canvas.height = img.height;
-
-  // Copy the image contents to the canvas
-  var ctx = canvas.getContext('2d');
-  ctx.drawImage(img, 0, 0);
-
-  // Get the data-URL formatted image
-  // Firefox supports PNG and JPEG. You could check img.src to
-  // guess the original format, but be aware the using "image/jpg"
-  // will re-encode the image.
-  var dataURL = canvas.toDataURL('image/png');
-
-  return dataURL.replace(/^data:image\/(png|jpg);base64,/, '');
-}
-
-function base64toHEX(base64) {
-  let newBase64 = base64.slice(22);
-  var raw = atob(base64.slice(22));
-  console.log(base64.slice(22));
-
-  var HEX = '';
-  let i = 0;
-
-  for (i = 0; i < raw.length; i++) {
-    var _hex = raw.charCodeAt(i).toString(16);
-
-    HEX += _hex.length == 2 ? _hex : '0' + _hex;
-  }
-  let finalHex = "'" + HEX + "'";
-  console.log(finalHex);
-  return finalHex.toUpperCase();
-}
+import { Prompt } from 'react-router-dom';
 
 class PitContent extends Component {
   state = {
@@ -119,10 +83,14 @@ class PitContent extends Component {
     workingOnComments: '',
     closingComments: '',
     cameraActivated: false,
-    dataUri: ''
+    dataUri: '',
+    submitting: false
   };
 
   componentDidMount() {
+    window.onbeforeunload = function() {
+      return '';
+    };
     fetch(
       `/api/competitions/${this.props.match.params.competition}/team/${this.props.match.params.team}/pit`
     )
@@ -476,38 +444,46 @@ class PitContent extends Component {
   handleSumbit = event => {
     event.preventDefault();
     if (this.isFormValid() || this.state.markForFollowUp) {
-      const data = {
-        competition: this.state.competition,
-        teamNum: this.state.teamNumber,
-        status: this.state.markForFollowUp ? 'Follow Up' : 'Done',
-        group_name: this.state.group,
-        weight: this.state.weight === '' ? 0 : this.state.weight,
-        height: this.state.height === '' ? 0 : this.state.height,
-        drive_train: this.state.driveTrain,
-        motors: JSON.stringify(this.state.driveTrainMotors),
-        wheels: JSON.stringify(this.state.wheels),
-        drive_comments: this.state.driveComments,
-        code_language: this.state.programmingLanguage,
-        starting_position: this.state.startingPosition,
-        auto_comments: this.state.autoComments,
-        abilities: JSON.stringify(this.state.mechanisms),
-        working_comments: this.state.workingOnComments,
-        closing_comments: this.state.closingComments,
-        image: this.state.dataUri === '' ? null : this.state.dataUri
-      };
-      fetch('/api/submitPitForm', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      })
-        .then(response => response.json())
-        .then(data => {})
-        .catch(error => {
-          console.error('Error', error);
-        });
-      alert('submitted');
+      if (window.confirm("Press 'OK' to confirm submit")) {
+        const data = {
+          competition: this.state.competition,
+          teamNum: this.state.teamNumber,
+          status: this.state.markForFollowUp ? 'Follow Up' : 'Done',
+          group_name: this.state.group,
+          weight: this.state.weight === '' ? 0 : this.state.weight,
+          height: this.state.height === '' ? 0 : this.state.height,
+          drive_train: this.state.driveTrain,
+          motors: JSON.stringify(this.state.driveTrainMotors),
+          wheels: JSON.stringify(this.state.wheels),
+          drive_comments: this.state.driveComments,
+          code_language: this.state.programmingLanguage,
+          starting_position: this.state.startingPosition,
+          auto_comments: this.state.autoComments,
+          abilities: JSON.stringify(this.state.mechanisms),
+          working_comments: this.state.workingOnComments,
+          closing_comments: this.state.closingComments,
+          image: this.state.dataUri === '' ? null : this.state.dataUri
+        };
+        fetch('/api/submitPitForm', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.message === 'Submitted') {
+              this.setState({ submitting: true });
+              this.props.history.push('/pits');
+            } else {
+              alert(data.message);
+            }
+          })
+          .catch(error => {
+            console.error('Error', error);
+          });
+      }
     }
     this.setState({ validated: true });
   };
@@ -517,33 +493,43 @@ class PitContent extends Component {
       return null;
     } else if (this.state.retrieved === 'invalid') {
       return (
-        <div className='div-main'>
+        <div className='div-main' style={{ minHeight: this.state.heightSize }}>
           <h1 className='pt-4'>Invalid pit form request</h1>
         </div>
       );
     } else {
       if (this.state.cameraActivated) {
         return (
-          <Camera
-            idealResolution={{
-              width: 1600,
-              height: 1200
-            }}
-            imageType={IMAGE_TYPES.JPG}
-            isFullscreen={false}
-            isMaxResolution={false}
-            isImageMirror={false}
-            // imageCompression={1}
-            // sizeFactor={0.1}
-            idealFacingMode={FACING_MODES.ENVIRONMENT}
-            onTakePhotoAnimationDone={dataUri => {
-              this.handleTakePhoto(dataUri);
-            }}
-          />
+          <div>
+            <Prompt
+              when={!this.state.submitting}
+              message='Are you sure you want to leave?'
+            />
+            <Camera
+              idealResolution={{
+                width: 1600,
+                height: 1200
+              }}
+              imageType={IMAGE_TYPES.JPG}
+              isFullscreen={false}
+              isMaxResolution={false}
+              isImageMirror={false}
+              // imageCompression={1}
+              // sizeFactor={0.1}
+              idealFacingMode={FACING_MODES.ENVIRONMENT}
+              onTakePhotoAnimationDone={dataUri => {
+                this.handleTakePhoto(dataUri);
+              }}
+            />
+          </div>
         );
       } else {
         return (
           <div className='div-main'>
+            <Prompt
+              when={!this.state.submitting}
+              message='Are you sure you want to leave?'
+            />
             <div className='justify-content-center'>
               <img
                 alt='Logo'
@@ -716,10 +702,21 @@ class PitContent extends Component {
                     Drive Train:
                   </Form.Label>
                 </Form.Group>
+                <Form.Group style={{ width: '80%', marginLeft: '2%' }} as={Row}>
+                  <Form.Label
+                    className='mb-1'
+                    style={{
+                      fontFamily: 'Helvetica, Arial',
+                      fontSize: '100%'
+                    }}
+                  >
+                    Type:
+                  </Form.Label>
+                </Form.Group>
                 <Form.Group
                   style={{
                     width: '100%',
-                    marginLeft: '2%',
+                    marginLeft: '3%',
                     fontFamily: 'Helvetica, Arial'
                   }}
                   as={Row}
@@ -749,6 +746,17 @@ class PitContent extends Component {
                       key={'driveTrain' + driveTrain.id}
                     />
                   ))}
+                </Form.Group>
+                <Form.Group style={{ width: '80%', marginLeft: '2%' }} as={Row}>
+                  <Form.Label
+                    className='mb-1'
+                    style={{
+                      fontFamily: 'Helvetica, Arial',
+                      fontSize: '100%'
+                    }}
+                  >
+                    Motors:
+                  </Form.Label>
                 </Form.Group>
                 <Form.Group style={{ width: '100%' }}>
                   {this.state.driveTrainMotors.map(motor => (
@@ -813,6 +821,17 @@ class PitContent extends Component {
                 </Form.Group>
               </div>
               <div className='div-form'>
+                <Form.Group style={{ width: '80%', marginLeft: '2%' }} as={Row}>
+                  <Form.Label
+                    className='mb-1'
+                    style={{
+                      fontFamily: 'Helvetica, Arial',
+                      fontSize: '100%'
+                    }}
+                  >
+                    Wheels:
+                  </Form.Label>
+                </Form.Group>
                 <Form.Group
                   style={{ width: '100%', marginLeft: '2%' }}
                   className='mt-4'

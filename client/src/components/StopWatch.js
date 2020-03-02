@@ -9,6 +9,10 @@ class Stopwatch extends Component {
     minWidth: ''
   };
 
+  componentDidMount() {
+    this.setState({ timerTime: this.props.value });
+  }
+
   startTimer = () => {
     if (this.state.timerOn === false) {
       this.setState({
@@ -19,7 +23,7 @@ class Stopwatch extends Component {
       this.timer = setInterval(() => {
         this.props.parentCallback(Date.now() - this.state.timerStart);
         this.setState({
-          timerTime: Date.now() - this.state.timerStart
+          timerTime: this.props.value
         });
       }, 10);
     } else {
@@ -51,43 +55,52 @@ class Stopwatch extends Component {
     let minutes = ('0' + (Math.floor(timerTime / 60000) % 60)).slice(-2);
     return (
       <div className='mb-3' style={{ textAlign: 'center', margin: '0 auto' }}>
-        <div style={{ fontFamily: 'Helvetica, Arial', fontSize: '150%' }}>
+        <div
+          style={{
+            fontFamily: 'Helvetica, Arial',
+            fontSize: '150%',
+            display: 'inline-block',
+            textAlign: 'center'
+          }}
+        >
           {minutes}:{seconds}:{centiseconds}
         </div>
-        <Button
-          variant={this.state.timerOn ? 'danger' : 'success'}
-          type='btn'
-          style={{
-            textAlign: 'center',
-            minWidth: this.state.minWidth,
-            maxWidth: this.state.minWidth,
-            fontFamily: 'Helvetica, Arial',
-            boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
-            border: '1px solid black',
-            marginRight: '4%',
-            fontSize: '120%'
-          }}
-          onClick={this.startTimer}
-          className='btn-sm'
-        >
-          {this.state.timerOn ? 'Stop' : 'Start'}
-        </Button>
-        <Button
-          ref={this.refCallback}
-          variant='danger'
-          type='btn'
-          style={{
-            fontFamily: 'Helvetica, Arial',
-            boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
-            border: '1px solid black',
-            fontSize: '120%',
-            marginLeft: '4%'
-          }}
-          onClick={this.resetTimer}
-          className='btn-sm'
-        >
-          Reset
-        </Button>
+        <div>
+          <Button
+            variant={this.state.timerOn ? 'danger' : 'success'}
+            type='btn'
+            style={{
+              textAlign: 'center',
+              minWidth: this.state.minWidth,
+              maxWidth: this.state.minWidth,
+              fontFamily: 'Helvetica, Arial',
+              boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
+              border: '1px solid black',
+              margin: '0 4% 0 0',
+              fontSize: '120%'
+            }}
+            onClick={this.startTimer}
+            className='btn-sm'
+          >
+            {this.state.timerOn ? 'Stop' : 'Start'}
+          </Button>
+          <Button
+            ref={this.refCallback}
+            variant='danger'
+            type='btn'
+            style={{
+              fontFamily: 'Helvetica, Arial',
+              boxShadow: '-3px 3px black, -2px 2px black, -1px 1px black',
+              border: '1px solid black',
+              fontSize: '120%',
+              margin: '0 0 0 4%'
+            }}
+            onClick={this.resetTimer}
+            className='btn-sm'
+          >
+            Reset
+          </Button>
+        </div>
       </div>
     );
   }

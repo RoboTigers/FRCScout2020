@@ -7,68 +7,84 @@ import SuperScoutContent from './components/SuperScoutContent';
 import AnalystContent from './components/AnalystContent';
 import Login from './components/Login';
 import Logout from './components/Logout';
-import { AuthConsumer, AuthContext, AuthProvider } from './contexts/auth_context';
-import { BrowserRouter as Router, Redirect, Route, Switch } from 'react-router-dom';
+import {
+  AuthConsumer,
+  AuthContext,
+  AuthProvider
+} from './contexts/auth_context';
+import {
+  BrowserRouter as Router,
+  Redirect,
+  Route,
+  Switch
+} from 'react-router-dom';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import PitNavigation from './components/PitNavigation';
 import MatchContent from './components/MatchContent';
-
-function RenderTabContent({ selectedTab }) {
-  if (selectedTab === 'pit') {
-    return <PitNavigation />;
-  } else if (selectedTab === 'match') {
-    return <MatchReportList />;
-  } else {
-    return <AnalystContent />;
-  }
-}
+import Data from './components/Data';
+import Home from './components/Home';
 
 window.onunload = event => {
   window.scrollTo(0, 0);
 };
 
-
 const ProtectedRoute = ({ component: Component, ...rest }) => {
   const authContext = useContext(AuthContext);
 
   return (
-    <Route { ...rest } render={(props) => (
-      authContext.isLoggedIn === true
-        ? <Component {...props} />
-        : <Redirect to={{
-            pathname: '/login',
-            state: { from: props.location }
-          }}/>
-    )} />
-  )
+    <Route
+      {...rest}
+      render={props =>
+        authContext.isLoggedIn === true ? (
+          <Component {...props} />
+        ) : (
+          <Redirect
+            to={{
+              pathname: '/login',
+              state: { from: props.location }
+            }}
+          />
+        )
+      }
+    />
+  );
 };
 
 const AdminRoute = ({ component: Component, ...rest }) => {
   const authContext = useContext(AuthContext);
 
   return (
-    <Route { ...rest } render={(props) => (
-      authContext.isLoggedIn === true && authContext.user.role === 'admin'
-        ? <Component {...props} />
-        : <Redirect to={{
-            pathname: '/login',
-            state: {
-              from: props.location,
-              messages: [
-                { type: 'warning', message: 'You must be an admin to access this page' }
-              ]
-            }
-          }}/>
-    )} />
-  )
-}
+    <Route
+      {...rest}
+      render={props =>
+        authContext.isLoggedIn === true && authContext.user.role === 'admin' ? (
+          <Component {...props} />
+        ) : (
+          <Redirect
+            to={{
+              pathname: '/login',
+              state: {
+                from: props.location,
+                messages: [
+                  {
+                    type: 'warning',
+                    message: 'You must be an admin to access this page'
+                  }
+                ]
+              }
+            }}
+          />
+        )
+      }
+    />
+  );
+};
 
 class App extends Component {
   state = {
-    apiResponse: '',
-    selectedTab: '',
+    apiResponse: ''
   };
 
   constructor(props) {
@@ -77,12 +93,9 @@ class App extends Component {
   }
 
   componentDidMount() {
-    this.setState({
-      selectedTab: localStorage.getItem('selectedTab') || 'match'
-    });
-    fetch('/api/isLoggedIn').then((response) => {
+    fetch('/api/isLoggedIn').then(response => {
       if (response.ok) {
-        response.json().then((user) => {
+        response.json().then(user => {
           this.authProvider.current.logInUser(user);
         });
       } else {
@@ -91,37 +104,55 @@ class App extends Component {
     });
   }
 
-  handleTabSelect = event => {
-    this.setState({
-      selectedTab: event
-    });
-    localStorage.setItem('selectedTab', event);
-    sessionStorage.clear();
-  };
-
   render() {
     return (
       <AuthProvider ref={this.authProvider}>
         <div className='App'>
           <Router>
-            <TabNav onClick={this.handleTabSelect} />
+            <TabNav />
             <Switch>
+              <ProtectedRoute path='/' exact component={Home} />
               <ProtectedRoute path='/pits' exact component={PitNavigation} />
-              <ProtectedRoute
+              <AdminRoute
                 path='/matches/:competition/:team/:matchNum/'
+                exact
                 component={MatchContent}
               />
-              <AdminRoute path='/matches/new' component={MatchContent} />
-              <ProtectedRoute path='/matches' component={MatchReportList} />
-              <ProtectedRoute path='/supers/:competition' component={SuperScoutContent} />
+              <ProtectedRoute
+                path='/matches/new'
+                exact
+                component={MatchContent}
+              />
+              <ProtectedRoute
+                path='/matches'
+                exact
+                component={MatchReportList}
+              />
+              <ProtectedRoute
+                path='/supers/:competition'
+                exact
+                component={SuperScoutContent}
+              />
               <ProtectedRoute path='/analystHome' component={AnalystContent} />
               <ProtectedRoute
                 path='/pits/:competition/:team'
                 exact
                 component={PitContent}
               />
+              <ProtectedRoute path='/data' exact exact component={Data} />
+              <ProtectedRoute
+                path='/data/:competition'
+                exact
+                component={Data}
+              />
+              <ProtectedRoute
+                exact
+                path='/data/:competition/:team/:dataType(match|pit)?'
+                component={Data}
+              />
               <Route path='/login' component={Login} />
               <Route path='/logout' component={Logout} />
+              <Route component={Home} />
             </Switch>
           </Router>
         </div>

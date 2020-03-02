@@ -115,12 +115,22 @@ class App extends Component {
               <ProtectedRoute path='/pits' exact component={PitNavigation} />
               <AdminRoute
                 path='/matches/:competition/:team/:matchNum/'
+                exact
                 component={MatchContent}
               />
-              <ProtectedRoute path='/matches/new' component={MatchContent} />
-              <ProtectedRoute path='/matches' component={MatchReportList} />
+              <ProtectedRoute
+                path='/matches/new'
+                exact
+                component={MatchContent}
+              />
+              <ProtectedRoute
+                path='/matches'
+                exact
+                component={MatchReportList}
+              />
               <ProtectedRoute
                 path='/supers/:competition'
+                exact
                 component={SuperScoutContent}
               />
               <ProtectedRoute path='/analystHome' component={AnalystContent} />
@@ -129,9 +139,20 @@ class App extends Component {
                 exact
                 component={PitContent}
               />
-              <ProtectedRoute path='/data' component={Data} />
+              <ProtectedRoute path='/data' exact exact component={Data} />
+              <ProtectedRoute
+                path='/data/:competition'
+                exact
+                component={Data}
+              />
+              <ProtectedRoute
+                exact
+                path='/data/:competition/:team/:dataType'
+                component={Data}
+              />
               <Route path='/login' component={Login} />
               <Route path='/logout' component={Logout} />
+              <Route component={Home} />
             </Switch>
           </Router>
         </div>

@@ -299,7 +299,12 @@ class MatchContent extends Component {
   }
 
   changeMatchType = (key, event) => {
-    this.setState({ matchTypeKey: key });
+    this.setState({ matchTypeKey: key }, () => {
+      if (this.state.matchTypeKey === 'qm') {
+        this.setState({ matchNum2: '' });
+      }
+      this.getTeamNumber();
+    });
     this.setState({ matchTypeLabel: event.target.innerHTML });
     this.checkStage0();
   };

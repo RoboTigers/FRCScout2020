@@ -1,9 +1,11 @@
 -- Use drop statements for developers, once the database is set we should delete these dangerous lines
- drop table if exists competition cascade;
- drop table if exists team cascade;
- drop table if exists comp_team_mapping cascade;
- drop table if exists match;
- drop table if exists pit;
+-- drop table if exists competition cascade;
+-- drop table if exists team cascade;
+-- drop table if exists comp_team_mapping cascade;
+-- drop table if exists match;
+-- drop table if exists pit;
+-- drop table if exists users;
+-- drop type if exists user_role;
 
 
 create table competition (
@@ -170,10 +172,6 @@ insert into pit (mapping_id, status) values (2, 'Follow Up');
 insert into pit (mapping_id, status) values (3, 'Follow Up');
 insert into pit (mapping_id, status) values (4, 'Follow Up');
 insert into pit (mapping_id, status) values (5, 'Follow Up');
-
-
- drop table if exists users;
- drop type if exists user_role;
 
 create type user_role as enum ('admin', 'scout');
 

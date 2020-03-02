@@ -26,6 +26,8 @@ import {
   LabelList,
   ResponsiveContainer
 } from 'recharts';
+import 'react-html5-camera-photo/build/css/index.css';
+import ImagePreview from './ImagePreview';
 
 const scoreTypes = [
   { value: 'Average', label: 'Average' },
@@ -40,6 +42,8 @@ class Data extends Component {
     competition: '',
     competitions: [],
     competitionData: [],
+    matchData: [],
+    pitData: {},
     graphData: [],
     teamNum: '',
     retrieved: '',
@@ -75,7 +79,8 @@ class Data extends Component {
     rotationTimerDataField: 'Median',
     positionTimerDataField: 'Median',
     climbTimerDataField: 'Median',
-    teamDataType: 'match'
+    teamDataType: '',
+    refreshable: false
   };
 
   median(arr) {
@@ -249,14 +254,14 @@ class Data extends Component {
           team.climbTimerMin = 0;
         }
       });
-      console.log(newData);
-      this.setState({ competitionData: newData });
+      this.setState({ competitionData: newData }, () => {
+        this.setState({ retrieved: 'compValid' });
+      });
     });
   };
 
   extractTeamMatchData = data => {
     let matchData = data;
-    console.log(matchData);
     matchData = matchData.filter(match => match.report_status === 'Done');
     if (matchData.length !== 0) {
       let alteredData = [];
@@ -498,19 +503,21 @@ class Data extends Component {
       let newgraphData = [].concat(alteredData);
       this.setState({ graphData: newgraphData });
       alteredData.unshift(total);
-      this.setState({ competitionData: alteredData }, () => {
+      this.setState({ matchData: alteredData }, () => {
         this.setState({ retrieved: 'teamMatchValid' });
       });
     } else {
       this.setState({ retrieved: 'teamMatchInvalid' });
     }
-    // console.log(alteredData);
   };
 
   extractTeamPitData = pitData => {
-    console.log(pitData);
     let obj = {};
-    obj.groupName = pitData.group_name;
+    obj.groupName =
+      'G' +
+      pitData.group_name.charAt(6) +
+      ' ' +
+      (pitData.group_name.charAt(8) === 'R' ? 'Red' : 'Blue');
     obj.weight = pitData.weight;
     obj.height = pitData.height;
     obj.driveTrain = pitData.drive_train;
@@ -554,83 +561,385 @@ class Data extends Component {
     obj.workingOnComments = pitData.working_comments;
     obj.closingComments = pitData.closing_comments;
     obj.image = pitData.image;
-    this.setState({ retrieved: 'teamPitValid' }, () => {
-      this.setState({ competitionData: obj });
+    this.setState({ pitData: obj }, () => {
+      this.setState({ retrieved: 'teamPitValid' });
     });
   };
 
   componentDidMount() {
     window.onbeforeunload = null;
-    fetch('/competitions')
-      .then(response => response.json())
-      .then(data => {
-        this.setState({ competitions: data.competitions });
-        data.competitions.map(c => {
-          if (c.iscurrent) {
-            this.setState({ competition: c.shortname });
+    if (this.props.match.path === '/data') {
+      fetch('/competitions')
+        .then(response => response.json())
+        .then(data => {
+          this.setState({ competitions: data.competitions });
+          this.setState({ teamDataType: 'match' });
+          data.competitions.map(c => {
+            if (c.iscurrent) {
+              this.setState({ competition: c.shortname });
+            }
+          });
+        })
+        .then(() => {
+          fetch(`/api/competitions/${this.state.competition}/matchData`)
+            .then(response => response.json())
+            .then(data => {
+              let matchData = data.matchData;
+              this.extractCompData(matchData);
+            });
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+    } else if (this.props.match.path === '/data/:competition') {
+      fetch('/competitions')
+        .then(response => response.json())
+        .then(data => {
+          this.setState({ competitions: data.competitions });
+          this.setState({ teamDataType: 'match' });
+          let validCompetition = false;
+          data.competitions.map(c => {
+            if (c.shortname === this.props.match.params.competition) {
+              validCompetition = true;
+            }
+          });
+          if (!validCompetition) {
+            this.setState({
+              retrieved: 'compInvalid'
+            });
+          } else {
+            this.setState({
+              competition: this.props.match.params.competition
+            });
+            fetch(
+              `/api/competitions/${this.props.match.params.competition}/matchData`
+            )
+              .then(response => response.json())
+              .then(data => {
+                let matchData = data.matchData;
+                this.extractCompData(matchData);
+              });
           }
         });
-      })
-      .then(() => {
-        fetch(`/api/competitions/${this.state.competition}/matchData`)
-          .then(response => response.json())
-          .then(data => {
-            let matchData = data.matchData;
-            this.extractCompData(matchData);
-            this.setState({ retrieved: 'compValid' });
+    } else {
+      fetch('/competitions')
+        .then(response => response.json())
+        .then(data => {
+          this.setState({ competitions: data.competitions });
+          let validCompetition = false;
+          data.competitions.map(c => {
+            if (c.shortname === this.props.match.params.competition) {
+              validCompetition = true;
+            }
           });
-      })
-      .catch(error => {
-        console.error('Error:', error);
-      });
+          if (!validCompetition) {
+            this.setState({
+              retrieved: 'compInvalid'
+            });
+          } else {
+            this.setState({ teamNum: this.props.match.params.team });
+            this.setState({
+              competition: this.props.match.params.competition
+            });
+            this.setState({ teamDataType: this.props.match.params.dataType });
+            if (this.props.match.params.dataType === 'match') {
+              fetch(
+                `/api/competitions/${this.props.match.params.competition}/team/${this.props.match.params.team}/matchData`
+              )
+                .then(response => response.json())
+                .then(data => {
+                  let matchData = data.matchData;
+                  this.extractTeamMatchData(matchData);
+                });
+            } else {
+              fetch(
+                `/api/competitions/${this.props.match.params.competition}/team/${this.props.match.params.team}/pit`
+              )
+                .then(response => response.json())
+                .then(data => {
+                  if (data.pitFormData.length === 0) {
+                    this.setState({ retrieved: 'teamPitInvalid' });
+                  } else if (data.pitFormData[0].status !== 'Done') {
+                    this.setState({ retrieved: 'teamPitInvalid' });
+                  } else {
+                    let pitData = data.pitFormData[0];
+                    this.extractTeamPitData(pitData);
+                  }
+                });
+            }
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+    }
     this.setState({
       widthSize: window.innerWidth <= 760 ? '90%' : '50%'
     });
     this.setState({ heightSize: window.innerHeight + 'px' });
   }
 
-  getData = competition => {
-    this.setState({ competition });
-    if (this.state.teamNum === '') {
-      fetch(`/api/competitions/${competition}/matchData`)
-        .then(response => response.json())
-        .then(data => {
-          let matchData = data.matchData;
-          this.extractCompData(matchData);
-          this.setState({ retrieved: 'compValid' });
-        })
-        .catch(error => {
-          console.error('Error:', error);
-        });
-    } else {
-      if (this.state.teamDataType === 'match') {
-        fetch(
-          `/api/competitions/${competition}/team/${this.state.teamNum}/matchData`
-        )
+  componentDidUpdate(prevProps, prevState) {
+    if (this.props.match.url !== prevProps.match.url) {
+      window.onbeforeunload = null;
+      if (this.props.match.path === '/data') {
+        fetch('/competitions')
           .then(response => response.json())
           .then(data => {
-            let matchData = data.matchData;
-            this.extractTeamMatchData(matchData);
+            this.setState({ competitions: data.competitions });
+            this.setState({ teamDataType: 'match' });
+            data.competitions.map(c => {
+              if (c.iscurrent) {
+                this.setState({ competition: c.shortname });
+              }
+            });
+          })
+          .then(() => {
+            fetch(`/api/competitions/${this.state.competition}/matchData`)
+              .then(response => response.json())
+              .then(data => {
+                let matchData = data.matchData;
+                this.extractCompData(matchData);
+              });
           })
           .catch(error => {
             console.error('Error:', error);
           });
-      } else {
-        fetch(`/api/competitions/${competition}/team/${this.state.teamNum}/pit`)
+      } else if (this.props.match.path === '/data/:competition') {
+        fetch('/competitions')
           .then(response => response.json())
           .then(data => {
-            if (data.pitFormData.length === 0) {
-              this.setState({ retrieved: 'teamPitInvalid' });
-            } else if (data.pitFormData[0].status !== 'Done') {
-              this.setState({ retrieved: 'teamPitInvalid' });
+            this.setState({ competitions: data.competitions });
+            this.setState({ teamDataType: 'match' });
+            let validCompetition = false;
+            data.competitions.map(c => {
+              if (c.shortname === this.props.match.params.competition) {
+                validCompetition = true;
+              }
+            });
+            if (!validCompetition) {
+              this.setState({
+                retrieved: 'compInvalid'
+              });
             } else {
-              let pitData = data.pitFormData[0];
-              this.extractTeamPitData(pitData);
+              this.setState({
+                competition: this.props.match.params.competition
+              });
+              fetch(
+                `/api/competitions/${this.props.match.params.competition}/matchData`
+              )
+                .then(response => response.json())
+                .then(data => {
+                  let matchData = data.matchData;
+                  this.extractCompData(matchData);
+                });
+            }
+          });
+      } else {
+        fetch('/competitions')
+          .then(response => response.json())
+          .then(data => {
+            this.setState({ competitions: data.competitions });
+            let validCompetition = false;
+            data.competitions.map(c => {
+              if (c.shortname === this.props.match.params.competition) {
+                validCompetition = true;
+              }
+            });
+            if (!validCompetition) {
+              this.setState({
+                retrieved: 'compInvalid'
+              });
+            } else {
+              this.setState({ teamNum: this.props.match.params.team });
+              this.setState({
+                competition: this.props.match.params.competition
+              });
+              this.setState({ teamDataType: this.props.match.params.dataType });
+              if (this.props.match.params.dataType === 'match') {
+                fetch(
+                  `/api/competitions/${this.props.match.params.competition}/team/${this.props.match.params.team}/matchData`
+                )
+                  .then(response => response.json())
+                  .then(data => {
+                    let matchData = data.matchData;
+                    this.extractTeamMatchData(matchData);
+                  });
+              } else {
+                fetch(
+                  `/api/competitions/${this.props.match.params.competition}/team/${this.props.match.params.team}/pit`
+                )
+                  .then(response => response.json())
+                  .then(data => {
+                    if (data.pitFormData.length === 0) {
+                      this.setState({ retrieved: 'teamPitInvalid' });
+                    } else if (data.pitFormData[0].status !== 'Done') {
+                      this.setState({ retrieved: 'teamPitInvalid' });
+                    } else {
+                      let pitData = data.pitFormData[0];
+                      this.extractTeamPitData(pitData);
+                    }
+                  });
+              }
             }
           })
           .catch(error => {
             console.error('Error:', error);
           });
+      }
+      this.setState({
+        widthSize: window.innerWidth <= 760 ? '90%' : '50%'
+      });
+      this.setState({ heightSize: window.innerHeight + 'px' });
+    } else if (this.state.refreshable) {
+      this.setState({ refreshable: false });
+      window.onbeforeunload = null;
+      if (this.props.match.path === '/data') {
+        fetch('/competitions')
+          .then(response => response.json())
+          .then(data => {
+            this.setState({ competitions: data.competitions });
+            this.setState({ teamDataType: 'match' });
+            data.competitions.map(c => {
+              if (c.iscurrent) {
+                this.setState({ competition: c.shortname });
+              }
+            });
+          })
+          .then(() => {
+            fetch(`/api/competitions/${this.state.competition}/matchData`)
+              .then(response => response.json())
+              .then(data => {
+                let matchData = data.matchData;
+                this.extractCompData(matchData);
+              });
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+      } else if (this.props.match.path === '/data/:competition') {
+        fetch('/competitions')
+          .then(response => response.json())
+          .then(data => {
+            this.setState({ competitions: data.competitions });
+            this.setState({ teamDataType: 'match' });
+            let validCompetition = false;
+            data.competitions.map(c => {
+              if (c.shortname === this.props.match.params.competition) {
+                validCompetition = true;
+              }
+            });
+            if (!validCompetition) {
+              this.setState({
+                retrieved: 'compInvalid'
+              });
+            } else {
+              this.setState({
+                competition: this.props.match.params.competition
+              });
+              fetch(
+                `/api/competitions/${this.props.match.params.competition}/matchData`
+              )
+                .then(response => response.json())
+                .then(data => {
+                  let matchData = data.matchData;
+                  this.extractCompData(matchData);
+                });
+            }
+          });
+      } else {
+        fetch('/competitions')
+          .then(response => response.json())
+          .then(data => {
+            this.setState({ competitions: data.competitions });
+            let validCompetition = false;
+            data.competitions.map(c => {
+              if (c.shortname === this.props.match.params.competition) {
+                validCompetition = true;
+              }
+            });
+            if (!validCompetition) {
+              this.setState({
+                retrieved: 'compInvalid'
+              });
+            } else {
+              this.setState({ teamNum: this.props.match.params.team });
+              this.setState({
+                competition: this.props.match.params.competition
+              });
+              this.setState({ teamDataType: this.props.match.params.dataType });
+              if (this.props.match.params.dataType === 'match') {
+                fetch(
+                  `/api/competitions/${this.props.match.params.competition}/team/${this.props.match.params.team}/matchData`
+                )
+                  .then(response => response.json())
+                  .then(data => {
+                    let matchData = data.matchData;
+                    this.extractTeamMatchData(matchData);
+                  });
+              } else {
+                fetch(
+                  `/api/competitions/${this.props.match.params.competition}/team/${this.props.match.params.team}/pit`
+                )
+                  .then(response => response.json())
+                  .then(data => {
+                    if (data.pitFormData.length === 0) {
+                      this.setState({ retrieved: 'teamPitInvalid' });
+                    } else if (data.pitFormData[0].status !== 'Done') {
+                      this.setState({ retrieved: 'teamPitInvalid' });
+                    } else {
+                      let pitData = data.pitFormData[0];
+                      this.extractTeamPitData(pitData);
+                    }
+                  });
+              }
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+      }
+      this.setState({
+        widthSize: window.innerWidth <= 760 ? '90%' : '50%'
+      });
+      this.setState({ heightSize: window.innerHeight + 'px' });
+    }
+  }
+
+  getData = competition => {
+    this.setState({ competition });
+    if (this.state.teamNum === '') {
+      if (this.props.match.url === '/data/' + competition) {
+        this.setState({ refreshable: true });
+      } else {
+        this.setState({ refreshable: false });
+        this.props.history.push(`/data/${competition}`);
+      }
+    } else {
+      if (this.state.teamDataType === 'match') {
+        if (
+          this.props.match.url ===
+          '/data/' + competition + '/' + this.state.teamNum + '/match'
+        ) {
+          this.setState({ refreshable: true });
+        } else {
+          this.setState({ refreshable: false });
+          this.props.history.push(
+            `/data/${competition}/${this.state.teamNum}/match`
+          );
+        }
+      } else {
+        if (
+          this.props.match.url ===
+          '/data/' + competition + '/' + this.state.teamNum + '/pit'
+        ) {
+          this.setState({ refreshable: true });
+        } else {
+          this.setState({ refreshable: false });
+          this.props.history.push(
+            `/data/${competition}/${this.state.teamNum}/pit`
+          );
+        }
       }
     }
   };
@@ -707,93 +1016,89 @@ class Data extends Component {
 
   handleTeamGo = () => {
     if (this.state.teamNum === '') {
-      fetch(`/api/competitions/${this.state.competition}/matchData`)
-        .then(response => response.json())
-        .then(data => {
-          let matchData = data.matchData;
-          this.extractCompData(matchData);
-          this.setState({ retrieved: 'compValid' });
-        })
-        .catch(error => {
-          console.error('Error:', error);
-        });
+      if (this.props.match.url === '/data/' + this.state.competition) {
+        this.setState({ refreshable: true });
+      } else {
+        this.setState({ refreshable: false });
+        this.props.history.push(`/data/${this.state.competition}`);
+      }
     } else {
       if (this.state.teamDataType === 'match') {
-        fetch(
-          `/api/competitions/${this.state.competition}/team/${this.state.teamNum}/matchData`
-        )
-          .then(response => response.json())
-          .then(data => {
-            let matchData = data.matchData;
-            this.extractTeamMatchData(matchData);
-          })
-          .catch(error => {
-            console.error('Error:', error);
-          });
+        if (
+          this.props.match.url ===
+          '/data/' +
+            this.state.competition +
+            '/' +
+            this.state.teamNum +
+            '/match'
+        ) {
+          this.setState({ refreshable: true });
+        } else {
+          this.setState({ refreshable: false });
+          this.props.history.push(
+            `/data/${this.state.competition}/${this.state.teamNum}/match`
+          );
+        }
       } else {
-        fetch(
-          `/api/competitions/${this.state.competition}/team/${this.state.teamNum}/pit`
-        )
-          .then(response => response.json())
-          .then(data => {
-            if (data.pitFormData.length === 0) {
-              this.setState({ retrieved: 'teamPitInvalid' });
-            } else if (data.pitFormData[0].status !== 'Done') {
-              this.setState({ retrieved: 'teamPitInvalid' });
-            } else {
-              let pitData = data.pitFormData[0];
-              this.extractTeamPitData(pitData);
-            }
-          })
-          .catch(error => {
-            console.error('Error:', error);
-          });
+        if (
+          this.props.match.url ===
+          '/data/' + this.state.competition + '/' + this.state.teamNum + '/pit'
+        ) {
+          this.setState({ refreshable: true });
+        } else {
+          this.setState({ refreshable: false });
+          this.props.history.push(
+            `/data/${this.state.competition}/${this.state.teamNum}/pit`
+          );
+        }
       }
     }
   };
 
   changeToMatchData = () => {
     if (this.state.teamNum !== '') {
-      fetch(
-        `/api/competitions/${this.state.competition}/team/${this.state.teamNum}/matchData`
-      )
-        .then(response => response.json())
-        .then(data => {
-          let matchData = data.matchData;
-          this.extractTeamMatchData(matchData);
-        })
-        .catch(error => {
-          console.error('Error:', error);
-        });
+      if (
+        this.props.match.url ===
+        '/data/' + this.state.competition + '/' + this.state.teamNum + '/match'
+      ) {
+        this.setState({ refreshable: true });
+      } else {
+        this.setState({ refreshable: false });
+        this.props.history.push(
+          `/data/${this.state.competition}/${this.state.teamNum}/match`
+        );
+      }
     } else {
-      this.setState({ retrieved: 'teamMatchInvalid' });
+      if (this.props.match.url === '/data/' + this.state.competition) {
+        this.setState({ refreshable: true });
+      } else {
+        this.setState({ refreshable: false });
+        this.props.history.push(`/data/${this.state.competition}`);
+      }
     }
-    this.setState({ teamDataType: 'match' });
   };
 
   changeToPitData = () => {
     if (this.state.teamNum !== '') {
-      fetch(
-        `/api/competitions/${this.state.competition}/team/${this.state.teamNum}/pit`
-      )
-        .then(response => response.json())
-        .then(data => {
-          if (data.pitFormData.length === 0) {
-            this.setState({ retrieved: 'teamPitInvalid' });
-          } else if (data.pitFormData[0].status !== 'Done') {
-            this.setState({ retrieved: 'teamPitInvalid' });
-          } else {
-            let pitData = data.pitFormData[0];
-            this.extractTeamPitData(pitData);
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-        });
+      if (
+        this.props.match.url ===
+        '/data/' + this.state.competition + '/' + this.state.teamNum + '/pit'
+      ) {
+        this.setState({ refreshable: true });
+      } else {
+        this.setState({ refreshable: false });
+        this.props.history.push(
+          `/data/${this.state.competition}/${this.state.teamNum}/pit`
+        );
+      }
     } else {
-      this.setState({ retrieved: 'teamPitInvalid' });
+      if (this.props.match.url === '/data/' + this.state.competition) {
+        this.setState({ refreshable: true });
+      } else {
+        this.setState({ refreshable: false });
+        this.props.history.push(`/data/${this.state.competition}`);
+      }
     }
-    this.setState({ teamDataType: 'pit' });
   };
 
   render() {
@@ -2237,7 +2542,7 @@ class Data extends Component {
                 bordered
                 bootstrap4
                 // defaultSorted={defaultSorted}
-                data={this.state.competitionData}
+                data={this.state.matchData}
                 columns={teamColumns}
               />
             </div>
@@ -2360,6 +2665,175 @@ class Data extends Component {
                 Pit Data
               </Button>
             </div>
+            <div
+              className='div-form'
+              style={{ textAlign: 'center', marginTop: '20px' }}
+            >
+              <p
+                style={{
+                  fontSize: '150%',
+                  fontFamily: 'Helvetica, Arial'
+                }}
+              >
+                {'Group: ' + this.state.pitData.groupName}
+              </p>
+              <p
+                style={{
+                  fontSize: '150%',
+                  fontFamily: 'Helvetica, Arial'
+                }}
+              >
+                {'Weight: ' + this.state.pitData.weight + ' lbs'}
+              </p>
+              <p
+                style={{
+                  fontSize: '150%',
+                  fontFamily: 'Helvetica, Arial'
+                }}
+              >
+                {'Height: ' + this.state.pitData.height + ' inches'}
+              </p>
+            </div>
+            <div
+              className='div-form'
+              style={{ textAlign: 'center', marginTop: '20px' }}
+            >
+              <p
+                style={{
+                  fontSize: '150%',
+                  fontFamily: 'Helvetica, Arial'
+                }}
+              >
+                {'Drive Train: ' + this.state.pitData.driveTrain}
+              </p>
+              <p
+                style={{
+                  fontSize: '150%',
+                  fontFamily: 'Helvetica, Arial'
+                }}
+              >
+                {'Motors: ' + this.state.pitData.motors}
+              </p>
+              <p
+                style={{
+                  fontSize: '150%',
+                  fontFamily: 'Helvetica, Arial'
+                }}
+              >
+                {'Wheels: ' + this.state.pitData.wheels}
+              </p>
+              <p
+                style={{
+                  textAlign: 'left',
+                  fontSize: '100%',
+                  fontFamily: 'Helvetica, Arial'
+                }}
+              >
+                {'Drive Comments: ' +
+                  (this.state.pitData.driveComments === ''
+                    ? 'No comments'
+                    : this.state.pitData.driveComments)}
+              </p>
+            </div>
+            <div
+              className='div-form'
+              style={{ textAlign: 'center', marginTop: '20px' }}
+            >
+              <p
+                style={{
+                  fontSize: '150%',
+                  fontFamily: 'Helvetica, Arial'
+                }}
+              >
+                {'Code Language: ' + this.state.pitData.codeLanguage}
+              </p>
+              <p
+                style={{
+                  fontSize: '150%',
+                  fontFamily: 'Helvetica, Arial'
+                }}
+              >
+                {'Starting Position (Pref.): ' +
+                  this.state.pitData.startingPosition}
+              </p>
+              <p
+                style={{
+                  textAlign: 'left',
+                  fontSize: '100%',
+                  fontFamily: 'Helvetica, Arial'
+                }}
+              >
+                {'Auto Comments: ' +
+                  (this.state.pitData.autoComments === ''
+                    ? 'No comments'
+                    : this.state.pitData.autoComments)}
+              </p>
+            </div>
+            <div
+              className='div-form'
+              style={{ textAlign: 'center', marginTop: '20px' }}
+            >
+              <p
+                style={{
+                  fontSize: '150%',
+                  fontFamily: 'Helvetica, Arial'
+                }}
+              >
+                Abilities:
+              </p>
+              <ul>
+                {this.state.pitData.abilities.map(ability =>
+                  ability.value ? (
+                    <li
+                      key={ability.id}
+                      style={{
+                        fontFamily: 'Helvetica, Arial',
+                        textAlign: 'left'
+                      }}
+                    >
+                      {ability.label}
+                    </li>
+                  ) : null
+                )}
+              </ul>
+            </div>
+            <div
+              className='div-form'
+              style={{ textAlign: 'center', marginTop: '20px' }}
+            >
+              <p
+                style={{
+                  textAlign: 'left',
+                  fontSize: '100%',
+                  fontFamily: 'Helvetica, Arial'
+                }}
+              >
+                {'Working On Comments: ' +
+                  (this.state.pitData.workingOnComments === ''
+                    ? 'No comments'
+                    : this.state.pitData.workingOnComments)}
+              </p>
+              <p
+                style={{
+                  textAlign: 'left',
+                  fontSize: '100%',
+                  fontFamily: 'Helvetica, Arial'
+                }}
+              >
+                {'Closing Comments: ' +
+                  (this.state.pitData.closingComments === ''
+                    ? 'No comments'
+                    : this.state.pitData.closingComments)}
+              </p>
+            </div>
+            {this.state.pitData.image === null ? (
+              <p>No Image</p>
+            ) : (
+              <ImagePreview
+                dataUri={this.state.pitData.image}
+                isFullscreen={false}
+              />
+            )}
           </div>
         </div>
       );

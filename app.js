@@ -39,9 +39,11 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.static(path.join(__dirname, 'client/build')));
 
-app.use(ensureLoggedIn);
 
 app.use('/', authenticationRouter);
+
+app.use(ensureLoggedIn);
+
 app.use('/', indexRouter);
 app.use('/', usersRouter);
 app.use('/api', matchesRouter);

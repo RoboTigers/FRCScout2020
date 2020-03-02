@@ -147,7 +147,7 @@ class App extends Component {
               />
               <ProtectedRoute
                 exact
-                path='/data/:competition/:team/:dataType'
+                path='/data/:competition/:team/:dataType(match|pit)?'
                 component={Data}
               />
               <Route path='/login' component={Login} />

@@ -3,7 +3,7 @@ var router = express.Router();
 var passport = require('passport');
 
 router.get('/api/isLoggedIn', (req, res, next) => {
-  if (req.user !== null) {
+  if (typeof req.user !== 'undefined' && req.user !== null) {
     res.json({
       username: req.user.username,
       role: req.user.role
@@ -31,7 +31,10 @@ router.post('/login',
 );
 
 router.delete('/logout', (req, res, nex) => {
-  req.logout();
+  if (typeof req.user !== 'undefined' && req.user !== null) {
+    req.logout();
+  }
+
   res.send(200);
 });
 

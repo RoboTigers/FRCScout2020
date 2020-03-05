@@ -84,7 +84,8 @@ const AdminRoute = ({ component: Component, ...rest }) => {
 
 class App extends Component {
   state = {
-    apiResponse: ''
+    apiResponse: '',
+    loaded: false
   };
 
   constructor(props) {
@@ -97,63 +98,82 @@ class App extends Component {
       if (response.ok) {
         response.json().then(user => {
           this.authProvider.current.logInUser(user);
+          this.setState({ loaded: true });
         });
       } else {
         this.authProvider.current.logOutUser();
+        this.setState({ loaded: true });
       }
     });
   }
 
+  loadingApp() {
+    return (<p>Loading...</p>)
+  }
+
+  loadedApp() {
+    return (
+      <Switch>
+        <ProtectedRoute path='/' exact component={Home} />
+        <ProtectedRoute path='/pits' exact component={PitNavigation} />
+        <AdminRoute
+          path='/matches/:competition/:team/:matchNum/'
+          exact component={MatchContent}
+        />
+        <ProtectedRoute
+          path='/matches/new'
+          exact
+          component={MatchContent}
+        />
+        <ProtectedRoute
+          path='/matches'
+          exact
+          component={MatchReportList}
+        />
+        <ProtectedRoute
+          path='/supers/:competition'
+          exact
+          component={SuperScoutContent}
+        />
+        <ProtectedRoute path='/analystHome' component={AnalystContent} />
+        <ProtectedRoute
+          path='/pits/:competition/:team'
+          exact
+          component={PitContent}
+        />
+        <ProtectedRoute path='/data' exact exact component={Data} />
+        <ProtectedRoute
+          path='/data/:competition'
+          exact
+          component={Data}
+        />
+        <ProtectedRoute
+          exact
+          path='/data/:competition/:team/:dataType(match|pit)?'
+          component={Data}
+        />
+        <Route path='/login' component={Login} />
+        <Route path='/logout' component={Logout} />
+        <Route component={Home} />
+      </Switch>
+    )
+  }
+
   render() {
+    let app;
+
+    if (this.state.loaded) {
+      app = this.loadedApp()
+    } else {
+      app = this.loadingApp()
+    }
+
     return (
       <AuthProvider ref={this.authProvider}>
         <div className='App'>
           <Router>
             <TabNav />
-            <Switch>
-              <ProtectedRoute path='/' exact component={Home} />
-              <ProtectedRoute path='/pits' exact component={PitNavigation} />
-              <AdminRoute
-                path='/matches/:competition/:team/:matchNum/'
-                exact
-                component={MatchContent}
-              />
-              <ProtectedRoute
-                path='/matches/new'
-                exact
-                component={MatchContent}
-              />
-              <ProtectedRoute
-                path='/matches'
-                exact
-                component={MatchReportList}
-              />
-              <ProtectedRoute
-                path='/supers/:competition'
-                exact
-                component={SuperScoutContent}
-              />
-              <ProtectedRoute path='/analystHome' component={AnalystContent} />
-              <ProtectedRoute
-                path='/pits/:competition/:team'
-                exact
-                component={PitContent}
-              />
-              <ProtectedRoute path='/data' exact exact component={Data} />
-              <ProtectedRoute
-                path='/data/:competition'
-                exact
-                component={Data}
-              />
-              <ProtectedRoute
-                exact
-                path='/data/:competition/:team/:dataType(match|pit)?'
-                component={Data}
-              />
-              <Route path='/login' component={Login} />
-              <Route path='/logout' component={Logout} />
-              <Route component={Home} />
-            </Switch>
+            { app }
           </Router>
         </div>
       </AuthProvider>

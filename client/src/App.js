@@ -4,7 +4,7 @@ import TabNav from './components/TabNav';
 import PitContent from './components/PitContent';
 import MatchReportList from './components/MatchReportList';
 import SuperScoutContent from './components/SuperScoutContent';
-import AnalystContent from './components/AnalystContent';
+import TeamPickList from './components/TeamPickList';
 import Login from './components/Login';
 import Logout from './components/Logout';
 import {
@@ -135,7 +135,6 @@ class App extends Component {
           exact
           component={SuperScoutContent}
         />
-        <ProtectedRoute path='/analystHome' component={AnalystContent} />
         <ProtectedRoute
           path='/pits/:competition/:team'
           exact
@@ -151,6 +150,11 @@ class App extends Component {
           exact
           path='/data/:competition/:team/:dataType(match|pit)?'
           component={Data}
+        />
+        <ProtectedRoute
+          exact
+          path='/teamPickList'
+          component={TeamPickList}
         />
         <Route path='/login' component={Login} />
         <Route path='/logout' component={Logout} />

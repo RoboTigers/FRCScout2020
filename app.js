@@ -17,6 +17,7 @@ var usersRouter = require('./routes/users');
 var matchesRouter = require('./routes/matchesRouter');
 var pitNavRouter = require('./routes/pitNavRouter');
 var pitFormRouter = require('./routes/pitFormRouter');
+var pickListsRouter = require('./routes/pickListsRouter');
 var competitionRouter = require('./routes/competitionRouter');
 
 var app = express();
@@ -49,6 +50,7 @@ app.use('/', usersRouter);
 app.use('/api', matchesRouter);
 app.use('/api', pitNavRouter);
 app.use('/api', pitFormRouter);
+app.use('/api', pickListsRouter);
 app.use('/', competitionRouter);
 
 // Anything that doesn't match the above, send back index.html

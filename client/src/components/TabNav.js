@@ -65,8 +65,8 @@ class TabNav extends Component {
           </Link>
         </Nav.Item>
         <Nav.Item>
-          <Link className='nav-link' to='/analystHome'>
-            Analyst
+          <Link className='nav-link' to='/teamPickList'>
+            Team Pick List
           </Link>
         </Nav.Item>
         {this.loginOrLogoutLink()}
